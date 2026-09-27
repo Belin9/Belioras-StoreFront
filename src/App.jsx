@@ -4,6 +4,7 @@ import { BrowserRouter, Routes } from "react-router-dom";
 import AppProviders from "./AppProviders";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import DraftDock from "./components/ui/DraftDock";
+import ErrorBoundary from "./components/ui/ErrorBoundary";
 import LiquidPress from "./components/ui/LiquidPress";
 import RouteSeo from "./components/seo/RouteSeo";
 import authRoutes from "./routes/AuthRoutes";
@@ -21,11 +22,16 @@ function App() {
         <LiquidPress />
         {/* Title, description and canonical per route; before <Routes> so a page's own <Seo> wins. */}
         <RouteSeo />
-        <Routes>
-          {authRoutes()}
-          {dashboardRoutes()}
-          {storefrontRoutes()}
-        </Routes>
+        {/* Inside the router so it can clear itself on navigation, and around
+            <Routes> only — a page that throws during render should not take the
+            header, footer or draft dock down with it. */}
+        <ErrorBoundary>
+          <Routes>
+            {authRoutes()}
+            {dashboardRoutes()}
+            {storefrontRoutes()}
+          </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AppProviders>
   );
