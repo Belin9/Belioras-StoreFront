@@ -4,13 +4,18 @@
  * Where each backend module mounts, agreed before the module exists so a
  * service is written against the same path the API will serve.
  *
- * `identity` mounts at /auth: the module is named for the domain it owns, the
- * route for what a client calls. The rest are reserved namespaces — nothing
- * answers on them yet, and their services still run on mocks.
+ * The API splits by boundary: `/storefront` for customers, `/admin` for staff.
+ * `routes.auth` holds the leaf names; build a full path per realm with
+ * `authPath(name, realm)`. Everything absent from here is still a mock.
  */
 
+/** The wire prefix each realm's namespace lives under. */
+export const BOUNDARY = {
+  customer: "storefront",
+  staff: "admin",
+};
+
 export const API_NAMESPACES = {
-  identity: "auth",
   catalog: "catalog",
   content: "content",
   inventory: "inventory",
@@ -36,8 +41,19 @@ export const routes = {
     register: "auth/register",
     login: "auth/login",
     refresh: "auth/refresh",
+    logout: "auth/logout",
     logoutAll: "auth/logout-all",
     me: "auth/me",
     preferences: "auth/me/preferences",
+    sessions: "auth/sessions",
   },
 };
+
+/**
+ * Resolves an auth leaf to its boundary path, e.g.
+ * `authPath(routes.auth.login, "staff")` -> `admin/auth/login`.
+ */
+export function authPath(name, realm) {
+  const boundary = BOUNDARY[realm] ?? BOUNDARY.customer;
+  return `${boundary}/${name}`;
+}

@@ -11,13 +11,21 @@ export default function RequireAuth({ children, adminOnly = false, capability = 
   // Which session guards a route is the route's own question: a dashboard path
   // is answered by the staff session, a storefront path by the shopper's. Both
   // hooks run because hooks must; the choice happens after.
-  const { isAuthenticated, isAdmin, can } = adminOnly || capability ? staff : customer;
+  const guarded = adminOnly || capability;
+  const { isAuthenticated, isAdmin, can, booting } = guarded ? staff : customer;
 
   const location = useLocation();
 
+  // The staff session keeps nothing in storage and rebuilds itself from the
+  // refresh cookie, so on a cold start there is one request in which "signed
+  // out" and "not yet known" look identical. Redirecting during that window
+  // would throw a signed-in admin out of /dashboard on every refresh, so render
+  // nothing and wait for the answer. A blank frame beats a sign-in page.
+  if (guarded && booting) return null;
+
   if (!isAuthenticated) {
 
-    const door = adminOnly || capability ? "/atelier" : "/login";
+    const door = guarded ? "/atelier" : "/login";
     return <Navigate to={door} state={{ from: location.pathname + location.search }} replace />;
   }
 

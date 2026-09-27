@@ -1,21 +1,21 @@
 /* Staff Activity Log */
 import { mockApi } from "@/api/mock";
 import { getState, setState } from "../store/contentStore";
+import { currentStaff } from "./staffRegistry";
 
 /** The log keeps the most recent entries; a backend would page and archive instead. */
 const MAX_ENTRIES = 2000;
 
-/** Who is signed in to the dashboard right now, read from the staff session and the live account. */
+/**
+ * Who is signed in to the dashboard right now.
+ *
+ * Read from the staff session, which publishes the server's user here on every
+ * change. It used to read the staff session back out of localStorage, which
+ * stopped being true when the session moved to memory and became something the
+ * browser re-establishes from a refresh cookie on boot.
+ */
 export function currentActor() {
-  try {
-    const raw = window.localStorage.getItem("belioras:auth:staff");
-    const session = raw ? JSON.parse(raw)?.user : null;
-    if (!session) return null;
-    const live = getState("users").items.find((u) => u.id === session.id) ?? session;
-    return { id: live.id, name: live.name, email: live.email, role: live.role };
-  } catch {
-    return null;
-  }
+  return currentStaff();
 }
 
 /**

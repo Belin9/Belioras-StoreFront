@@ -10,7 +10,7 @@ import { isAdminRole, resolveLanding } from "../../../utils/roles";
 import { validateCredentials } from "../../../utils/validateCredentials";
 
 export default function AtelierLogin() {
-  const { login, loading, isAuthenticated, user } = useStaffAuth();
+  const { login, loading, booting, isAuthenticated, user } = useStaffAuth();
   const { toast } = useToast();
 
   const navigate = useNavigate();
@@ -24,7 +24,10 @@ export default function AtelierLogin() {
   const [error, setError] = useState(null);
 
   // Already signed in — send them where they belong rather than asking again.
-  if (isAuthenticated) {
+  // The session rebuilds itself from the refresh cookie on load, so wait for
+  // that answer before deciding: bouncing to "already in" while still asking
+  // the server would replace a working session with the sign-in form.
+  if (!booting && isAuthenticated) {
     return <Navigate to={resolveLanding(user, location.state?.from)} replace />;
   }
 
@@ -41,25 +44,28 @@ export default function AtelierLogin() {
     setError(null);
 
     try {
-      // realm "staff": a shopper's account cannot be signed in here either.
-      // Same generic rejection, for the same reason.
-      const result = await login({ email: email.trim(), password, realm: "staff" });
-
-      const signedIn = result?.user;
+      // The realm is not passed: the staff door is the admin boundary, fixed
+      // in the session. A shopper's account fails here with the same 401 as a
+      // wrong password, so there is nothing to say about it and no oracle to
+      // hand out.
+      const { user: signedIn } = await login({ email: email.trim(), password });
 
       if (isAdminRole(signedIn?.role)) {
         toast(`Welcome back, ${signedIn.name?.split(" ")[0] ?? "there"}.`, "success");
       } else {
-        // Signed in, just not staff. Say so plainly — they have already proved
-        // who they are, so this reveals nothing they did not supply.
-        toast("That is a client account. Taking you to your account instead.", "info");
+        // Genuinely signed in, but holding no dashboard role. Say so plainly —
+        // they have already proved who they are.
+        toast("That account has no dashboard access. Ask an administrator.", "info");
       }
 
-      // Navigated directly, with no setTimeout: setSession is synchronous, so
-      // the delay the previous flow used bought nothing and left an
-      // uncancelled timer that fired even after unmount.
+      // Navigated directly, with no setTimeout: the session update is
+      // synchronous, so the delay the previous flow used bought nothing and
+      // left an uncancelled timer that fired even after unmount.
       navigate(resolveLanding(signedIn, location.state?.from), { replace: true });
     } catch (err) {
+      // A 400 from the API is a field-level complaint; a 401 is the uniform
+      // "Invalid email or password." Either way the server's message is the one
+      // to show, and it never says which half was wrong.
       const message = err?.message ?? "Sign in failed. Please try again.";
       setError(message);
       toast(message, "error");
@@ -166,21 +172,6 @@ export default function AtelierLogin() {
             Client sign in
           </Link>
         </p>
-
-        {import.meta.env.DEV && (
-          <div className="mt-8 border border-dashed border-ivory-50/15 p-4 text-[11px] leading-relaxed text-ivory-50/45">
-            <p className="mb-1.5 font-semibold text-ivory-50/70">Staff accounts (dev only)</p>
-            <p>
-              Password: <span className="font-mono text-gold-400">demo123</span>
-            </p>
-            <p className="mt-1">
-              <span className="font-mono">admin@belioras.com</span> — Administrator
-            </p>
-            <p>
-              <span className="font-mono">staff@belioras.com</span> — Staff
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

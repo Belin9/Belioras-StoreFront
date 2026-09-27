@@ -2,7 +2,7 @@
 import { apiUrl } from "./config";
 import { apiErrorFromBody } from "./error";
 import { clearAccessToken, setAccessToken } from "./tokens";
-import { routes } from "./routes";
+import { authPath, routes } from "./routes";
 
 /**
  * One refresh per realm at a time.
@@ -29,12 +29,13 @@ export function refreshSession(realm) {
 
 async function run(realm) {
   // The refresh token is an httpOnly cookie, so it is never read here — it
-  // rides along because of `credentials`. The header is what tells the server
-  // which realm's cookie to honour when a browser holds both.
-  const response = await fetch(apiUrl(routes.auth.refresh), {
+  // rides along because of `credentials`. The realm travels in the path
+  // (/storefront/auth/refresh vs /admin/auth/refresh) and in the cookie name
+  // itself, so no header is needed to pick which cookie to honour.
+  const response = await fetch(apiUrl(authPath(routes.auth.refresh, realm)), {
     method: "POST",
     credentials: "include",
-    headers: { Accept: "application/json", "X-Auth-Realm": realm },
+    headers: { Accept: "application/json" },
   });
 
   const body = await response.json().catch(() => null);

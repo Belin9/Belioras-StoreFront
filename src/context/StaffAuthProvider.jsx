@@ -1,14 +1,16 @@
 /* Context Provider: Staff Auth */
 import { StaffAuthContext } from "./auth/authContexts";
-import { useAuthSession } from "./auth/useAuthSession";
+import { useStaffSession } from "./auth/useStaffSession";
 
 /**
- * A separate storage key, not a separate flag on one session. Two keys is what
- * makes signing out of the dashboard leave a shopper's basket alone, and what
- * stops a staff role leaking into a storefront read.
+ * Not the shopper's provider with a different flag: a separate context, fed by
+ * a separate session, so signing out of the dashboard leaves a shopper's basket
+ * alone and a staff token can never stand in for a customer one. The staff
+ * session talks to the real API and keeps nothing in storage, which is a
+ * different implementation, not a different setting.
  */
 export default function StaffAuthProvider({ children }) {
-  const value = useAuthSession({ realm: "staff", storageKey: "belioras:auth:staff" });
+  const value = useStaffSession();
 
   return <StaffAuthContext.Provider value={value}>{children}</StaffAuthContext.Provider>;
 }
