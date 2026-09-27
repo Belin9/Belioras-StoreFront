@@ -1,10 +1,14 @@
 /* Staff Session State */
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { accessToken, onTokenChange } from "@/api/tokens";
-import { refreshSession } from "@/api/refresh";
 import { accessFor, isAdminRole } from "@/utils/roles";
-import { staffLogin, staffLogout, staffLogoutAll, staffMe } from "@/services/auth/authStaffApi";
+import {
+  onStaffTokenChange,
+  staffLogin,
+  staffLogout,
+  staffLogoutAll,
+  staffRestore,
+} from "@/services/auth/authStaffApi";
 import { setCurrentStaff } from "@/services/auth/staffRegistry";
 
 /**
@@ -37,11 +41,7 @@ const REALM = "staff";
  */
 async function restore() {
   try {
-    if (accessToken(REALM)) return await staffMe();
-    // A successful refresh returns the user alongside the new token, so the
-    // common cold start costs one request, not two.
-    const session = await refreshSession(REALM);
-    return session?.user ?? (await staffMe());
+    return await staffRestore();
   } catch {
     return null;
   }
@@ -82,8 +82,8 @@ export function useStaffSession() {
    */
   useEffect(
     () =>
-      onTokenChange((realm, token) => {
-        if (realm === REALM && !token) setUser(null);
+      onStaffTokenChange((hasToken) => {
+        if (!hasToken) setUser(null);
       }),
     [],
   );
@@ -135,7 +135,13 @@ export function useStaffSession() {
       access: (section) => accessFor(role, section),
       can: (section) => accessFor(role, section) !== "none",
       canEdit: (section) => accessFor(role, section) === "edit",
-      token: accessToken(REALM),
+      /**
+       * Deliberately no `token` here. The access token lives in the transport
+       * (`api/tokens.js`) and is read by the HTTP client; nothing in React needs
+       * it, and putting a bearer token on a context value hands it to every
+       * consumer of this provider for no benefit. `isAuthenticated` is the only
+       * question a component should be asking.
+       */
       loading: busy,
       booting,
       isAuthenticated: Boolean(user),

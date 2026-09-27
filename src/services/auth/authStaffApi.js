@@ -1,7 +1,8 @@
 /* Staff Auth — Over Real HTTP */
 
 import { http } from "@/api/client";
-import { clearAccessToken, setAccessToken } from "@/api/tokens";
+import { refreshSession } from "@/api/refresh";
+import { accessToken, clearAccessToken, onTokenChange, setAccessToken } from "@/api/tokens";
 import { authPath, routes } from "@/api/routes";
 
 /**
@@ -79,4 +80,36 @@ export async function staffLogoutAll() {
   } finally {
     clearAccessToken(REALM);
   }
+}
+
+/**
+ * Rebuilds the session after a page load, when the in-memory token is gone and
+ * only the httpOnly refresh cookie remains.
+ *
+ * Rejects on failure so the caller decides what a dead session means — this is
+ * the transport's job, not the UI's.
+ */
+export async function staffRestore() {
+  // A token already in hand means the page never actually reloaded, so /me is
+  // both cheaper and authoritative.
+  if (accessToken(REALM)) return staffMe();
+
+  // A successful refresh returns the user alongside the new token, so the
+  // common cold start costs one request rather than two.
+  const session = await refreshSession(REALM);
+  return session?.user ?? (await staffMe());
+}
+
+/**
+ * Notifies when this realm's access token appears or is revoked, so a session
+ * can end mid-flight — which is the one case the request/response path cannot
+ * report, because it happens inside a failed refresh.
+ *
+ * The realm is filtered here so a caller cannot subscribe to another realm's
+ * tokens by accident.
+ */
+export function onStaffTokenChange(fn) {
+  return onTokenChange((realm, token) => {
+    if (realm === REALM) fn(Boolean(token));
+  });
 }
