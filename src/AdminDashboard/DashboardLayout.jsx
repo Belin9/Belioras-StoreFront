@@ -1,9 +1,10 @@
 /* Admin Dashboard: DashboardLayout */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Eye } from "lucide-react";
 
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import RouteFallback from "../components/ui/RouteFallback";
 import Forbidden from "../components/layout/Forbidden";
 import { useStaffAuth } from "@/context/auth/useAuthRealm";
 import { useToast } from "../context/ToastContext";
@@ -120,7 +121,14 @@ export default function DashboardLayout() {
                 </p>
               )}
               <HeaderSlotContext.Provider value={level === "edit" ? headerSlot : null}>
-                <Outlet />
+                {/* The page inside the shell is a lazy chunk (see
+                    DashboardPages.jsx). The boundary sits here rather than
+                    around the whole route tree so the sidebar, header and title
+                    above stay on screen while it loads — a spinner that blanks
+                    the chrome turns a fast navigation into a full-page flash. */}
+                <Suspense fallback={<RouteFallback />}>
+                  <Outlet />
+                </Suspense>
               </HeaderSlotContext.Provider>
             </>
           )}
