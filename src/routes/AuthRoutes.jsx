@@ -6,6 +6,7 @@ import SignupPage from "../pages/0.auth/customer/signup";
 import ForgotPasswordPage from "../pages/0.auth/customer/forgotpassword";
 import AtelierLoginPage from "../pages/0.auth/admin/atelier";
 import AtelierInvitePage from "../pages/0.auth/admin/atelierInvite";
+import AtelierSetPasswordPage from "../pages/0.auth/admin/atelierSetPassword";
 import InvoicePage from "../pages/invoice/InvoicePage";
 import PackingSlipsPage from "../pages/invoice/PackingSlipsPage";
 
@@ -22,6 +23,11 @@ export default function authRoutes() {
         <Route path="/atelier" element={<AtelierLoginPage />} />
         {/* Where an invited team member chooses their own password. */}
         <Route path="/atelier/invite" element={<AtelierInvitePage />} />
+        {/* Where a member created with a temporary password replaces it. The
+            dashboard guard sends flagged accounts here, and the page sends them
+            back out if they no longer owe one — so this needs no guard of its
+            own, and adding one would only create a loop to debug. */}
+        <Route path="/atelier/set-password" element={<AtelierSetPasswordPage />} />
 
         {/* An order's invoice, full screen so it prints clean. The page checks who may read it. */}
         <Route path="/invoice/:id" element={<InvoicePage />} />

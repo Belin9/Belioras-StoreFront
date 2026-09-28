@@ -46,6 +46,8 @@ export const routes = {
     me: "auth/me",
     preferences: "auth/me/preferences",
     sessions: "auth/sessions",
+    changePassword: "auth/change-password",
+    staff: "auth/staff",
   },
 };
 

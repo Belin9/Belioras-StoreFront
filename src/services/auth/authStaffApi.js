@@ -113,3 +113,56 @@ export function onStaffTokenChange(fn) {
     if (realm === REALM) fn(Boolean(token));
   });
 }
+
+// ---------------------------------------------------------------------------
+// Staff management
+//
+// These two are the first calls from the dashboard that ask the server a
+// question the browser used to answer itself. Whether the caller is allowed to
+// ask is decided server-side (`requireRole`), not here: the client already knows
+// it is super-admin, but that is a reason to render the button, not a reason to
+// be trusted with the outcome. A 403 from here is the server disagreeing, and
+// the UI must be able to say so rather than silently showing an empty table.
+// ---------------------------------------------------------------------------
+
+/**
+ * The staff roster, newest first. Members only — no password hashes, no
+ * tokenVersion, whatever else is on the row.
+ *
+ * Deliberately not cached in this module. A roster is the sort of thing that
+ * goes stale the moment a colleague is hired, and the caller is expected to put
+ * it in React Query where the invalidation story is visible.
+ */
+export async function listStaff() {
+  const data = await http.get(path("staff"), { realm: REALM });
+  return data ?? [];
+}
+
+/**
+ * Creates a staff account with a temporary password chosen by the caller.
+ *
+ * Returns the new member *and* the temporary password. The password is not
+ * retrievable afterwards — only its hash is stored — so this response is the one
+ * chance the admin has to write it down, which is why the UI is expected to show
+ * it plainly rather than treat it as a secret to be quietly discarded.
+ *
+ * No session is created for the new account, so the person it is for is the only
+ * one who can ever sign in with it.
+ */
+export async function createStaff({ name, email, role, password } = {}) {
+  const data = await http.post(path("staff"), { name, email, role, password }, { realm: REALM });
+  return { user: data.user, temporaryPassword: data.temporaryPassword };
+}
+
+/**
+ * Replaces the signed-in person's own password and clears the
+ * temporary-password flag.
+ *
+ * The refresh cookie rides along on the same request, so the server can keep
+ * this device signed in and drop the others. That is the whole point: rotating
+ * a password that was handed out must not also sign the person out of the tab
+ * they are rotating it in.
+ */
+export async function changePassword({ currentPassword, newPassword } = {}) {
+  return http.post(path("changePassword"), { currentPassword, newPassword }, { realm: REALM });
+}

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { accessFor, isAdminRole } from "@/utils/roles";
 import {
+  changePassword as changePasswordRequest,
   onStaffTokenChange,
   staffLogin,
   staffLogout,
@@ -121,6 +122,37 @@ export function useStaffSession() {
   }, []);
 
   const role = user?.role ?? null;
+  const mustChangePassword = Boolean(user?.mustChangePassword);
+
+  /**
+   * Replaces this person's own password, then folds the server's answer into
+   * state.
+   *
+   * The user object is replaced rather than patched locally: the flag lives on
+   * the server, and the only trustworthy copy of it came back on this response.
+   * Setting it optimistically would let the dashboard open a moment before the
+   * server agreed.
+   *
+   * The session survives this call — the server keeps this device's refresh
+   * cookie and drops the others — so there is no re-login here. What *can* fail
+   * is the current password being wrong, and that error propagates for the form
+   * to show.
+   */
+  const changePassword = useCallback(async (credentials) => {
+    setBusy(true);
+    try {
+      const updated = await changePasswordRequest(credentials);
+      setUser(updated);
+      // The registry is the non-React copy used by code that cannot use a hook
+      // (route guards, api layer). Leaving it pointing at the pre-rotation user
+      // would have `mustChangePassword: true` still being believed after the
+      // flag was cleared, and the guard would send them back here forever.
+      setCurrentStaff(updated);
+      return { user: updated };
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   return useMemo(
     () => ({
@@ -136,6 +168,17 @@ export function useStaffSession() {
       can: (section) => accessFor(role, section) !== "none",
       canEdit: (section) => accessFor(role, section) === "edit",
       /**
+       * The server says this account was created by someone else with a
+       * temporary password and has not replaced it yet. The route guard holds
+       * such an account out of the dashboard and sends it to the one screen that
+       * can let it through.
+       *
+       * Not derived from anything local: the flag is set by the API at creation
+       * and cleared by the API at rotation, and a browser that guessed either
+       * would be guessing about a security control.
+       */
+      mustChangePassword,
+      /**
        * Deliberately no `token` here. The access token lives in the transport
        * (`api/tokens.js`) and is read by the HTTP client; nothing in React needs
        * it, and putting a bearer token on a context value hands it to every
@@ -148,7 +191,8 @@ export function useStaffSession() {
       login,
       logout,
       logoutAll,
+      changePassword,
     }),
-    [user, role, busy, booting, login, logout, logoutAll],
+    [user, role, mustChangePassword, busy, booting, login, logout, logoutAll, changePassword],
   );
 }

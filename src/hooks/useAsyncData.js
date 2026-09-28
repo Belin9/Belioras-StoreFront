@@ -42,6 +42,21 @@ import { useEffect, useRef } from "react";
  * a `revision` after a write changes the key, which is a new query, which
  * fetches. Those 28 call sites need no change.
  */
+
+/**
+ * The cache key for a read, built the same way the hook builds it.
+ *
+ * Exported so a component that *writes* can update or invalidate the list it
+ * just wrote to, without hand-copying `[fn.toString()]` and hoping both places
+ * keep agreeing. Rebuilding the key from the same function reference is the
+ * only way to be sure a `setQueryData` lands on the query the reader is actually
+ * watching — get it subtly wrong and the write succeeds, the toast fires, and
+ * the table stubbornly shows the old row.
+ */
+export function queryKeyFor(fn, deps = []) {
+  return [fn.toString(), ...deps];
+}
+
 export function useAsyncData(fn, deps = [], options = {}) {
   const fnRef = useRef(fn);
 
@@ -51,7 +66,7 @@ export function useAsyncData(fn, deps = [], options = {}) {
   }, [fn]);
 
   const query = useQuery({
-    queryKey: [fn.toString(), ...deps],
+    queryKey: queryKeyFor(fn, deps),
     queryFn: () => fnRef.current(),
 
     /**

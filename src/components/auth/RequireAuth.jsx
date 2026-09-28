@@ -4,6 +4,9 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { useCustomerAuth, useStaffAuth } from "@/context/auth/useAuthRealm";
 import Forbidden from "../layout/Forbidden";
 
+/** Where an account that still owes a password change is sent to clear it. */
+const SET_PASSWORD = "/atelier/set-password";
+
 export default function RequireAuth({ children, adminOnly = false, capability = null }) {
   const customer = useCustomerAuth();
   const staff = useStaffAuth();
@@ -12,7 +15,7 @@ export default function RequireAuth({ children, adminOnly = false, capability = 
   // is answered by the staff session, a storefront path by the shopper's. Both
   // hooks run because hooks must; the choice happens after.
   const guarded = adminOnly || capability;
-  const { isAuthenticated, isAdmin, can, booting } = guarded ? staff : customer;
+  const { isAuthenticated, isAdmin, can, booting, mustChangePassword } = guarded ? staff : customer;
 
   const location = useLocation();
 
@@ -27,6 +30,25 @@ export default function RequireAuth({ children, adminOnly = false, capability = 
 
     const door = guarded ? "/atelier" : "/login";
     return <Navigate to={door} state={{ from: location.pathname + location.search }} replace />;
+  }
+
+  /**
+   * A staff account created by an admin with a temporary password may sign in,
+   * but the dashboard is not available to it until that password is replaced.
+   *
+   * This is a redirect rather than a `Forbidden` because the account is not
+   * under-privileged — it has exactly the powers it will have in a moment. It
+   * simply has not finished setting itself up, and the screen that lets it
+   * finish is the useful thing to show.
+   *
+   * `replace` so the dashboard is not in the history to bounce back into, and
+   * `state.from` so the person lands on the work they were trying to reach once
+   * the rotation clears. The set-password screen reads the same `from` shape the
+   * signed-out path already uses, which is why it can navigate back to a deep
+   * link without inventing a second convention.
+   */
+  if (guarded && mustChangePassword) {
+    return <Navigate to={SET_PASSWORD} state={{ from: location.pathname + location.search }} replace />;
   }
 
   if (adminOnly && !isAdmin) {

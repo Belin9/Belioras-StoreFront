@@ -1,5 +1,6 @@
 /* Admin Dashboard Page: Team - team */
 import { useCallback, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus, ShieldCheck, UserPlus } from "lucide-react";
 
 import { useStaffAuth } from "@/context/auth/useAuthRealm";
@@ -7,11 +8,12 @@ import Button from "../../../components/ui/Button";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useToast } from "../../../context/ToastContext";
-import { useAsyncData } from "../../../hooks/useAsyncData";
+import { queryKeyFor, useAsyncData } from "../../../hooks/useAsyncData";
+import { ROLES } from "../../../utils/roles";
 import {
-  addTeamMember, cancelInvite, createRole, deleteRole, getRoles, getUsers, renewInvite, updateRole, updateUserRole,
+  cancelInvite, createRole, deleteRole, getRoles, renewInvite, updateRole, updateUserRole,
 } from "../../../services/auth/authApi";
-import { lastSignIns } from "../../../services/auth/activityApi";
+import { createStaff, listStaff } from "../../../services/auth/authStaffApi";
 import DashHeaderActions from "../../components/DashHeaderActions";
 import DashListToolbar from "../../components/DashListToolbar";
 import DashTable from "../../components/DashTable";
@@ -19,25 +21,64 @@ import { usePageSize } from "../../lib/usePageSize";
 import RoleEditorDialog from "./sections/roles/RoleEditorDialog";
 import RolesPanel from "./sections/roles/RolesPanel";
 import { buildTeamColumns } from "./sections/teamTable/teamTableColumns";
-import { AddMemberDialog, RoleChangeDialog } from "./sections/teamTable/TeamTableDialogs";
+import { CreateMemberDialog } from "./sections/teamTable/CreateMemberDialog";
+import { RoleChangeDialog } from "./sections/teamTable/TeamTableDialogs";
 import { inviteUrl } from "./sections/teamTable/inviteUrl";
 
 /**
  * Who works in the dashboard and what each of them can do. Members holds the
  * people; Roles holds what a role opens, section by section. Every change here
  * is written to the activity log.
+ *
+ * Partly real. The member list and the add-an-account dialog talk to the API;
+ * roles, invitations and per-member role changes are still on the mock service
+ * and are marked as such where they are called. That split is deliberate rather
+ * than half-finished: the roster is the part that decides who can get in, so it
+ * is the part that has to be true, and it can be true on its own.
  */
 export default function DashTeam() {
   const { locale } = useLanguage();
   const { toast } = useToast();
-  const { user: signedIn, canEdit } = useStaffAuth();
-  const canManage = canEdit("team");
+  const { user: signedIn } = useStaffAuth();
+
+  /**
+   * The server's rule, not the capability matrix's.
+   *
+   * `/admin/auth/staff` sits behind `requireRole("super-admin")`, so both the
+   * roster and the create button are the administrator's alone. `canEdit("team")`
+   * agrees today — the only role in the seed with edit access to Team is the
+   * locked Administrator — but that is a fact about a mock catalogue the Roles
+   * tab can rewrite, and until role editing is real it is a fact this page could
+   * quietly stop being true about. Asking the question the server asks means the
+   * button cannot drift into offering an action that comes back 403.
+   */
+  const canManage = signedIn?.role === ROLES.SUPER_ADMIN;
+
+  const queryClient = useQueryClient();
 
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((n) => n + 1), []);
-  const { data: users, loading } = useAsyncData(getUsers, [revision]);
+
+  /**
+   * The roster, from the server. React Query owns the caching and the refetch,
+   * so `revision` is not in this key — bumping it would start a second,
+   * competing cache of the same list. Invalidation goes through
+   * `useQueryClient`, which is the whole reason the data layer was moved onto a
+   * library: "this list is now wrong" is a statement about one key, not a
+   * counter threaded through every reader.
+   */
+  const { data: staff, loading, error: rosterError } = useAsyncData(listStaff, []);
   const { data: roles } = useAsyncData(getRoles, [revision]);
-  const { data: lastSeen } = useAsyncData(lastSignIns, [revision]);
+
+  /**
+   * No last-seen data, on purpose. The mock `lastSignIns` service only knows
+   * about the accounts it invented, so wiring it to a roster that now comes
+   * from the API would have every real member showing as "Not since logging
+   * began" — which is not "no data", it is a false statement about a colleague
+   * who signed in this morning. `null` renders the honest "Not tracked yet", and
+   * passing real data here later changes nothing else.
+   */
+  const lastSeen = null;
 
   const [tab, setTab] = useState("members");
   const [query, setQuery] = useState("");
@@ -49,7 +90,13 @@ export default function DashTeam() {
   const [pageSize, setPageSize] = usePageSize("team");
 
   const roleList = useMemo(() => roles ?? [], [roles]);
-  const team = useMemo(() => (users ?? []).filter((u) => u.role !== "customer"), [users]);
+
+  /**
+   * The server returns every staff account, newest first, and has no concept of
+   * a customer — the roster *is* the staff table. The old filter is kept only to
+   * drop a signed-out null during a refetch, not to exclude anyone.
+   */
+  const team = useMemo(() => staff ?? [], [staff]);
 
   const dateFmt = useMemo(() => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }), [locale]);
   const timeFmt = useMemo(() => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), [locale]);
@@ -82,9 +129,18 @@ export default function DashTeam() {
     }
   };
 
+  /**
+   * Creates the account, then puts the new member at the top of the list.
+   *
+   * The list is updated from the server's answer rather than by refetching: the
+   * create response carries the member exactly as the API now holds them, so a
+   * round trip would only be a chance to be told the same thing. Sorting is
+   * repeated here because the server orders by creation date, and an optimistic
+   * insert that lands at the bottom of a "newest first" table looks like a bug.
+   */
   const add = async (form) => {
-    const result = await addTeamMember(form);
-    refresh();
+    const result = await createStaff(form);
+    queryClient.setQueryData(queryKeyFor(listStaff), (current) => [result.user, ...(current ?? [])]);
     return result;
   };
 
@@ -99,7 +155,12 @@ export default function DashTeam() {
   const columns = useMemo(
     () =>
       buildTeamColumns({
-        dateFmt, timeFmt, roles: roleList, lastSeen: lastSeen ?? {}, signedInId: signedIn?.id, canManage,
+        dateFmt, timeFmt, roles: roleList, lastSeen, signedInId: signedIn?.id, canManage,
+        // Role changes and "remove access" are still mock-backed, and a mock that
+        // reports success is worse than no control at all. False until they sit
+        // behind the API; passed explicitly so the switch is one line, not a
+        // search through the column builder.
+        canChangeRole: false,
         onStageRoleChange: setPendingRole,
         onCopyInvite: (m) => copyInvite(m),
         onRenewInvite: (m) => run(() => renewInvite(m.id), (r) => { copyInvite(m, r.token); return `New link for ${m.name} created and copied.`; }),
@@ -121,7 +182,7 @@ export default function DashTeam() {
         <DashHeaderActions>
           {tab === "members" ? (
             <Button icon={UserPlus} size="sm" onClick={() => setAdding((d) => ({ open: true, n: d.n + 1 }))} className="h-10">
-              Invite<span className="hidden sm:inline"> member</span>
+              Add<span className="hidden sm:inline"> member</span>
             </Button>
           ) : (
             <Button icon={Plus} size="sm" onClick={() => setEditing((e) => ({ open: true, role: null, n: e.n + 1 }))} className="h-10">
@@ -133,6 +194,20 @@ export default function DashTeam() {
 
       {tab === "members" ? (
         <>
+          {/*
+            A roster that failed to load and a roster with nobody in it look the
+            same on this page — the table renders rows out of `team`, and an
+            empty array has no rows. Saying so is the difference between "there
+            is no one here" and "we could not ask".
+          */}
+          {rosterError && !loading && (
+            <p role="alert" className="border border-error/30 bg-error/5 px-4 py-3 text-[13px] text-error">
+              {rosterError.status === 403
+                ? "You do not have permission to view the team roster."
+                : "Could not load the team roster. Please try again."}
+            </p>
+          )}
+
           <DashListToolbar
             tabs={tabs}
             tab={tab}
@@ -175,7 +250,17 @@ export default function DashTeam() {
 
       <RoleChangeDialog pending={pendingRole} roles={roleList} onClose={() => setPendingRole(null)} onConfirm={applyRole} />
 
-      <AddMemberDialog key={adding.n} open={adding.open} roles={roleList} onClose={() => setAdding((d) => ({ ...d, open: false }))} onAdd={add} />
+      {/* The real one: creates the account through the API. It replaces the
+          invitation dialog, which is mock-backed and described a flow the server
+          does not implement — an account created here exists immediately and
+          signs in with the password the administrator chose. */}
+      <CreateMemberDialog
+        key={adding.n}
+        open={adding.open}
+        roles={roleList}
+        onClose={() => setAdding((d) => ({ ...d, open: false }))}
+        onCreate={add}
+      />
 
       <RoleEditorDialog
         key={`role-${editing.n}`}
