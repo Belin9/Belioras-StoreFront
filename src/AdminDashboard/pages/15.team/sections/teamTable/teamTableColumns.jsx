@@ -3,6 +3,7 @@ import { Copy, RefreshCw, X } from "lucide-react";
 
 import Avatar from "../../../../../components/account/Avatar";
 import IconAction from "../../../../components/IconAction";
+import { cn } from "../../../../../utils/cn";
 import { reach } from "../../../../../utils/permissions";
 
 /** "12 sections · 8 can change" — how far a role reaches, at a glance. */
@@ -14,7 +15,7 @@ function reachText(role) {
   return `${sections.length} ${sections.length === 1 ? "section" : "sections"}${edits ? ` · ${edits} to change` : " · view only"}`;
 }
 
-export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId, canManage, canChangeRole = false, onStageRoleChange, onCopyInvite, onRenewInvite, onCancelInvite }) {
+export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId, canManage, onStageRoleChange, onStageStatusChange, onCopyInvite, onRenewInvite, onCancelInvite }) {
   const roleOf = (id) => roles.find((r) => r.id === id);
   return [
     {
@@ -41,6 +42,17 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
                   Password pending
                 </span>
               )}
+              {/* Suspended, not deleted: the account is intact, the role is
+                  intact, and this row is where the "undo" lives. Marking it here
+                  is what stops a suspended colleague looking simply employed. */}
+              {row.original.status === "suspended" && (
+                <span
+                  title="Access removed — this account cannot sign in"
+                  className="bg-error/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-error"
+                >
+                  Suspended
+                </span>
+              )}
               {row.original.id === signedInId && <span className="text-[11px] font-normal text-espresso-soft">(you)</span>}
             </p>
             <p className="truncate text-[11px] text-espresso-soft">{row.original.email}</p>
@@ -58,15 +70,15 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
         if (member.id === signedInId || !canManage) {
           return <span className="text-[13px] text-espresso">{roleOf(member.role)?.name ?? member.role}</span>;
         }
-        // Changing someone's role is still on the mock service, which would
-        // report success and leave the API holding the old value. The field stays
-        // visible and disabled rather than disappearing, so the shape of what is
-        // coming is honest and so nobody reads the absence as a missing feature.
-        if (!canChangeRole) {
+        // A suspended account has no role to speak of until it is restored, and
+        // the server refuses the change anyway — so the box is shown disabled
+        // with the reason on it, rather than inviting a click that will be
+        // refused by the one authority that matters.
+        if (member.status === "suspended") {
           return (
             <span
-              title="Changing a role is not available yet — this table is live, role changes are not."
-              className="inline-flex cursor-not-allowed items-center gap-1.5 text-[13px] text-espresso/50"
+              title="Restore this account before changing its role."
+              className="inline-flex cursor-not-allowed items-center text-[13px] text-espresso/50"
             >
               {roleOf(member.role)?.name ?? member.role}
             </span>
@@ -80,10 +92,11 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
             aria-label={`Role for ${member.name}`}
             className="input h-9 max-w-52 py-1 text-[12px]"
           >
-            {/* The Administrator role is not offered. `updateUserRole` is still
-                on the mock service, but it will be moved behind the API, and the
-                API refuses to grant that role — so an option that cannot be
-                chosen is a trap, not a disabled field. */}
+            {/* The Administrator role is not offered because the API refuses to
+                grant it — an option that cannot be chosen is a trap, not a
+                disabled field. It is also not offered for another reason: the
+                API refuses to change an existing Administrator's role at all, so
+                a target that is already one has no options to show. */}
             {roles.filter((r) => !r.locked).map((r) => (
               <option key={r.id} value={r.id}>{r.name}</option>
             ))}
@@ -131,7 +144,7 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
       meta: { align: "right" },
       cell: ({ row }) => {
         const m = row.original;
-        if (!canManage || !canChangeRole || m.id === signedInId) return null;
+        if (!canManage || m.id === signedInId) return null;
         if (m.status === "invited") {
           return (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
@@ -141,16 +154,24 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
             </div>
           );
         }
+        // The undo is offered on the same row as the thing it undoes. An admin
+        // who has just removed somebody's access is exactly the person most
+        // likely to be asked to put it back, and the fastest way back is the one
+        // that cannot be reached by looking in the wrong place.
+        const suspended = m.status === "suspended";
         return (
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onStageRoleChange({ user: m, role: "customer" });
+              onStageStatusChange({ user: m, status: suspended ? "active" : "suspended" });
             }}
-            className="whitespace-nowrap text-[11px] uppercase tracking-[0.14em] text-espresso/45 transition-colors hover:text-error"
+            className={cn(
+              "whitespace-nowrap text-[11px] uppercase tracking-[0.14em] transition-colors",
+              suspended ? "text-espresso/45 hover:text-espresso" : "text-espresso/45 hover:text-error",
+            )}
           >
-            Remove access
+            {suspended ? "Restore access" : "Remove access"}
           </button>
         );
       },

@@ -25,7 +25,7 @@ import { authPath, routes } from "@/api/routes";
  */
 
 const REALM = "staff";
-const path = (name) => authPath(routes.auth[name], REALM);
+const path = (name, id) => authPath(routes.auth[name], REALM, id);
 
 /** Stores the access token, and mirrors the token store's death to the caller. */
 function adoptSession({ accessToken }) {
@@ -165,4 +165,32 @@ export async function createStaff({ name, email, role, password } = {}) {
  */
 export async function changePassword({ currentPassword, newPassword } = {}) {
   return http.post(path("changePassword"), { currentPassword, newPassword }, { realm: REALM });
+}
+
+/**
+ * Changes one member's role.
+ *
+ * Returns the server's updated account, so the caller settles its cache from
+ * the answer rather than from the value it hoped to get. The person it is for
+ * is *not* signed out: the role is not in their access token, so it takes
+ * effect on their next request without a re-login.
+ *
+ * The server refuses more than the client's own guard does — your own account,
+ * and any Administrator row — so a 403 here is a normal answer to a plausible
+ * click, and the UI is expected to show the server's reason rather than
+ * "something went wrong".
+ */
+export async function updateStaffRole(id, role) {
+  return http.patch(path("staffRole", id), { role }, { realm: REALM });
+}
+
+/**
+ * Suspends or restores an account — "remove access", which is not a demotion.
+ *
+ * Suspending ends access now: the server deletes every session the account has
+ * and refuses new sign-ins until it is restored. The role is left alone, so
+ * restoring gives the person back the job they had.
+ */
+export async function updateStaffStatus(id, status) {
+  return http.patch(path("staffStatus", id), { status }, { realm: REALM });
 }

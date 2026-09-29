@@ -11,9 +11,9 @@ import { useToast } from "../../../context/ToastContext";
 import { queryKeyFor, useAsyncData } from "../../../hooks/useAsyncData";
 import { ROLES } from "../../../utils/roles";
 import {
-  cancelInvite, createRole, deleteRole, getRoles, renewInvite, updateRole, updateUserRole,
+  cancelInvite, createRole, deleteRole, getRoles, renewInvite, updateRole,
 } from "../../../services/auth/authApi";
-import { createStaff, listStaff } from "../../../services/auth/authStaffApi";
+import { createStaff, listStaff, updateStaffRole, updateStaffStatus } from "../../../services/auth/authStaffApi";
 import DashHeaderActions from "../../components/DashHeaderActions";
 import DashListToolbar from "../../components/DashListToolbar";
 import DashTable from "../../components/DashTable";
@@ -22,7 +22,7 @@ import RoleEditorDialog from "./sections/roles/RoleEditorDialog";
 import RolesPanel from "./sections/roles/RolesPanel";
 import { buildTeamColumns } from "./sections/teamTable/teamTableColumns";
 import { CreateMemberDialog } from "./sections/teamTable/CreateMemberDialog";
-import { RoleChangeDialog } from "./sections/teamTable/TeamTableDialogs";
+import { RoleChangeDialog, SuspendDialog } from "./sections/teamTable/TeamTableDialogs";
 import { inviteUrl } from "./sections/teamTable/inviteUrl";
 
 /**
@@ -30,11 +30,13 @@ import { inviteUrl } from "./sections/teamTable/inviteUrl";
  * people; Roles holds what a role opens, section by section. Every change here
  * is written to the activity log.
  *
- * Partly real. The member list and the add-an-account dialog talk to the API;
- * roles, invitations and per-member role changes are still on the mock service
- * and are marked as such where they are called. That split is deliberate rather
- * than half-finished: the roster is the part that decides who can get in, so it
- * is the part that has to be true, and it can be true on its own.
+ * The member side is real: the roster, adding an account, changing somebody's
+ * role and taking access away all go to the API, and the server decides who is
+ * allowed to do each. The Roles tab — the editable catalogue of what each role
+ * opens — is still the mock service, which is why it can still be marked as such
+ * where it is called. That split is deliberate rather than half-finished: the
+ * part that decides who can get in, and who no longer can, is the part that has
+ * to be true, and it can be true on its own.
  */
 export default function DashTeam() {
   const { locale } = useLanguage();
@@ -83,6 +85,7 @@ export default function DashTeam() {
   const [tab, setTab] = useState("members");
   const [query, setQuery] = useState("");
   const [pendingRole, setPendingRole] = useState(null);
+  const [pendingStatus, setPendingStatus] = useState(null);
   const [pendingCancel, setPendingCancel] = useState(null);
   const [pendingDeleteRole, setPendingDeleteRole] = useState(null);
   const [adding, setAdding] = useState({ open: false, n: 0 });
@@ -113,11 +116,56 @@ export default function DashTeam() {
     }
   };
 
+  /**
+   * Swaps one member for the server's version of them, wherever they sit in the
+   * list. Returns the row it replaced, or null if the member has since gone.
+   */
+  const patchMember = (id, next) => {
+    queryClient.setQueryData(queryKeyFor(listStaff), (current) =>
+      (current ?? []).map((member) => (member.id === id ? { ...member, ...next } : member)));
+  };
+
+  /**
+   * Applies a role change to the server and settles the roster from its answer.
+   *
+   * The row is updated in place rather than refetched. The response carries the
+   * account exactly as the API now holds it — including `status`, which the
+   * server preserved — so a refetch would cost a round trip to be told the same
+   * thing, and would blank the table while it waited. If the server refused, the
+   * thrown message is shown and the cache is never touched, so the dropdown
+   * springs back to the truth instead of keeping the value the user picked.
+   */
   const applyRole = async () => {
     const { user, role } = pendingRole;
     setPendingRole(null);
-    const name = roleList.find((r) => r.id === role)?.name;
-    await run(() => updateUserRole(user.id, role, signedIn), role === "customer" ? `${user.name} no longer has dashboard access.` : `${user.name} is now ${name}.`);
+    const name = roleList.find((r) => r.id === role)?.name ?? role;
+    const result = await run(
+      () => updateStaffRole(user.id, role),
+      () => `${user.name} is now ${name}.`,
+    );
+    if (result) patchMember(user.id, result);
+  };
+
+  /**
+   * Suspends or restores access, and says which it did.
+   *
+   * "Remove access" is a suspension, not a demotion: the server ends the
+   * sessions and refuses new sign-ins, and the role is left alone. The copy
+   * reflects the real consequence, because the alternative — a cheerful
+   * "removed" toast on an account that can still sign in — is the kind of
+   * message that gets someone fired and then lets them back in.
+   */
+  const applyStatus = async () => {
+    const { user, status } = pendingStatus;
+    setPendingStatus(null);
+    const suspending = status === "suspended";
+    const result = await run(
+      () => updateStaffStatus(user.id, status),
+      () => (suspending
+        ? `${user.name}'s access is removed. They have been signed out everywhere.`
+        : `${user.name} can sign in again.`),
+    );
+      if (result) patchMember(user.id, result);
   };
 
   const copyInvite = async (member, token = member.inviteToken) => {
@@ -156,12 +204,8 @@ export default function DashTeam() {
     () =>
       buildTeamColumns({
         dateFmt, timeFmt, roles: roleList, lastSeen, signedInId: signedIn?.id, canManage,
-        // Role changes and "remove access" are still mock-backed, and a mock that
-        // reports success is worse than no control at all. False until they sit
-        // behind the API; passed explicitly so the switch is one line, not a
-        // search through the column builder.
-        canChangeRole: false,
         onStageRoleChange: setPendingRole,
+        onStageStatusChange: setPendingStatus,
         onCopyInvite: (m) => copyInvite(m),
         onRenewInvite: (m) => run(() => renewInvite(m.id), (r) => { copyInvite(m, r.token); return `New link for ${m.name} created and copied.`; }),
         onCancelInvite: setPendingCancel,
@@ -249,6 +293,7 @@ export default function DashTeam() {
       )}
 
       <RoleChangeDialog pending={pendingRole} roles={roleList} onClose={() => setPendingRole(null)} onConfirm={applyRole} />
+      <SuspendDialog pending={pendingStatus} onClose={() => setPendingStatus(null)} onConfirm={applyStatus} />
 
       {/* The real one: creates the account through the API. It replaces the
           invitation dialog, which is mock-backed and described a flow the server
