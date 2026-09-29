@@ -41,8 +41,23 @@ async function run(realm) {
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    clearAccessToken(realm);
-    throw apiErrorFromBody(response.status, body);
+    const error = apiErrorFromBody(response.status, body);
+    /**
+     * Only a *refusal* ends the session.
+     *
+     * Clearing the token on every failure is what turned a throttled refresh
+     * into a sign-out: the limiter answered 429, this cleared the token, the
+     * session took the cleared token as a revocation, and the dashboard sent
+     * the person to the sign-in page — where login was itself throttled, so
+     * there was no way back until the window rolled over.
+     *
+     * 401 and 403 are the server saying this session is gone, and only then has
+     * the token served its purpose. A 429 is "not yet", a 5xx is "not the
+     * server's fault", and neither means the person should be logged out — the
+     * cookie is still good and the next attempt will use it.
+     */
+    if (error.status === 401 || error.status === 403) clearAccessToken(realm);
+    throw error;
   }
 
   const session = body?.data ?? body;

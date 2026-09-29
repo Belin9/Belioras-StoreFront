@@ -7,6 +7,39 @@ import Forbidden from "../layout/Forbidden";
 /** Where an account that still owes a password change is sent to clear it. */
 const SET_PASSWORD = "/atelier/set-password";
 
+/**
+ * Shown when the session could not be established, as opposed to being absent.
+ *
+ * These are different problems and used to share one outcome. A refresh that
+ * came back throttled, or a request that never reached the API, left the guard
+ * with no user — and no user means "signed out", so a person with a perfectly
+ * good cookie was sent to the sign-in page, where signing in was itself
+ * throttled. Nothing they could do would have got them back.
+ *
+ * Here the work is one button. The cookie was never touched, so retrying is
+ * genuinely all it takes.
+ */
+function BootProblem({ error, onRetry }) {
+  const throttled = error?.status === 429;
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center px-6">
+      <div className="max-w-md text-center">
+        <p className="font-display text-2xl tracking-wide text-espresso">
+          {throttled ? "Too many attempts" : "Could not reach Belioras"}
+        </p>
+        <p className="mt-3 text-[13px] leading-relaxed text-espresso-soft">
+          {throttled
+            ? "Too many sign-in attempts came from this network in a short time, so the server asked us to wait. Your session was not ended — it only could not be read just now."
+            : "We could not check your session just now. This is usually a brief network problem rather than anything to do with your account."}
+        </p>
+        <button type="button" onClick={onRetry} className="btn btn-primary btn-md mt-6">
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function RequireAuth({ children, adminOnly = false, capability = null }) {
   const customer = useCustomerAuth();
   const staff = useStaffAuth();
@@ -15,7 +48,9 @@ export default function RequireAuth({ children, adminOnly = false, capability = 
   // is answered by the staff session, a storefront path by the shopper's. Both
   // hooks run because hooks must; the choice happens after.
   const guarded = adminOnly || capability;
-  const { isAuthenticated, isAdmin, can, booting, mustChangePassword } = guarded ? staff : customer;
+  const { isAuthenticated, isAdmin, can, booting, mustChangePassword, bootError, retryBoot } = guarded
+    ? staff
+    : customer;
 
   const location = useLocation();
 
@@ -26,8 +61,11 @@ export default function RequireAuth({ children, adminOnly = false, capability = 
   // nothing and wait for the answer. A blank frame beats a sign-in page.
   if (guarded && booting) return null;
 
-  if (!isAuthenticated) {
+  // Checked before `isAuthenticated`, because a failed start also leaves no
+  // user — and this is precisely the case where that must not mean "sign in".
+  if (guarded && bootError) return <BootProblem error={bootError} onRetry={retryBoot} />;
 
+  if (!isAuthenticated) {
     const door = guarded ? "/atelier" : "/login";
     return <Navigate to={door} state={{ from: location.pathname + location.search }} replace />;
   }

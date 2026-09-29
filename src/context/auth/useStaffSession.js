@@ -36,38 +36,69 @@ import { setCurrentStaff } from "@/services/auth/staffRegistry";
 const REALM = "staff";
 
 /**
- * Recovers the session from the refresh cookie, or confirms the in-memory token
- * is still good. Never rejects: any failure means "signed out", which is the
- * state the caller renders either way.
+ * Recovers the session from the refresh cookie.
+ *
+ * Returns the user, or `null` when the server says there is no session — and
+ * only then. Every other failure is rethrown, because "we could not ask" and
+ * "you are signed out" are different answers and collapsing them logs people
+ * out for the network's sake: a throttled refresh, a 500, or a laptop lid
+ * closed mid-request all used to arrive here and return `null`, which is a
+ * sign-out the person never caused and cannot undo by trying again.
  */
 async function restore() {
   try {
     return await staffRestore();
-  } catch {
-    return null;
+  } catch (err) {
+    if (err?.status === 401 || err?.status === 403) return null;
+    throw err;
   }
 }
 
 export function useStaffSession() {
   const [user, setUser] = useState(null);
   const [booting, setBooting] = useState(true);
+  // Set when the cold start could not be completed — throttled, offline, server
+  // error. Distinct from "signed out", and the reason the guard shows a retry
+  // rather than the sign-in page.
+  const [bootError, setBootError] = useState(null);
   const [busy, setBusy] = useState(false);
 
   /* Side Effect */
   useEffect(() => {
     let live = true;
 
-    restore().then((restored) => {
-      // StrictMode mounts, unmounts and remounts, so the first run's
-      // continuation must not write into a session nobody is watching.
-      if (!live) return;
-      setUser(restored);
-      setBooting(false);
-    });
+    restore().then(
+      (restored) => {
+        // StrictMode mounts, unmounts and remounts, so the first run's
+        // continuation must not write into a session nobody is watching.
+        if (!live) return;
+        setUser(restored);
+        setBootError(null);
+        setBooting(false);
+      },
+      (err) => {
+        if (!live) return;
+        setBootError(err);
+        setBooting(false);
+      },
+    );
 
     return () => {
       live = false;
     };
+  }, []);
+
+  /** Asks again. The cookie is untouched, so this is the whole recovery. */
+  const retryBoot = useCallback(async () => {
+    setBootError(null);
+    setBooting(true);
+    try {
+      setUser(await restore());
+    } catch (err) {
+      setBootError(err);
+    } finally {
+      setBooting(false);
+    }
   }, []);
 
   /* Side Effect */
@@ -76,9 +107,9 @@ export function useStaffSession() {
   /**
    * A token that disappears takes the user with it. This is the mid-flight case
    * the refresh path cannot report back: `client.js` refreshes a rejected
-   * request, and when that refresh fails it clears the token — so the session
-   * ends here instead of leaving a stale admin on screen until the next
-   * navigation. Only a *cleared* token is reacted to, because a login also
+   * request, and when the server refuses that refresh it clears the token — so
+   * the session ends here instead of leaving a stale admin on screen until the
+   * next navigation. Only a *cleared* token is reacted to, because a login also
    * stores one and must not be treated as a revocation.
    */
   useEffect(
@@ -95,6 +126,8 @@ export function useStaffSession() {
       // staffLogin stores the token; the user comes back from the server.
       const { user: signedIn } = await staffLogin(credentials);
       setUser(signedIn);
+      // Signing in is also the answer to a boot that could not complete.
+      setBootError(null);
       return { user: signedIn };
     } finally {
       setBusy(false);
@@ -187,12 +220,20 @@ export function useStaffSession() {
        */
       loading: busy,
       booting,
+      /**
+       * The cold start could not be completed — throttled, offline, or the API
+       * returned an error. Not a sign-out: the refresh cookie is untouched, so
+       * `retryBoot` is the whole recovery. `null` whenever the start succeeded,
+       * including when it succeeded by finding no session.
+       */
+      bootError,
+      retryBoot,
       isAuthenticated: Boolean(user),
       login,
       logout,
       logoutAll,
       changePassword,
     }),
-    [user, role, mustChangePassword, busy, booting, login, logout, logoutAll, changePassword],
+    [user, role, mustChangePassword, busy, booting, bootError, retryBoot, login, logout, logoutAll, changePassword],
   );
 }
