@@ -9,6 +9,79 @@ Every flow in the shop already runs end to end on the mock layer, in the order t
 - **The mock store** (`services/store/contentStore.js`, persisted to localStorage) goes away module by module. `API_NAMESPACES` in `src/api/routes.js` lists the backend modules; add each live endpoint to `routes` as it ships.
 - **Rule for the server:** every rule a service enforces here (permissions, ownership, stock, coupon limits, refund caps) must be enforced again on the server. The browser's checks are for the user's benefit, not for security.
 
+## What the first swap (staff sign-in) cost
+
+Wiring `atelier.jsx` to the API was not one function body. Three things a
+mock session had been hiding, worth knowing before the next module moves:
+
+- **Nothing can be persisted.** The access token is memory-only
+  (`src/api/tokens.js`) and the refresh token is an httpOnly cookie, so a page
+  load arrives with no session and rebuilds it from the cookie. Every auth
+  context therefore needs a boot state, and every route guard needs to tell
+  "signed out" from "not yet asked" — `useStaffSession` exposes `booting` and
+  `RequireAuth` renders nothing while it is true. Skipping this bounces a
+  signed-in admin to `/atelier` on every refresh.
+- **A session hook per door, not a `transport` option on one hook.** The
+  shopper's session is still mock-backed and stored; the staff session is not.
+  A single hook with a switch would let a provider choose which door it is, and
+  a staff token reaching a shopper request is the bug the realm split exists to
+  prevent. So: `useAuthSession` (customer, mock) and `useStaffSession` (staff,
+  HTTP).
+- **Modules that used to read storage no longer can.** `currentActor()` read
+  `localStorage["belioras:auth:staff"]` to attribute activity-log entries and
+  gate audited writes. It now reads a registry the staff session publishes
+  (`services/auth/staffRegistry.js`). Expect the same of any other module that
+  reached into the session by hand.
+- `role` now comes from the server on the user object, which is what lets
+  `isAdminRole()` pass a real login — it is the one field the dashboard cannot
+  invent for itself.
+
+
+## What the size guides cost
+
+The second swap, and the first piece of content rather than identity. Worth
+recording because the shape, not the transport, was the work:
+
+- **The blob had to be split.** The guides were one document with five
+  sections — `garment`, `international`, `footwear`, `hair`, and one shared
+  `howToMeasure` holding all three sets of steps. They are now three documents,
+  one per guide, each carrying its own steps. Saving the garment guide no
+  longer touches the hair guide's instructions, and the international
+  conversions live with the body measurements they are read with.
+- **Saving was not atomic before, and that was the actual bug.** The garment
+  dialog made three calls against shared keys, the other two made two. A
+  failure halfway through left new measurements beside the old instructions,
+  and one person's save could overwrite another's. Each guide is now one
+  `PUT` that either lands whole or does not land, which is only possible
+  because the guide is one document. A rejected save leaves the previous guide
+  exactly as it was — there is a test for it.
+- **Three shapes, three schemas.** A hair length and a shoe conversion are not
+  the same document with fields left off, so the server validates each against
+  its own zod schema, matched to the `:type` in the path. Posting a hair guide
+  to `/garment` is a 400 rather than a well-formed document stored under the
+  wrong name. A reversed body range (`[96, 88]`) is refused too: it sorts fine
+  and reads as nonsense.
+- **The public read is a separate file from the staff read.** A shopper opening
+  a size guide has no account, so mounting the staff router under
+  `/storefront` would have put `authenticate` in front of it and 401ed every
+  visitor. Two files also mean a write can never be added to the public
+  surface by accident.
+- **Fallbacks, and where they stop.** Reads go API → IndexedDB → the tables
+  bundled with the app, because a shopper checking a size is a poor place to
+  meet a network error. Writes fall back not at all: an admin told "saved"
+  must be able to close the tab and mean it. A 401/403 is treated as an
+  answer rather than an outage, so a session problem surfaces instead of
+  hiding behind the shipped tables.
+- **The audit row records the edit, not the measurements.** A size guide
+  describes bodies, so `AuditLog` gets the type and a row count and nothing
+  else. `audit()` moved out of `auth.service.js` to
+  `features/audit/audit.js`, since the second feature needing it is the sign it
+  was never auth's alone.
+- **What did not move:** the size *list* (`taxonomy.size`) is still local and
+  still a separate list from the guide rows. That duplication is untouched
+  here, and is the thing to look at next.
+
+
 ## Orders and payment
 
 Payment is confirmed only by the payment provider. **Nobody marks an order paid by hand**: the dashboard has no control for it, and `updateOrderStatus` refuses it.
@@ -62,8 +135,28 @@ Today each flow calls `notifications/emailsApi.queueEmail({ type, to, subject, o
   - Nobody grants beyond their own access.
   - Nobody changes their own role.
   - The last Administrator can't be removed.
+  - **The server now stores and returns the role id** (`User.role`, a plain
+    string), which is what the dashboard reads to decide what to show. The
+    per-section matrix is **still the client's to edit**, and the server holds
+    no copy of it — the first capability guard on the server, `requireRole`,
+    takes its list at the call site. Size-guide writes are the one place it is
+    applied (`requireRole("content", "staff", "super-admin")`), so a role with
+    no edit on Sizes & Guides is refused a write even if the screen offers the
+    button; the other three rules below are still unchecked by the API, and
+    `audited.js` remains UX for them. Treat `audited.js`'s check as UX until the
+    capability guards land. A role change must also clear that user's Redis
+    session cache entry, or the old role keeps being served for up to
+    `SESSION_CACHE_TTL`.
 - **Invitations** create an account with no password and a single-use token (`addTeamMember`, `getInvite`, `acceptInvite`). The token belongs in the email, never in an API list response. The mock returns it to the dashboard for the "copy link" button.
+  - **For now the admin sets the password directly** and there is no invite on
+    the server; the invite flow is the intended replacement and reuses the same
+    shapes. Until then `/atelier/invite` is still mock-only, and the
+    `addTeamMember`/`getInvite`/`acceptInvite` calls are still the local store.
 - **Activity log** (`activityApi.logActivity`): sign-ins, failed sign-ins and every staff write, with actor, section and summary. On the server, write it in the same transaction as the change.
+  - The server already records `REGISTER`/`LOGIN`/`LOGOUT`/`REFRESH` in
+    `AuditLog`; the client's own activity list is still the local store. The two
+    are not merged yet.
+
 
 ## Other flows
 

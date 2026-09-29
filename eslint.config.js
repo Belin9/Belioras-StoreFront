@@ -26,9 +26,15 @@ export default defineConfig([
    * nothing above. Written down in docs alone this lasts until the first
    * afternoon someone needs a value in a hurry, which is how a page came to
    * import mockDelay and fake a password reset without a service existing.
+   *
+   * `src/context/**` was added to this list after an auth context reached for
+   * `api/tokens` directly. The rule was right and did not fire, because the
+   * context directory was simply not in the guard — so a layer that is neither
+   * a component nor a service had no enforced boundary at all.
    */
   {
     files: ['src/pages/**/*.{js,jsx}', 'src/components/**/*.{js,jsx}',
+            'src/context/**/*.{js,jsx}',
             'src/Dashboard/**/*.{js,jsx}', 'src/customerDashboard/**/*.{js,jsx}'],
     rules: {
       'no-restricted-imports': ['error', {
