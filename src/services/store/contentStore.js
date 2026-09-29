@@ -22,7 +22,6 @@ import taxonomySeed from "../../data/taxonomy.json";
 import heroSeed from "../../data/heroSlides.json";
 import instagramSeed from "../../data/instagram.json";
 import settingsSeed from "../../data/settings.json";
-import sizeChartsSeed from "../../data/sizeCharts.json";
 import catalogSeed from "../../data/catalogSeed";
 import ordersSeed from "../../data/ordersSeed";
 import stockMovementsSeed from "../../data/stockMovementsSeed";
@@ -56,10 +55,12 @@ const DOMAINS = {
   hero: { seed: heroSeed, collection: "slides" },
   instagram: { seed: instagramSeed, collection: "posts" },
   settings: { seed: settingsSeed, collection: null },
-  // Reference tables, not a collection: one document merged shallowly, the
-  // same as settings. Registered here rather than imported straight into a
-  // component so the dashboard can edit the charts later without a move.
-  sizeCharts: { seed: sizeChartsSeed, collection: null },
+  // The size guides used to live here. They do not any more: they are the first
+  // resource owned by the API rather than this store, and keeping a second
+  // localStorage copy of measurements that someone can edit in the dashboard
+  // would reintroduce the two-sources problem they were moved to fix. The
+  // bundled tables in src/data/sizeCharts.json are now only the floor under a
+  // read that reaches neither the API nor the browser's cache.
   // Catalogue and orders were the two domains the dashboard actually needed
   // and the only two it never had: every product and order edit lived in
   // component state and was gone on reload. They are ordinary domains here —

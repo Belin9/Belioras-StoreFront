@@ -5,7 +5,7 @@ import Modal from "@/components/common/Modal";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import { useToast } from "@/context/ToastContext";
-import { updateSizeChart } from "@/services/catalog/sizeChartApi";
+import { saveSizeGuide } from "@/services/catalog/sizeChartApi";
 import { GARMENT_COLUMNS, HOW_TO_COLUMNS, INTERNATIONAL_COLUMNS } from "./guideColumns";
 import GuideRowsEditor from "./GuideRowsEditor";
 
@@ -16,20 +16,31 @@ import GuideRowsEditor from "./GuideRowsEditor";
  */
 export default function GarmentGuideDialog({ open, charts, onClose, onSaved }) {
   const { toast } = useToast();
-  const [note, setNote] = useState(charts?.garment.note ?? "");
-  const [rows, setRows] = useState(charts?.garment.rows ?? []);
-  const [intlRows, setIntlRows] = useState(charts?.international.rows ?? []);
-  const [howTo, setHowTo] = useState(charts?.howToMeasure.garment ?? []);
-  const [garmentImage, setGarmentImage] = useState(charts?.howToMeasure.garmentImage ?? "");
+  // The garment guide is one document, so the international table and the
+  // how-to steps read from inside it rather than from sibling keys the old
+  // shared blob had.
+  const guide = charts?.garment;
+  const [note, setNote] = useState(guide?.note ?? "");
+  const [rows, setRows] = useState(guide?.rows ?? []);
+  const [intlRows, setIntlRows] = useState(guide?.international.rows ?? []);
+  const [howTo, setHowTo] = useState(guide?.howTo ?? []);
+  const [garmentImage, setGarmentImage] = useState(guide?.garmentImage ?? "");
   const [saving, setSaving] = useState(false);
 
   const save = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateSizeChart("garment", { note, rows });
-      await updateSizeChart("international", { columns: charts.international.columns, rows: intlRows });
-      await updateSizeChart("howToMeasure", { ...charts.howToMeasure, garment: howTo, garmentImage });
+      // One request for the whole guide. These were three calls against shared
+      // keys, which could save new measurements and leave the old instructions
+      // behind if the second call failed.
+      await saveSizeGuide("garment", {
+        note,
+        rows,
+        international: { columns: guide?.international.columns ?? [], rows: intlRows },
+        howTo,
+        garmentImage,
+      });
       toast("Dresses sizing saved.", "success");
       onSaved();
     } catch (err) {

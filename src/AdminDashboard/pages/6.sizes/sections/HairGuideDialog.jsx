@@ -5,25 +5,30 @@ import Modal from "@/components/common/Modal";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import { useToast } from "@/context/ToastContext";
-import { updateSizeChart } from "@/services/catalog/sizeChartApi";
+import { saveSizeGuide } from "@/services/catalog/sizeChartApi";
 import { HAIR_LENGTH_COLUMNS, HAIR_TEXTURE_COLUMNS, HOW_TO_COLUMNS } from "./guideColumns";
 import GuideRowsEditor from "./GuideRowsEditor";
 
 /** Hair sizing: lengths and where they fall, how each texture wears, and how to measure. Remount with a changing `key`. */
 export default function HairGuideDialog({ open, charts, onClose, onSaved }) {
   const { toast } = useToast();
-  const [note, setNote] = useState(charts?.hair.note ?? "");
-  const [lengths, setLengths] = useState(charts?.hair.lengths ?? []);
-  const [textures, setTextures] = useState(charts?.hair.textures ?? []);
-  const [howTo, setHowTo] = useState(charts?.howToMeasure.hair ?? []);
+  // The hair guide is one document, so its how-to steps read from inside it
+  // rather than from the sibling key the old shared blob had.
+  const guide = charts?.hair;
+  const [note, setNote] = useState(guide?.note ?? "");
+  const [lengths, setLengths] = useState(guide?.lengths ?? []);
+  const [textures, setTextures] = useState(guide?.textures ?? []);
+  const [howTo, setHowTo] = useState(guide?.howTo ?? []);
   const [saving, setSaving] = useState(false);
 
   const save = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateSizeChart("hair", { note, lengths, textures });
-      await updateSizeChart("howToMeasure", { ...charts.howToMeasure, hair: howTo });
+      // One request for the whole guide. These were two calls against a shared
+      // key, which could save new lengths and leave the old instructions behind
+      // if the second call failed.
+      await saveSizeGuide("hair", { note, lengths, textures, howTo });
       toast("Hair sizing saved.", "success");
       onSaved();
     } catch (err) {

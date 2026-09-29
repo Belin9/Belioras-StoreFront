@@ -5,24 +5,29 @@ import Modal from "@/components/common/Modal";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import { useToast } from "@/context/ToastContext";
-import { updateSizeChart } from "@/services/catalog/sizeChartApi";
+import { saveSizeGuide } from "@/services/catalog/sizeChartApi";
 import { FOOTWEAR_COLUMNS, HOW_TO_COLUMNS } from "./guideColumns";
 import GuideRowsEditor from "./GuideRowsEditor";
 
 /** Footwear sizing: EU/UK/US conversions and how to measure a foot. Remount with a changing `key`. */
 export default function FootwearGuideDialog({ open, charts, onClose, onSaved }) {
   const { toast } = useToast();
-  const [note, setNote] = useState(charts?.footwear.note ?? "");
-  const [rows, setRows] = useState(charts?.footwear.rows ?? []);
-  const [howTo, setHowTo] = useState(charts?.howToMeasure.footwear ?? []);
+  // The footwear guide is one document, so its how-to steps read from inside it
+  // rather than from the sibling key the old shared blob had.
+  const guide = charts?.footwear;
+  const [note, setNote] = useState(guide?.note ?? "");
+  const [rows, setRows] = useState(guide?.rows ?? []);
+  const [howTo, setHowTo] = useState(guide?.howTo ?? []);
   const [saving, setSaving] = useState(false);
 
   const save = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateSizeChart("footwear", { note, rows });
-      await updateSizeChart("howToMeasure", { ...charts.howToMeasure, footwear: howTo });
+      // One request for the whole guide. These were two calls against a shared
+      // key, which could save new conversions and leave the old instructions
+      // behind if the second call failed.
+      await saveSizeGuide("footwear", { note, rows, howTo });
       toast("Footwear sizing saved.", "success");
       onSaved();
     } catch (err) {

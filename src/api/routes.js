@@ -55,18 +55,39 @@ export const routes = {
     staffRole: "auth/staff/:id/role",
     staffStatus: "auth/staff/:id/status",
   },
+
+  /**
+   * The three size guides.
+   *
+   * `guide` carries a `:type`, and each type is its own document on the server
+   * rather than a section of one blob — so a save is one request that either
+   * lands whole or does not land at all.
+   */
+  sizeGuides: {
+    list: "size-guides",
+    guide: "size-guides/:type",
+    reset: "size-guides/reset",
+  },
 };
 
 /**
- * Resolves an auth leaf to its boundary path, e.g.
+ * Resolves a leaf to its boundary path, e.g.
  * `authPath(routes.auth.login, "staff")` -> `admin/auth/login`.
  *
- * A leaf may carry a `:id` placeholder; `authPath` fills it. It is filled here
- * rather than by the caller because an id that has not been encoded is a
- * request for a different resource — a slash in an id would otherwise send the
- * call to a route that does not exist, or worse, to one that does.
+ * A leaf may carry `:name` placeholders, which are filled from `params`. They
+ * are filled here rather than by the caller because an id that has not been
+ * encoded is a request for a different resource — a slash in an id would
+ * otherwise send the call to a route that does not exist, or worse, to one that
+ * does. A placeholder with no matching param is left in place, so a missing id
+ * fails visibly at the server instead of quietly hitting a sibling route.
  */
-export function authPath(name, realm, id) {
+export function resourcePath(leaf, realm, params = {}) {
   const boundary = BOUNDARY[realm] ?? BOUNDARY.customer;
-  return `${boundary}/${name}`.replace(":id", encodeURIComponent(id ?? ""));
+  return `${boundary}/${leaf}`.replace(/:(\w+)/g, (match, key) =>
+    key in params ? encodeURIComponent(params[key]) : match,
+  );
+}
+
+export function authPath(name, realm, id) {
+  return resourcePath(name, realm, { id });
 }

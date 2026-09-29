@@ -14,9 +14,9 @@ import FootwearGuideDialog from "./FootwearGuideDialog";
 import HairGuideDialog from "./HairGuideDialog";
 
 const CARDS = [
-  { kind: "garment", title: "Dresses sizing", icon: Shirt, usedBy: "Dresses", sections: ["garment", "international", "howToMeasure"], blurb: "Body measurements, international equivalents, how to measure." },
-  { kind: "footwear", title: "Footwear sizing", icon: Footprints, usedBy: "Shoes and heels", sections: ["footwear"], blurb: "EU, UK and US conversions, how to measure a foot." },
-  { kind: "hair", title: "Hair sizing", icon: Scissors, usedBy: "Wigs and hair", sections: ["hair"], blurb: "Lengths, how each texture wears, how it's measured." },
+  { kind: "garment", title: "Dresses sizing", icon: Shirt, usedBy: "Dresses", blurb: "Body measurements, international equivalents, how to measure." },
+  { kind: "footwear", title: "Footwear sizing", icon: Footprints, usedBy: "Shoes and heels", blurb: "EU, UK and US conversions, how to measure a foot." },
+  { kind: "hair", title: "Hair sizing", icon: Scissors, usedBy: "Wigs and hair", blurb: "Lengths, how each texture wears, how it's measured." },
 ];
 
 /** A glance at what the table holds, so the card says more than its title. */
@@ -42,7 +42,11 @@ export default function GuidesPanel() {
   const [revision, setRevision] = useState(0);
   const refresh = () => setRevision((n) => n + 1);
 
-  const { data: charts, loading } = useAsyncData(getSizeCharts, [revision]);
+  // Read through the staff boundary, so this is an authenticated read like the
+  // rest of the dashboard's work. An inline arrow is deliberate: the query key
+  // is built from this function's source text, which is stable, whereas a fresh
+  // function identity on every render would refetch endlessly.
+  const { data: charts, loading } = useAsyncData(() => getSizeCharts({ realm: "staff" }), [revision]);
   const [editing, setEditing] = useState({ kind: null, n: 0 });
   const [preview, setPreview] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -82,7 +86,9 @@ export default function GuidesPanel() {
       <div className="grid gap-4 sm:grid-cols-3">
         {CARDS.map((c) => {
           const Icon = c.icon;
-          const edited = c.sections.map((s) => charts.updated?.[s]).filter(Boolean).sort().at(-1);
+          // Each guide is its own document, so it carries its own edit date.
+          // A guide that has never been saved has none, and shows as shipped.
+          const edited = charts[c.kind]?.updatedAt;
           return (
             <div key={c.kind} className="flex flex-col border border-umber-50 bg-ivory-50 p-5">
               <Icon className="size-5 text-gold-700" strokeWidth={1.5} aria-hidden="true" />
