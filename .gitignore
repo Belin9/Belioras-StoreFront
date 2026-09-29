@@ -30,4 +30,3 @@ dist-ssr
 .env
 .env.local
 .env.*.local
-*-check.cjs
