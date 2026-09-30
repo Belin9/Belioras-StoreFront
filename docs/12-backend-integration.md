@@ -77,9 +77,74 @@ recording because the shape, not the transport, was the work:
   else. `audit()` moved out of `auth.service.js` to
   `features/audit/audit.js`, since the second feature needing it is the sign it
   was never auth's alone.
-- **What did not move:** the size *list* (`taxonomy.size`) is still local and
-  still a separate list from the guide rows. That duplication is untouched
-  here, and is the thing to look at next.
+- **What did not move here:** the size *list* (`taxonomy.size`). The next section
+  is that.
+
+
+## What the size list cost
+
+The size list is the list of sizes that exist — "M", "EU 38 · UK 3 · US 5",
+"One Size" — as distinct from the guide tables that explain what each one
+measures. It is separate on purpose, and the two are allowed to disagree.
+
+- **Fifteen call sites read it, and none of them were edited.** `getTaxonomy()`
+  hands out `{ color, size }` and the shop facet, the cart, the wardrobe, order
+  lines, packing slips and the invoice all read `taxonomy.size.values` from it.
+  Rather than convert fifteen components, `getTaxonomy` now merges the server's
+  list in behind the same shape. The whole migration is invisible above the
+  service layer, which is the point: nothing in the app should be able to tell
+  where the list came from.
+- **Colours stayed put, and that was a decision rather than an omission.**
+  `taxonomy.dimensions.color` is the 12 *filter families*; `colors.items` is the
+  20 boutique colours, and each one's `family` points at a family id. That join
+  feeds the storefront colour facet, the search panel's colour chips, the
+  Colours dialog and every mega-menu `filter:color` link — and colours are on
+  the hot path of *every* product read. Moving them is a real job with a much
+  wider blast radius than sizes, so `getTaxonomy` replaces only the `size` half
+  and leaves `color` on the local store.
+- **The id is a public contract, so it is immutable.** It is a key in a
+  product's `colorways[].stock` object, a segment of a bookmarked
+  `?size=eu38,m`, and the input to `sizeChartKind.js`'s regexes that decide which
+  guide a product opens. So a rename sends only a name, the server's `PATCH`
+  body is `strict()` and refuses an `id` or a `position` outright, and there is
+  no "update id" call anywhere. A `200` that quietly ignored a re-pointed id
+  would have been the worst possible failure here: invisible in the UI, and it
+  would orphan every stock row holding it.
+- **A deleted id is never reissued.** Deleting a size does not un-reference it —
+  the products that carried it still do. Reusing the id would silently re-point
+  all of them, and their stock, at a different size. The server records spent ids
+  in `FreedId`, with a unique index so two racing creates cannot both claim one,
+  and the client re-reads the list after every write so the offline copy matches.
+- **The delete guard is weaker than it was, and it should be said plainly.** The
+  dashboard still refuses to delete a size a category offers or a product
+  carries — but the server cannot check that, because it has no `Category` and
+  no `Product` model; the catalogue lives in this browser's localStorage. So the
+  guard holds for whoever holds the catalogue and for nobody else. What the
+  server does guarantee is the spent id, which bounds how badly an unguarded
+  delete can go. The guard moves server-side when products and categories do.
+- **Writes stopped bumping the content version, so something had to.** Six
+  storefront components read sizes keyed on `contentStore`'s version counter, and
+  it used to move only because `setState` did. A server-side write does not go
+  through `setState`, so a rename would have saved and then left every cart and
+  slip in the tab showing the old name. `bumpVersion()` announces the write
+  without touching any local domain — the counter was always a signal, not the
+  content, which is what made it usable here.
+- **The fallback chain is the same one the guides use** — API → IndexedDB → the
+  bundled list — and for a sharper reason. The list is not just a filter panel:
+  it is what `sizeLabel` resolves a shopper's cart, wardrobe and packing slip
+  through. A missing list does not fail visibly, it degrades quietly and wrongly,
+  printing the uppercased id where a name should be. Writes still never fall
+  back, since a permanent id that half-landed is worse than one that plainly
+  failed.
+- **The shipped twelve are pinned, and verified byte-identical** to the ids the
+  client had, including the `eu36`–`eu41` spelling that `sizeChartKind`'s
+  `/^eu\d+$/` depends on. The seed re-uses the *same* slug rules the client's
+  `slugify` did, because a write moving to this server must not silently change
+  the id scheme.
+- **The guide/list drift is reported, not fixed.** The garment guide has an
+  `XXL` row with no size in the list, and the list has EU sizes and One Size the
+  garment guide has no row for. That is a content decision about what the shop
+  actually sells, so it is left visible rather than reconciled by a refactor.
 
 
 ## Orders and payment

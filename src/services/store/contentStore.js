@@ -204,6 +204,25 @@ export function subscribe(listener) {
 }
 
 /**
+ * Notifies subscribers without writing any domain.
+ *
+ * The size list is the first resource to live on the server, so its writes no
+ * longer go through `setState` — and that used to be the only thing that moved
+ * `version`. Six storefront components read sizes keyed on that number, so a
+ * rename would have saved and then left every cart, filter and packing slip in
+ * the tab showing the old name.
+ *
+ * This is the decoupling the counter was built for: it is a signal, not the
+ * content, so a write that happened somewhere else can announce itself without
+ * pretending to own a local domain. It deliberately does not touch `state` or
+ * `localStorage` — nothing here is cached, because the server is the only copy.
+ */
+export function bumpVersion() {
+  version += 1;
+  listeners.forEach((listener) => listener());
+}
+
+/**
  * Monotonic counter, not the content itself. Components pass this into
  * useAsyncData's deps so a dashboard edit re-runs their service call — which
  * keeps the coupling between storefront and content layer to a single number.

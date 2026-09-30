@@ -68,6 +68,25 @@ export const routes = {
     guide: "size-guides/:type",
     reset: "size-guides/reset",
   },
+
+  /**
+   * The size list — "M", "EU 38 · UK 3 · US 5", "One Size".
+   *
+   * Split from `sizeGuides` on purpose. A guide is the measurement table that
+   * explains what a size means; this is the list of sizes that exist. They are
+   * separate resources that are allowed to disagree, and one request to a
+   * combined endpoint would mean saving a size's name rewrote a guide.
+   *
+   * The ids in here are a public contract, not internal keys: they are keys in
+   * a product's stock object and they are what a bookmarked `?size=eu38,m`
+   * resolves against. So a rename is `PATCH` by id, and no leaf offers a way to
+   * write one.
+   */
+  taxonomy: {
+    sizes: "taxonomy/sizes",
+    size: "taxonomy/sizes/:id",
+    sizesReset: "taxonomy/sizes/reset",
+  },
 };
 
 /**

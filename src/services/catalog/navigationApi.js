@@ -1,6 +1,7 @@
 import { ApiError, mockApi } from "@/api/mock";
 import { getState, resetDomain, setState } from "../store/contentStore";
 import { catalogItems, normalize } from "./products/productStore";
+import { getSizes } from "./sizesApi";
 import { RESERVED_SLUGS, matchesTarget, targetExists } from "../../utils/menuTargets";
 import { audited } from "../auth/audited";
 
@@ -31,9 +32,34 @@ export function getNavItem(id) {
   return mockApi(() => getState("navigation").items.find((item) => item.id === id) ?? null, 0);
 }
 
-/** Attribute dimensions (colour, size, fabric, occasion, style, length, hair). */
-export function getTaxonomy() {
-  return mockApi(() => getState("taxonomy").dimensions, 0);
+/**
+ * Attribute dimensions (colour, size, fabric, occasion, style, length, hair).
+ *
+ * Sizes come from the server; colours do not. The two are merged behind the one
+ * shape this has always returned, and that is the whole trick — fifteen call
+ * sites read `taxonomy.size.values` (the shop facet, the cart, the wardrobe,
+ * packing slips, the invoice) and none of them should have to learn where the
+ * list came from.
+ *
+ * Only `size` is replaced. `color` stays on the local store, which is a separate
+ * domain with separate writers (`colorsApi`) and its own join: a boutique
+ * colour's `family` points at a taxonomy colour id, and that id is what the
+ * storefront facet and every mega-menu `filter:color` link resolve against.
+ * Moving colours is a real job with a much wider blast radius than sizes —
+ * every product read resolves its colourways through them — so it is left alone
+ * rather than half-pulled along.
+ *
+ * The size read falls back (API, then IndexedDB, then the bundled list) inside
+ * `getSizes`, so this resolves even with the network down. Colours resolve
+ * synchronously as they always did, and are spread in first so a size read that
+ * somehow throws cannot take the colour half with it.
+ */
+export function getTaxonomy({ realm = "customer" } = {}) {
+  const local = getState("taxonomy").dimensions;
+  return getSizes({ realm }).then(
+    (values) => ({ ...local, size: { ...local.size, values } }),
+    () => local,
+  );
 }
 
 /** Flat list of every link, used for address resolution and breadcrumbs. */
