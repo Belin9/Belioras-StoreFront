@@ -166,8 +166,28 @@ measures. It is separate on purpose, and the two are allowed to disagree.
 - **The in-use guards stay client-side**: products in a category, a type on a
   product, a subcategory type tagged on a product, and Mega Menu links. They
   move to the server with products.
-- **Order** is `PUT /order` with the full id list; types and subcategories are
-  ordered by array position in the category itself.
+- **Order** is `PUT /order` with the full id list; subcategories and their
+  types are ordered by array position in the category itself.
+- **Flat category types were removed.** Types live only inside subcategories.
+  A product's old `type` became a `subcat:<sub>:<type>` tag and a menu
+  `{ kind: "type" }` link became a subcategory filter with the same URL —
+  `services/catalog/legacyTypes.js` does both, for the seed files (rewritten
+  once) and for stored browser data (the `upgrade` hook on the `products` and
+  `navigation` domains, so admin edits survive the rev bump). Hair's flat
+  "Wigs" type had no subcategory twin and was dropped; every wig already
+  carried a Wigs subcategory tag.
+
+## What colours cost
+
+- **Same contract and mirror as categories** (`/taxonomy/colors`, domain
+  registered `mirror: true`). Every product read resolves colourways through
+  `colorIndex()` synchronously, so the mirror is what keeps those reads instant.
+- **The storefront never asked for colours**, so `syncColors()` runs once in
+  `main.jsx`. A read notifies only when the list actually changed — pages keyed
+  on the content version re-run their reads, and an always-notifying read would
+  loop.
+- **The delete guard (a colour still on a product) stays client-side** until
+  products move.
 
 ## Orders and payment
 

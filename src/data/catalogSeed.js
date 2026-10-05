@@ -16,6 +16,6 @@ import catalogExtraSeed from "./catalogExtra.json";
  * discarded wholesale rather than merged into a structure they no longer fit.
  */
 export default {
-  rev: 15,
+  rev: 16,
   items: [...productsSeed, ...hairSeed, ...accessoriesSeed, ...catalogExtraSeed],
 };

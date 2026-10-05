@@ -13,13 +13,12 @@
 /** Taxonomy dimension id → token prefix used on products. */
 export const DIMENSION_PREFIX = {
   category: "cat",
-  type: "type",
   color: "color",
   size: "size",
 };
 
-/** Human-facing labels, in the order they should appear in the panel. `type` leads, as "Shop by Category" did. */
-export const DIMENSION_ORDER = ["type", "color", "size"];
+/** Human-facing labels, in the order they should appear in the panel. A category's Subcategories lead; see typeFacet.js. */
+export const DIMENSION_ORDER = ["color", "size"];
 
 export function tokenFor(dimension, value) {
   return `${DIMENSION_PREFIX[dimension] ?? dimension}:${value}`;

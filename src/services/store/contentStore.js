@@ -28,6 +28,7 @@ import stockMovementsSeed from "../../data/stockMovementsSeed";
 import activitySeed from "../../data/activitySeed";
 import emailsSeed from "../../data/emailsSeed";
 import modelsSeed from "../../data/modelsSeed";
+import { migrateNavigation, migrateProduct } from "../catalog/legacyTypes";
 import transactionsSeed from "../../data/transactionsSeed";
 import colorsSeed from "../../data/colorsSeed";
 import categoriesSeed from "../../data/categoriesSeed";
@@ -50,7 +51,15 @@ const KEY_PREFIX = "belioras:content:";
  */
 
 const DOMAINS = {
-  navigation: { seed: navigationSeed, collection: "items" },
+  navigation: {
+    seed: navigationSeed,
+    collection: "items",
+    // Flat-type links became Subcategory filters (see legacyTypes.js).
+    upgrade: {
+      from: navigationSeed.rev - 1,
+      run: (stored) => ({ ...stored, items: migrateNavigation(stored.items, getState("categories").items) }),
+    },
+  },
   taxonomy: { seed: taxonomySeed, collection: null },
   hero: { seed: heroSeed, collection: "slides" },
   instagram: { seed: instagramSeed, collection: "posts" },
@@ -65,9 +74,22 @@ const DOMAINS = {
   // and the only two it never had: every product and order edit lived in
   // component state and was gone on reload. They are ordinary domains here —
   // the same rev reconciliation, the same per-item merge.
-  products: { seed: catalogSeed, collection: "items" },
+  products: {
+    seed: catalogSeed,
+    collection: "items",
+    // A product's flat `type` became a Subcategory tag (see legacyTypes.js).
+    upgrade: {
+      from: catalogSeed.rev - 1,
+      run: (stored) => ({
+        ...stored,
+        items: (stored.items ?? []).map((p) => migrateProduct(p, getState("categories").items)),
+      }),
+    },
+  },
   // The lists products choose from, managed under Categories & Colours.
-  colors: { seed: colorsSeed, collection: "items" },
+  // Server-owned like categories: a mirror `colorsApi` refreshes from
+  // `/taxonomy/colors`, read synchronously by every product expansion.
+  colors: { seed: colorsSeed, collection: "items", mirror: true },
   // A mirror of the server's list, not an editable copy: `categoriesApi`
   // overwrites it after every API read or write so the synchronous readers
   // (search, reports, the size usage count, menu checks) keep working and a
@@ -149,9 +171,17 @@ export function hydrateCollection(seedItems = [], storedItems = [], key = "id") 
 function hydrate(domain) {
   const { seed, collection } = DOMAINS[domain];
 
-  const stored = readStored(domain);
+  let stored = readStored(domain);
 
-  if (!stored || stored.rev !== seed.rev) return seed;
+  if (!stored) return seed;
+  if (stored.rev !== seed.rev) {
+    // A domain may carry one `upgrade` from the previous rev, so a shape
+    // change keeps an admin's edits instead of discarding them wholesale.
+    const { upgrade } = DOMAINS[domain];
+    if (!upgrade || stored.rev !== upgrade.from) return seed;
+    stored = { ...upgrade.run(stored), rev: seed.rev };
+    writeStored(domain, stored);
+  }
 
   if (DOMAINS[domain].mirror) return { ...seed, ...stored, rev: seed.rev };
 

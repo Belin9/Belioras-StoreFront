@@ -1,5 +1,5 @@
 {
-  "rev": 7,
+  "rev": 8,
   "items": [
     {
       "id": "new-arrivals",
@@ -27,9 +27,12 @@
           "url": "/accessories/bags/handbags",
           "image": "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?q=80&w=900&auto=format&fit=crop",
           "target": {
-            "kind": "type",
-            "category": "accessories",
-            "id": "handbags"
+            "kind": "filter",
+            "dimension": "subcat:bags",
+            "values": [
+              "handbags"
+            ],
+            "category": "accessories"
           }
         }
       ],
@@ -272,9 +275,12 @@
               "slug": "shop/clothing/jumpsuits",
               "url": "/shop/clothing/jumpsuits",
               "target": {
-                "kind": "type",
-                "category": "dresses",
-                "id": "jumpsuits"
+                "kind": "filter",
+                "dimension": "subcat:shop-by-category",
+                "values": [
+                  "jumpsuits"
+                ],
+                "category": "dresses"
               },
               "aliases": [
                 "shop/jumpsuits"
@@ -286,9 +292,12 @@
               "slug": "shop/clothing/two-piece-sets",
               "url": "/shop/clothing/two-piece-sets",
               "target": {
-                "kind": "type",
-                "category": "dresses",
-                "id": "two-piece-sets"
+                "kind": "filter",
+                "dimension": "subcat:shop-by-category",
+                "values": [
+                  "two-piece-sets"
+                ],
+                "category": "dresses"
               },
               "aliases": [
                 "shop/two-piece-sets"
@@ -300,9 +309,12 @@
               "slug": "shop/clothing/coats-and-jackets",
               "url": "/shop/clothing/coats-and-jackets",
               "target": {
-                "kind": "type",
-                "category": "dresses",
-                "id": "coats-jackets"
+                "kind": "filter",
+                "dimension": "subcat:shop-by-category",
+                "values": [
+                  "coats-jackets"
+                ],
+                "category": "dresses"
               },
               "aliases": [
                 "shop/coats-jackets"
@@ -380,9 +392,12 @@
               "slug": "shop/accessories/heels",
               "url": "/shop/accessories/heels",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "heels"
+                "kind": "filter",
+                "dimension": "subcat:shoes",
+                "values": [
+                  "heels"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "shop/heels"
@@ -494,9 +509,12 @@
               "slug": "dresses/shop-by-category/jumpsuits",
               "url": "/dresses/shop-by-category/jumpsuits",
               "target": {
-                "kind": "type",
-                "category": "dresses",
-                "id": "jumpsuits"
+                "kind": "filter",
+                "dimension": "subcat:shop-by-category",
+                "values": [
+                  "jumpsuits"
+                ],
+                "category": "dresses"
               },
               "aliases": [
                 "dresses/jumpsuits"
@@ -508,9 +526,12 @@
               "slug": "dresses/shop-by-category/two-piece-sets",
               "url": "/dresses/shop-by-category/two-piece-sets",
               "target": {
-                "kind": "type",
-                "category": "dresses",
-                "id": "two-piece-sets"
+                "kind": "filter",
+                "dimension": "subcat:shop-by-category",
+                "values": [
+                  "two-piece-sets"
+                ],
+                "category": "dresses"
               },
               "aliases": [
                 "dresses/two-piece-sets"
@@ -539,9 +560,12 @@
               "slug": "dresses/shop-by-category/coats-and-jackets",
               "url": "/dresses/shop-by-category/coats-and-jackets",
               "target": {
-                "kind": "type",
-                "category": "dresses",
-                "id": "coats-jackets"
+                "kind": "filter",
+                "dimension": "subcat:shop-by-category",
+                "values": [
+                  "coats-jackets"
+                ],
+                "category": "dresses"
               },
               "aliases": [
                 "dresses/coats-jackets"
@@ -1360,9 +1384,12 @@
           "url": "/accessories/bags/handbags",
           "image": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=900&auto=format&fit=crop",
           "target": {
-            "kind": "type",
-            "category": "accessories",
-            "id": "handbags"
+            "kind": "filter",
+            "dimension": "subcat:bags",
+            "values": [
+              "handbags"
+            ],
+            "category": "accessories"
           }
         },
         {
@@ -1371,9 +1398,12 @@
           "url": "/accessories/shoes/heels",
           "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=900&auto=format&fit=crop",
           "target": {
-            "kind": "type",
-            "category": "accessories",
-            "id": "heels"
+            "kind": "filter",
+            "dimension": "subcat:shoes",
+            "values": [
+              "heels"
+            ],
+            "category": "accessories"
           }
         }
       ],
@@ -1388,9 +1418,12 @@
               "slug": "accessories/shoes/heels",
               "url": "/accessories/shoes/heels",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "heels"
+                "kind": "filter",
+                "dimension": "subcat:shoes",
+                "values": [
+                  "heels"
+                ],
+                "category": "accessories"
               }
             }
           ]
@@ -1405,9 +1438,12 @@
               "slug": "accessories/bags/handbags",
               "url": "/accessories/bags/handbags",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "handbags"
+                "kind": "filter",
+                "dimension": "subcat:bags",
+                "values": [
+                  "handbags"
+                ],
+                "category": "accessories"
               }
             },
             {
@@ -1416,9 +1452,12 @@
               "slug": "accessories/bags/clutch-bags",
               "url": "/accessories/bags/clutch-bags",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "clutch"
+                "kind": "filter",
+                "dimension": "subcat:bags",
+                "values": [
+                  "clutch-bags"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "accessories/bags/clutch"
@@ -1430,9 +1469,12 @@
               "slug": "accessories/bags/shoulder-bags",
               "url": "/accessories/bags/shoulder-bags",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "shoulder"
+                "kind": "filter",
+                "dimension": "subcat:bags",
+                "values": [
+                  "shoulder-bags"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "accessories/bags/shoulder"
@@ -1444,9 +1486,12 @@
               "slug": "accessories/bags/mini-bags",
               "url": "/accessories/bags/mini-bags",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "mini"
+                "kind": "filter",
+                "dimension": "subcat:bags",
+                "values": [
+                  "mini-bags"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "accessories/bags/mini"
@@ -1464,9 +1509,12 @@
               "slug": "accessories/jewellery/earrings",
               "url": "/accessories/jewellery/earrings",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "earrings"
+                "kind": "filter",
+                "dimension": "subcat:jewellery",
+                "values": [
+                  "earrings"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "accessories/jewelry/earrings",
@@ -1480,9 +1528,12 @@
               "slug": "accessories/jewellery/necklaces",
               "url": "/accessories/jewellery/necklaces",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "necklaces"
+                "kind": "filter",
+                "dimension": "subcat:jewellery",
+                "values": [
+                  "necklaces"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "accessories/jewelry/necklaces"
@@ -1494,9 +1545,12 @@
               "slug": "accessories/jewellery/bracelets-and-bangles",
               "url": "/accessories/jewellery/bracelets-and-bangles",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "bracelets"
+                "kind": "filter",
+                "dimension": "subcat:jewellery",
+                "values": [
+                  "bracelets-bangles"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "accessories/jewelry/bracelets"
@@ -1508,9 +1562,12 @@
               "slug": "accessories/jewellery/rings",
               "url": "/accessories/jewellery/rings",
               "target": {
-                "kind": "type",
-                "category": "accessories",
-                "id": "rings"
+                "kind": "filter",
+                "dimension": "subcat:jewellery",
+                "values": [
+                  "rings"
+                ],
+                "category": "accessories"
               },
               "aliases": [
                 "accessories/jewelry/rings"

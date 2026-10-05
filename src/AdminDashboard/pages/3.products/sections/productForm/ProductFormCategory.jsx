@@ -12,9 +12,10 @@ import { subcategoryTag } from "./productFormPayload";
 /**
  * Picking a category and what it's filed under is one flow, not two cards on
  * opposite ends of the form: the selected row expands in place to show its
- * own Subcategories (or, for a category that has none yet, its flat Types).
+ * own Subcategories, and the types under each are what the product is tagged
+ * with.
  */
-export default function ProductFormCategory({ categories, value, type, tags, onChange, onTypeChange, onTagsChange, onCreated }) {
+export default function ProductFormCategory({ categories, value, tags, onChange, onTagsChange, onCreated }) {
   const [dialog, setDialog] = useState({ open: false, n: 0 });
   const [activeSub, setActiveSub] = useState(null);
   const close = () => setDialog((d) => ({ ...d, open: false }));
@@ -100,37 +101,10 @@ export default function ProductFormCategory({ categories, value, type, tags, onC
                 </div>
               )}
 
-              {/* A category with no Subcategories of its own yet falls back
-                  to its flat, single-select Type. */}
-              {on && !c.subcategories?.length && c.types?.length > 0 && (
-                <div className="border-t border-umber-50 bg-ivory-50 p-3.5">
-                  <p className="input-label">
-                    Type <span className="font-normal normal-case tracking-normal text-espresso-soft">(optional)</span>
-                  </p>
-                  <div role="radiogroup" aria-label={`${c.name} type`} className="mt-1 flex flex-wrap gap-1.5">
-                    {c.types.map((t) => {
-                      const typeOn = t.id === type;
-                      return (
-                        <button
-                          key={t.id}
-                          type="button"
-                          role="radio"
-                          aria-checked={typeOn}
-                          // Choosing the selected type again clears it.
-                          onClick={() => onTypeChange(typeOn ? "" : t.id)}
-                          className={cn(
-                            "inline-flex min-h-9 items-center border px-3 text-[12px] transition-colors",
-                            typeOn
-                              ? "border-espresso bg-espresso text-ivory-50"
-                              : "border-umber-100 bg-white text-espresso-soft hover:border-espresso/50 hover:text-espresso",
-                          )}
-                        >
-                          {t.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+              {on && !c.subcategories?.length && (
+                <p className="border-t border-umber-50 bg-ivory-50 p-3.5 text-[13px] text-espresso-soft">
+                  {c.name} has no subcategories yet. Add them in Categories &amp; Colours to file pieces under types.
+                </p>
               )}
             </div>
           );

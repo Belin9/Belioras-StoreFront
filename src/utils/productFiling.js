@@ -1,13 +1,13 @@
 /**
- * Where a piece is filed, as words a shopper might type: its category, its
- * type and the Subcategory types it is tagged with ("Hair", "Wigs", "Cocktail
- * Dresses"). Search matches on these as well as the name, so it agrees with
+ * Where a piece is filed, as words a shopper might type: its category and
+ * the Subcategory types it is tagged with ("Hair", "Curly Wigs", "Cocktail
+ * Dresses"). The category always comes first. Search matches on these as well as the name, so it agrees with
  * the category tree the shop and dashboard use.
  */
 export function filedUnderNames(product, categories = []) {
   const category = categories.find((c) => c.id === product.collectionId);
   if (!category) return [];
-  const names = [category.name, category.types?.find((t) => t.id === product.type)?.name];
+  const names = [category.name];
   for (const tag of product.tags ?? []) {
     const [prefix, subId, typeId] = String(tag).split(":");
     if (prefix !== "subcat") continue;

@@ -22,11 +22,6 @@ export function describeTarget(target, { categories = [], taxonomy = {}, product
     case "category":
       text = categoryName(target.id);
       break;
-    case "type": {
-      const type = categories.find((c) => c.id === target.category)?.types?.find((t) => t.id === target.id);
-      text = `${categoryName(target.category)} › ${type?.name ?? target.id}`;
-      break;
-    }
     case "filter":
       text = (target.values ?? []).map((v) => valueName(target.dimension, v)).join(", ");
       break;
@@ -41,7 +36,7 @@ export function describeTarget(target, { categories = [], taxonomy = {}, product
   }
 
   const scope = [
-    target.kind !== "category" && target.kind !== "type" && target.category ? categoryName(target.category) : null,
+    target.kind !== "category" && target.category ? categoryName(target.category) : null,
     target.newOnly && !(target.kind === "label" && target.id === "new") ? "new arrivals only" : null,
   ].filter(Boolean);
 
@@ -50,16 +45,11 @@ export function describeTarget(target, { categories = [], taxonomy = {}, product
 
 /**
  * A sensible starting name for a link, which the admin may change: the thing
- * itself, without its scope. A type keeps its category to find its own name,
- * because type ids repeat across categories (Heels under Accessories and Shoes).
+ * itself, without its scope.
  */
 export function suggestLabel(target, lookups = {}) {
-  if (target?.kind === "type") {
-    const category = (lookups.categories ?? []).find((c) => c.id === target.category);
-    return category?.types?.find((t) => t.id === target.id)?.name ?? target.id;
-  }
-  // A subcategory filter's value names live under the category, same reason
-  // as "type" above — stripping `category` (below) would lose them.
+  // A subcategory filter's value names live under the category, because type
+  // ids repeat across categories — stripping `category` (below) would lose them.
   if (target?.kind === "filter" && String(target.dimension).startsWith("subcat:")) {
     const subId = target.dimension.slice("subcat:".length);
     const category = (lookups.categories ?? []).find((c) => c.id === target.category);

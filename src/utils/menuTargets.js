@@ -6,7 +6,6 @@ import { DIMENSION_PREFIX } from "./faceting";
  *
  *   { kind: "all" }                                    everything
  *   { kind: "category", id }                           Dresses
- *   { kind: "type", category, id }                     Accessories › Heels
  *   { kind: "filter", dimension, values[], category? } Party or Evening dresses
  *   { kind: "label", id: "new" | "featured" | "sale" } New arrivals
  *   { kind: "product", id }                            one piece (tiles only)
@@ -53,8 +52,6 @@ export function matchesTarget(product, target) {
       return true;
     case "category":
       return tags.has(`cat:${target.id}`);
-    case "type":
-      return tags.has(`cat:${target.category}`) && tags.has(`type:${target.id}`);
     case "filter": {
       const prefix = DIMENSION_PREFIX[target.dimension] ?? target.dimension;
       return (target.values ?? []).some((value) => tags.has(`${prefix}:${value}`));
@@ -80,8 +77,6 @@ export function targetExists(target, { categories = [], taxonomy = {}, products 
       return true;
     case "category":
       return Boolean(category(target.id));
-    case "type":
-      return Boolean(category(target.category)?.types?.some((t) => t.id === target.id));
     case "filter": {
       if (String(target.dimension).startsWith("subcat:")) {
         const subId = target.dimension.slice("subcat:".length);

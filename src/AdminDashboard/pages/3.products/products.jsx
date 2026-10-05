@@ -7,7 +7,7 @@ import { useCurrency } from "../../../context/CurrencyContext";
 import { useToast } from "../../../context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { getStaffCategories } from "../../../services/catalog/categoriesApi";
-import { getColors } from "../../../services/catalog/colorsApi";
+import { getStaffColors } from "../../../services/catalog/colorsApi";
 import { usePageSize } from "../../lib/usePageSize";
 import { useProductsList } from "./sections/productsTable/useProductsList";
 import { getTaxonomy } from "../../../services/catalog/navigationApi";
@@ -44,7 +44,7 @@ export default function DashProducts() {
   const [pendingDelete, setPendingDelete] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
 
-  const { data: colors } = useAsyncData(getColors, []);
+  const { data: colors } = useAsyncData(getStaffColors, []);
 
   const rows = useMemo(() => toRows(products, categories), [products, categories]);
   const list = useProductsList(rows, { categories, colors, format });

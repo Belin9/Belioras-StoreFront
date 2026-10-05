@@ -5,7 +5,6 @@
  *   Category     — only when the page mixes categories (Shop, New Arrivals)
  *   <Subcategory> one filter per "Shop by …" group of the category in play,
  *                 its Types as the choices (`subcat:<subId>:<typeId>` tags)
- *   Type         — flat types, for a category that has no Subcategories yet
  *
  * On a page of one category (Dresses) its Subcategories show straight away. On
  * a mixed page they wait until a Category is ticked, so the panel never opens
@@ -35,18 +34,11 @@ export function catalogueDimensions(categories = [], products = [], selectedCate
     add("category", "Category", present.map((c) => ({ id: c.id, name: c.name })));
   }
 
-  const flat = [];
   for (const category of inPlay) {
-    const subs = category.subcategories ?? [];
-    if (subs.length) {
-      for (const sub of subs) {
-        add(`subcat:${sub.id}`, `${prefix(category)}${sub.name}`, sub.types.map((t) => ({ id: t.id, name: t.name })));
-      }
-    } else {
-      flat.push(...(category.types ?? []).map((t) => ({ id: t.id, name: t.name })));
+    for (const sub of category.subcategories ?? []) {
+      add(`subcat:${sub.id}`, `${prefix(category)}${sub.name}`, (sub.types ?? []).map((t) => ({ id: t.id, name: t.name })));
     }
   }
-  add("type", "Type", flat);
 
   return { dimensions, order };
 }

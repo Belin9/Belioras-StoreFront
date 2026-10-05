@@ -1152,7 +1152,6 @@
       "tag:bestseller",
       "subcat:shop-by-category:coats-jackets"
     ],
-    "type": "coats-jackets",
     "sku": "BEL-BF13",
     "status": "active",
     "colorways": [
@@ -1212,7 +1211,6 @@
       "subcat:shop-by-occasion:party-dresses",
       "subcat:shop-by-category:coats-jackets"
     ],
-    "type": "coats-jackets",
     "sku": "BEL-BF14",
     "status": "active",
     "colorways": [
@@ -1275,7 +1273,6 @@
       "tag:new",
       "subcat:shop-by-category:jumpsuits"
     ],
-    "type": "jumpsuits",
     "sku": "BEL-BF15",
     "status": "active",
     "colorways": [
@@ -1336,7 +1333,6 @@
       "subcat:shop-by-fabric:satin-dresses",
       "subcat:shop-by-category:jumpsuits"
     ],
-    "type": "jumpsuits",
     "sku": "BEL-BF16",
     "status": "active",
     "colorways": [
@@ -1397,7 +1393,6 @@
       "tag:new",
       "subcat:shop-by-category:two-piece-sets"
     ],
-    "type": "two-piece-sets",
     "sku": "BEL-BF17",
     "status": "active",
     "colorways": [
@@ -1456,7 +1451,6 @@
     "tags": [
       "subcat:shop-by-category:two-piece-sets"
     ],
-    "type": "two-piece-sets",
     "sku": "BEL-BF18",
     "status": "active",
     "colorways": [
@@ -1523,7 +1517,6 @@
       "color:black",
       "tag:bestseller"
     ],
-    "type": "wigs",
     "sku": "BEL-BF19",
     "status": "active",
     "colorways": [
@@ -1581,7 +1574,6 @@
       "subcat:wigs:curly-wigs",
       "color:black"
     ],
-    "type": "wigs",
     "sku": "BEL-BF20",
     "status": "active",
     "colorways": [
@@ -1633,7 +1625,6 @@
       "color:brown",
       "tag:new"
     ],
-    "type": "wigs",
     "sku": "BEL-BF21",
     "status": "active",
     "colorways": [
@@ -1691,7 +1682,6 @@
       "subcat:wigs:braided-wigs",
       "color:black"
     ],
-    "type": "wigs",
     "sku": "BEL-BF22",
     "status": "active",
     "colorways": [
@@ -1757,7 +1747,6 @@
       "tag:bestseller",
       "subcat:shoes:heels"
     ],
-    "type": "heels",
     "sku": "BEL-BF23",
     "status": "active",
     "colorways": [
@@ -1819,7 +1808,6 @@
       "tag:new",
       "subcat:shoes:heels"
     ],
-    "type": "heels",
     "sku": "BEL-BF24",
     "status": "active",
     "colorways": [
@@ -1876,7 +1864,6 @@
       "tag:featured",
       "subcat:bags:handbags"
     ],
-    "type": "handbags",
     "sku": "BEL-BF25",
     "status": "active",
     "colorways": [
@@ -1936,7 +1923,6 @@
       "tag:new",
       "subcat:bags:clutch-bags"
     ],
-    "type": "clutch",
     "sku": "BEL-BF26",
     "status": "active",
     "colorways": [
@@ -1997,7 +1983,6 @@
       "tag:new",
       "subcat:jewellery:earrings"
     ],
-    "type": "earrings",
     "sku": "BEL-BF27",
     "status": "active",
     "colorways": [
@@ -2050,7 +2035,6 @@
       "tag:bestseller",
       "subcat:jewellery:necklaces"
     ],
-    "type": "necklaces",
     "sku": "BEL-BF28",
     "status": "active",
     "colorways": [
@@ -2101,7 +2085,6 @@
       "subcat:wigs:bouncy-wigs",
       "tag:new"
     ],
-    "type": "wigs",
     "sku": "BEL-BF29",
     "status": "active",
     "colorways": [
@@ -2158,7 +2141,6 @@
     "tags": [
       "subcat:wigs:short-wigs"
     ],
-    "type": "wigs",
     "sku": "BEL-BF30",
     "status": "active",
     "colorways": [
@@ -2215,7 +2197,6 @@
     "tags": [
       "subcat:wigs:kinky-wigs"
     ],
-    "type": "wigs",
     "sku": "BEL-BF31",
     "status": "active",
     "colorways": [
@@ -2266,7 +2247,6 @@
       "subcat:wigs:yaky-wigs",
       "tag:new"
     ],
-    "type": "wigs",
     "sku": "BEL-BF32",
     "status": "active",
     "colorways": [
@@ -2323,7 +2303,6 @@
     "tags": [
       "subcat:wigs:locs"
     ],
-    "type": "wigs",
     "sku": "BEL-BF33",
     "status": "active",
     "colorways": [
@@ -2382,7 +2361,6 @@
       "subcat:bags:shoulder-bags",
       "tag:new"
     ],
-    "type": "shoulder",
     "sku": "BEL-BF34",
     "status": "active",
     "colorways": [
@@ -2440,7 +2418,6 @@
     "tags": [
       "subcat:bags:mini-bags"
     ],
-    "type": "mini",
     "sku": "BEL-BF35",
     "status": "active",
     "colorways": [
@@ -2498,7 +2475,6 @@
     "tags": [
       "subcat:jewellery:bracelets-bangles"
     ],
-    "type": "bracelets",
     "sku": "BEL-BF36",
     "status": "active",
     "colorways": [
@@ -2549,7 +2525,6 @@
     "tags": [
       "subcat:jewellery:rings"
     ],
-    "type": "rings",
     "sku": "BEL-BF37",
     "status": "active",
     "colorways": [

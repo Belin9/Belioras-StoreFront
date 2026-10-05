@@ -41,13 +41,11 @@ export function getNavItem(id) {
  * packing slips, the invoice) and none of them should have to learn where the
  * list came from.
  *
- * Only `size` is replaced. `color` stays on the local store, which is a separate
- * domain with separate writers (`colorsApi`) and its own join: a boutique
- * colour's `family` points at a taxonomy colour id, and that id is what the
- * storefront facet and every mega-menu `filter:color` link resolve against.
- * Moving colours is a real job with a much wider blast radius than sizes —
- * every product read resolves its colourways through them — so it is left alone
- * rather than half-pulled along.
+ * Only `size` is replaced. `color` here is the *family* dimension (black,
+ * brown…), which is still local. The boutique colour list (Ebony, Champagne) is
+ * a separate resource on the server (`colorsApi`); each colour's `family`
+ * points at one of these ids, and that id is what the storefront facet and
+ * every mega-menu `filter:color` link resolve against.
  *
  * The size read falls back (API, then IndexedDB, then the bundled list) inside
  * `getSizes`, so this resolves even with the network down. Colours resolve

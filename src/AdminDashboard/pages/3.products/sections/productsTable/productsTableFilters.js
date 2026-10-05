@@ -27,7 +27,12 @@ const LEVELS = [
 ];
 
 const colorIdsOf = (row) => (row.colorways ?? []).map((c) => c.colorId);
-const typeKey = (row) => (row.type ? `${row.collectionId}:${row.type}` : null);
+/** Every Subcategory type a row is tagged with, as `<category>:<sub>:<type>` (sub ids repeat across categories). */
+const typeKeys = (row) =>
+  (row.tags ?? []).flatMap((tag) => {
+    const [prefix, subId, typeId] = String(tag).split(":");
+    return prefix === "subcat" && typeId ? [`${row.collectionId}:${subId}:${typeId}`] : [];
+  });
 
 /** Groups for DashFilters, each option counted over every row. */
 export function filterGroups(rows, { categories = [], colors = [], format }) {
@@ -36,7 +41,14 @@ export function filterGroups(rows, { categories = [], colors = [], format }) {
     options.map((o) => ({ ...o, count: count((r) => test(r, o.value)) })).filter((o) => o.count > 0);
 
   const types = categories.flatMap((c) =>
-    (c.types ?? []).map((t) => ({ value: `${c.id}:${t.id}`, label: `${c.name} · ${t.name}`, shortLabel: t.name, section: c.name })),
+    (c.subcategories ?? []).flatMap((sub) =>
+      (sub.types ?? []).map((t) => ({
+        value: `${c.id}:${sub.id}:${t.id}`,
+        label: `${c.name} · ${t.name}`,
+        shortLabel: t.name,
+        section: `${c.name} · ${sub.name}`,
+      })),
+    ),
   );
   const money = (n) => format(n).replace(/[.,]00(?=\D*$)/, "");
   const bandLabel = ({ min, max }) =>
@@ -44,7 +56,7 @@ export function filterGroups(rows, { categories = [], colors = [], format }) {
 
   return [
     { id: "category", label: "Category", options: withCount(categories.map((c) => ({ value: c.id, label: c.name })), (r, v) => r.collectionId === v) },
-    { id: "type", label: "Type", options: withCount(types, (r, v) => typeKey(r) === v) },
+    { id: "type", label: "Type", options: withCount(types, (r, v) => typeKeys(r).includes(v)) },
     {
       id: "color",
       label: "Colour",
@@ -72,7 +84,7 @@ function inBand(row, value) {
 export function applyFilters(rows, filters) {
   const tests = {
     category: (r, v) => v.includes(r.collectionId),
-    type: (r, v) => v.includes(typeKey(r)),
+    type: (r, v) => typeKeys(r).some((key) => v.includes(key)),
     color: (r, v) => colorIdsOf(r).some((id) => v.includes(id)),
     stock: (r, v) => v.includes(r.level),
     label: (r, v) => LABELS.some((l) => v.includes(l.value) && l.test(r)),

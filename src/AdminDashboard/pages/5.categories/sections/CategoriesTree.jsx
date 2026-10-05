@@ -9,11 +9,10 @@ import { cn } from "@/utils/cn";
 
 /**
  * Categories and what's under them, as one hierarchy rather than a flat
- * table. Two separate things nest inside a category: its own `types`
- * (Dresses holding Jumpsuits, Two-Piece Sets…, product-taggable), and its
- * `subcategories` — a category's own "Shop by …" groups (Shop by Occasion,
- * Shop by Fabric…), each holding its own types one level deeper. No category
- * nests inside another.
+ * table: a category holds its `subcategories` — its own "Shop by …" groups
+ * (Bags, Shop by Occasion…) — and each of those holds the types products are
+ * tagged with (Clutch Bags, Party Dresses…). Types live only there. No
+ * category nests inside another.
  *
  * Categories reorder by drag handle or arrows (`onMove(from, to)`), which is
  * the order the shop's filters, menu pickers and footer list them in. Turned
@@ -31,7 +30,6 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
     return categories.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
-        (c.types ?? []).some((t) => t.name.toLowerCase().includes(q)) ||
         (c.subcategories ?? []).some(
           (s) => s.name.toLowerCase().includes(q) || (s.types ?? []).some((t) => t.name.toLowerCase().includes(q)),
         ),
@@ -61,14 +59,11 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
     <ul className="space-y-2">
       {rows.map((category, index) => {
         const matches = (name) => !q || name.toLowerCase().includes(q) || category.name.toLowerCase().includes(q);
-        // Types are listed whether or not there are Subcategories: they are
-        // what products are tagged with, so they must stay visible and editable.
         const hasSubcategories = (category.subcategories?.length ?? 0) > 0;
-        const types = (category.types ?? []).filter((t) => matches(t.name));
         const subcategories = (category.subcategories ?? [])
           .map((s) => ({ ...s, types: (s.types ?? []).filter((t) => matches(t.name)) }))
           .filter((s) => matches(s.name) || s.types.length > 0);
-        const hasChildren = types.length > 0 || subcategories.length > 0;
+        const hasChildren = subcategories.length > 0;
         const open = isOpen(category.id);
         const subcategoryTypeCount = (category.subcategories ?? []).reduce((n, s) => n + (s.types?.length ?? 0), 0);
         return (
@@ -110,16 +105,9 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
                 <span className="min-w-0">
                   <span className="block truncate font-medium text-espresso">{category.name}</span>
                   <span className="block truncate text-[12px] text-espresso-soft">
-                    {[
-                      category.types?.length
-                        ? `${category.types.length} ${category.types.length === 1 ? "type" : "types"}`
-                        : null,
-                      hasSubcategories
-                        ? `${category.subcategories.length} ${category.subcategories.length === 1 ? "subcategory" : "subcategories"} (${subcategoryTypeCount} types)`
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ") || "Nothing set up yet"}
+                    {hasSubcategories
+                      ? `${category.subcategories.length} ${category.subcategories.length === 1 ? "subcategory" : "subcategories"} · ${subcategoryTypeCount} ${subcategoryTypeCount === 1 ? "type" : "types"}`
+                      : "No subcategories yet"}
                   </span>
                 </span>
                 <span className="ml-auto shrink-0 text-[11px] tabular-nums text-espresso-soft">
@@ -151,22 +139,6 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
 
             {open && hasChildren && (
               <div className="border-t border-umber-50 px-4 py-4 pl-[3.25rem]">
-                {types.length > 0 && subcategories.length > 0 && (
-                  <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-gold-700">Types</p>
-                )}
-                {types.length > 0 && (
-                  <ul className={cn("space-y-1", subcategories.length > 0 && "mb-5 mt-1")}>
-                    {types.map((type) => (
-                      <li key={type.id} className="flex items-center justify-between gap-3 py-1 text-[13px]">
-                        <span className="min-w-0 truncate text-espresso">{type.name}</span>
-                        <span className="shrink-0 tabular-nums text-espresso-soft">
-                          {typeUsage?.[`${category.id}:${type.id}`] ?? 0} products
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
                 {/* A category can have many "Shop by …" groups (Dresses has
                     five), each short — a single stacked column left most of
                     a wide admin screen empty, so the groups lay out side by
@@ -179,8 +151,11 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
                         <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-gold-700">{sub.name}</p>
                         <ul className="mt-1 space-y-1">
                           {sub.types.map((type) => (
-                            <li key={type.id} className="truncate py-0.5 text-[13px] text-espresso">
-                              {type.name}
+                            <li key={type.id} className="flex items-baseline justify-between gap-2 py-0.5 text-[13px]">
+                              <span className="min-w-0 truncate text-espresso">{type.name}</span>
+                              <span className="shrink-0 text-[11px] tabular-nums text-espresso-soft">
+                                {typeUsage?.[`${category.id}:${sub.id}:${type.id}`] ?? 0}
+                              </span>
                             </li>
                           ))}
                           {sub.types.length === 0 && <li className="py-0.5 text-[13px] text-espresso-soft">No types yet</li>}

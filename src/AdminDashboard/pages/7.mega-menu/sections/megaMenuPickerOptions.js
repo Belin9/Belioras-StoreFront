@@ -22,7 +22,6 @@ export function kindsFor(mode, categories = [], categoryId = "") {
   }
   return [
     { id: "category", label: "Category" },
-    { id: "type", label: "Type" },
     ...subcategoryKinds(categories, categoryId),
     { id: "color", label: "Colour" },
     { id: "label", label: "Label" },
@@ -45,11 +44,6 @@ export function isScoped(kind) {
 
 export function optionsFor(kind, { categories = [], taxonomy = {}, category = "" }) {
   if (kind === "category") return categories.map((c) => ({ value: c.id, name: c.name }));
-  if (kind === "type") {
-    return categories.flatMap((c) =>
-      (c.types ?? []).map((t) => ({ value: `${c.id}/${t.id}`, name: t.name, group: c.name })),
-    );
-  }
   if (kind === "label") return Object.entries(LABELS).map(([value, name]) => ({ value, name }));
   if (String(kind).startsWith(SUBCAT_PREFIX)) {
     const subId = kind.slice(SUBCAT_PREFIX.length);
@@ -68,10 +62,6 @@ export function targetFrom({ kind, values = [], category, newOnly }) {
   const scope = { ...(category ? { category } : {}), ...onlyNew };
 
   if (kind === "category") return { kind, id: values[0], ...onlyNew };
-  if (kind === "type") {
-    const [categoryId, id] = values[0].split("/");
-    return { kind, category: categoryId, id, ...onlyNew };
-  }
   if (kind === "label") return { kind, id: values[0], ...scope };
   if (String(kind).startsWith(SUBCAT_PREFIX)) {
     if (!category) return null; // a Subcategory filter is always scoped to its own category
@@ -90,8 +80,6 @@ export function stateFrom(target, defaultCategory = "") {
       return { ...base, kind: "all", values: ["all"] };
     case "category":
       return { ...base, category: "", kind: "category", values: [target.id] };
-    case "type":
-      return { ...base, category: "", kind: "type", values: [`${target.category}/${target.id}`] };
     case "label":
       return { ...base, kind: "label", values: [target.id] };
     case "filter":

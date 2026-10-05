@@ -93,6 +93,10 @@ export const routes = {
     category: "taxonomy/categories/:id",
     categoriesOrder: "taxonomy/categories/order",
     categoriesReset: "taxonomy/categories/reset",
+    // Colours: products store colourways by colour id, so the same contract.
+    colors: "taxonomy/colors",
+    color: "taxonomy/colors/:id",
+    colorsReset: "taxonomy/colors/reset",
   },
 };
 

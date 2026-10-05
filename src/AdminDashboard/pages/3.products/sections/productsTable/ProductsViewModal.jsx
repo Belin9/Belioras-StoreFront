@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import StatusChip from "@/components/ui/StatusChip";
 import { sizeLabel } from "@/AdminDashboard/lib/catalogOptions";
 import { cn } from "@/utils/cn";
+import { filedUnderNames } from "@/utils/productFiling";
 
 const LABEL = "text-[10px] font-semibold uppercase tracking-[0.2em] text-espresso-soft";
 
@@ -23,7 +24,8 @@ export default function ViewProductModal({ product, onClose, onEdit, format, cat
   const way = ways[colorIndex];
   const photos = way?.images?.length ? way.images : (product?.images ?? []);
   const category = categories.find((c) => c.id === product?.collectionId);
-  const type = category?.types?.find((t) => t.id === product?.type);
+  // The Subcategory types it is tagged with, by name ("Clutch Bags, Evening Dresses").
+  const filed = filedUnderNames(product ?? {}, categories).slice(1).join(", ");
   const sizes = (product?.sizes ?? []).filter((s) => s && s !== "one-size" && s !== "default");
   const columns = sizes.length ? sizes : ["one-size"];
   const tracked = ways.some((w) => w.stock && Object.keys(w.stock).length);
@@ -75,7 +77,7 @@ export default function ViewProductModal({ product, onClose, onEdit, format, cat
               </div>
               <div>
                 <p className={LABEL}>Category</p>
-                <p className="mt-1 text-[14px] text-espresso">{category?.name ?? product.collectionId ?? "—"}{type && ` › ${type.name}`}</p>
+                <p className="mt-1 text-[14px] text-espresso">{category?.name ?? product.collectionId ?? "—"}{filed && ` › ${filed}`}</p>
               </div>
             </div>
 

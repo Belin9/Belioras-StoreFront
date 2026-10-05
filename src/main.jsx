@@ -2,6 +2,12 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import { syncColors } from './services/catalog/colorsApi'
+
+// Every product read resolves its colours synchronously from the local mirror,
+// so pull the server's list once up front. The first paint uses the last list
+// this browser saw; if the server's differs, pages re-render when it lands.
+syncColors()
 
 /* Application Entry Point: Renders the root App component into the DOM */
 createRoot(document.getElementById('root')).render(

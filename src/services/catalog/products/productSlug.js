@@ -31,7 +31,6 @@ function deriveTags(product, colorFamilies = []) {
   const tags = new Set(product.tags ?? []);
 
   if (product.collectionId) tags.add(`cat:${product.collectionId}`);
-  if (product.type) tags.add(`type:${product.type}`);
   if (product.isNew) tags.add("tag:new");
   if (product.bestseller) tags.add("tag:bestseller");
   if (product.featured) tags.add("tag:featured");

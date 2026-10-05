@@ -8,7 +8,7 @@ import { useProductDraft } from "@/context/ProductDraftContext";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { getStaffCategories } from "@/services/catalog/categoriesApi";
-import { getColors } from "@/services/catalog/colorsApi";
+import { getStaffColors } from "@/services/catalog/colorsApi";
 import { getModels } from "@/services/catalog/modelsApi";
 import { getTaxonomy } from "@/services/catalog/navigationApi";
 import { createProduct, getProduct, updateProduct } from "@/services/catalog/productsApi";
@@ -40,7 +40,7 @@ export default function ProductForm() {
   const [revision, setRevision] = useState(0);
   const { data: existing, loading } = useAsyncData(() => (isEdit ? getProduct(id, { includeDrafts: true }) : Promise.resolve(null)), [id]);
   const { data: categories } = useAsyncData(getStaffCategories, [revision]);
-  const { data: colors } = useAsyncData(getColors, [revision]);
+  const { data: colors } = useAsyncData(getStaffColors, [revision]);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
   const { data: models } = useAsyncData(getModels, []);
 
@@ -66,10 +66,10 @@ export default function ProductForm() {
     setPhotos, setVideos, setColorIds, setStock, setSizes, setTags, setSpread,
   });
 
-  // Sizes and a type the new category does not offer are dropped rather than kept hidden.
+  // Sizes the new category does not offer are dropped rather than kept hidden.
+  // Subcategory tags of the old category are dropped on save (toPayload).
   const chooseCategory = (next) => {
     form.setValue("collectionId", next.id, { shouldDirty: true });
-    if (!(next.types ?? []).some((t) => t.id === form.getValues("type"))) form.setValue("type", "");
     setSizes((prev) => (next.sizes ?? []).filter((s) => prev.includes(s)));
   };
 
@@ -145,8 +145,8 @@ export default function ProductForm() {
           <div className="space-y-4 lg:sticky lg:top-0">
             <ProductFormPublish {...actions} className="hidden lg:block" />
             <ProductFormCategory
-              categories={categories ?? []} value={values.collectionId} type={values.type} tags={tags}
-              onChange={chooseCategory} onTypeChange={(next) => form.setValue("type", next, { shouldDirty: true })}
+              categories={categories ?? []} value={values.collectionId} tags={tags}
+              onChange={chooseCategory}
               onTagsChange={setTags}
               onCreated={(created) => { setRevision((n) => n + 1); chooseCategory(created); }}
             />

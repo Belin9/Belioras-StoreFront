@@ -27,8 +27,8 @@ services/
 | **catalog/** | | |
 | `productsApi.js` | `getProducts()`, `getProduct(id)`, `getProductsByCollection()`, `getNewArrivals()`, `searchProducts(query)`, `getFeaturedProducts()`, `getBestSellers()`, `createProduct()`, `updateProduct()`, `deleteProduct()`, `restoreProduct()` | product objects |
 | `collectionsApi.js` | `getCollections()` | dress/hair/accessory collections |
-| `categoriesApi.js` | `getCategories({realm})`, `getStaffCategories()`, `categoryUsage()`, `typeUsage()`, `createCategory()`, `updateCategory()`, `deleteCategory()`, `reorderCategories(ids)`, `resetCategories()` | categories from `/taxonomy/categories`: name, sizes offered, types, subcategories (mirrored into the local `categories` domain) |
-| `colorsApi.js` | `getColors()`, `colorUsage()`, `createColor()`, `updateColor()`, `deleteColor()` | colours: name, swatch hex, shop-filter family |
+| `categoriesApi.js` | `getCategories({realm})`, `getStaffCategories()`, `categoryUsage()`, `typeUsage()`, `createCategory()`, `updateCategory()`, `deleteCategory()`, `reorderCategories(ids)`, `resetCategories()` | categories from `/taxonomy/categories`: name, sizes offered, subcategories and their types (mirrored into the local `categories` domain) |
+| `colorsApi.js` | `getColors({realm})`, `getStaffColors()`, `syncColors()`, `colorUsage()`, `createColor()`, `updateColor()`, `deleteColor()`, `resetColors()` | colours from `/taxonomy/colors`: name, swatch hex, shop-filter family (mirrored into the local `colors` domain) |
 | `navigationApi.js` | `getNavigation()` (tiles resolved), `getNavigationForEditing()`, `updateNavigation(items)` (validated), `resetNavigation()`, `getTaxonomy()` | the menu tree |
 | `catalogApi.js` | `getCatalog(pathname)`, `getFeaturedCollection()`, `getSiblingLeaves(pathname)` | a menu page's products |
 | `sizeChartApi.js` | `getSizeCharts()` | size reference tables |
@@ -60,7 +60,7 @@ All JSON arrays/objects, ~5-10 items each (enough to demo filters/DS):
 - `accessories.json` — bags, belts, scarves, jewelry + `nonReturnable` flags where applicable.
 - `colors.json` — the managed colour list (`id`, `name`, `hex`, `family`). Products reference colours by id.
 - `subscribers.json`, `campaigns.json`, `newsletter.json` (via `newsletterSeed.js`) — newsletter subscribers with their consent record (`status`, `source`, `consentText`, `consentedAt`, `confirmedAt`, `token`), campaigns, and the welcome email. Deletes are remembered in the domain's `removed` ids (`storeCollections.js`) so seed records don't return on reload.
-- `categories.json` — what a piece is (`id`, `name`, `sizes[]`, `types[]`, `subcategories[]`). Now only the offline floor: the list lives on the server (`server/src/features/categories/seed.json` is its copy). The id is a product's `collectionId`; a type id is a product's `type`.
+- `categories.json` — what a piece is (`id`, `name`, `sizes[]`, `subcategories[{id,name,types[]}]`). Types live only inside subcategories; a product is filed under them with `subcat:<sub>:<type>` tags (it has no `type` field). Now only the offline floor: the list lives on the server (`server/src/features/categories/seed.json` is its copy). The id is a product's `collectionId`.
 - `navigation.json` — the menu tree: top-level items, their columns (`sections`) of links, and `tiles`. Every node carries a `target` saying what it shows (see `src/utils/menuTargets.js`) and a generated `slug`/`url`. A catalogue page is found by its URL in this tree and lists the products `matchesTarget` selects; any other URL is a 404.
 - New Arrivals are the products with `isNew`, newest `createdAt` first; there is no separate list.
 - `testimonials.json` — name, city, quote, rating, productUrl.

@@ -6,13 +6,12 @@ import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import { useToast } from "@/context/ToastContext";
 import CategorySubcategoriesField from "./CategorySubcategoriesField";
-import CategoryTypesField from "./CategoryTypesField";
 import ChoiceChips from "./ChoiceChips";
 
 /**
- * Adds or edits one category: its name, the sizes it offers, its own
- * product-taggable types, and its Subcategories. Remount with a changing
- * `key` per open.
+ * Adds or edits one category: its name, the sizes it offers, and its
+ * Subcategories with the product-taggable types under each. Remount with a
+ * changing `key` per open.
  *
  * `sizesEditable` is false for the quick "+ New category" shortcut inside Add
  * Product: deciding what a whole category's size range is belongs to
@@ -31,7 +30,6 @@ export default function CategoryDialog({
   const [form, setForm] = useState({
     name: initial?.name ?? "",
     sizes: initial?.sizes ?? [],
-    types: initial?.types ?? [],
     subcategories: initial?.subcategories ?? [],
   });
   const [error, setError] = useState("");
@@ -86,11 +84,6 @@ export default function CategoryDialog({
             Sizes, one size by default: set them afterwards in Categories &amp; Colours.
           </p>
         )}
-
-        {/* Always shown, Subcategories or not: this is the field the product
-            form's Type picker reads, so hiding it left existing types
-            uneditable while products still carried them. */}
-        <CategoryTypesField types={form.types} onChange={(types) => setForm((f) => ({ ...f, types }))} />
 
         <CategorySubcategoriesField
           subcategories={form.subcategories}

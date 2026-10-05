@@ -11,7 +11,7 @@ import DashListToolbar from "@/AdminDashboard/components/DashListToolbar";
 import { usePageSize } from "@/AdminDashboard/lib/usePageSize";
 import DashTable from "@/AdminDashboard/components/DashTable";
 import { familyOptionsFrom } from "@/AdminDashboard/lib/catalogOptions";
-import { colorUsage, createColor, deleteColor, getColors, updateColor } from "@/services/catalog/colorsApi";
+import { colorUsage, createColor, deleteColor, getStaffColors, updateColor } from "@/services/catalog/colorsApi";
 import { getTaxonomy } from "@/services/catalog/navigationApi";
 import { buildColourColumns } from "./coloursColumns";
 
@@ -20,7 +20,7 @@ export default function ColoursPanel() {
   const [revision, setRevision] = useState(0);
   const refresh = () => setRevision((n) => n + 1);
 
-  const { data: colors, loading } = useAsyncData(getColors, [revision]);
+  const { data: colors, loading } = useAsyncData(getStaffColors, [revision]);
   const { data: usage } = useAsyncData(colorUsage, [revision]);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
 

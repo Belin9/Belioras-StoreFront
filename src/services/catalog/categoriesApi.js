@@ -6,13 +6,14 @@ import { catalogItems } from "./products/productStore";
 import { audited } from "../auth/audited";
 
 /**
- * Categories: what a piece is. Each offers a set of sizes, optional types
- * within it (Accessories: Heels, Handbags…), and its own Subcategories —
- * freely-named "Shop by …" groups, each holding its own types.
+ * Categories: what a piece is. Each offers a set of sizes and its own
+ * Subcategories — freely-named "Shop by …" groups (Bags, Shop by Occasion…),
+ * each holding the types products are tagged with (Clutch Bags, Party
+ * Dresses…). Types live only inside Subcategories.
  *
  * Ids are fixed at creation: a category id is every product's collectionId and
- * a type id is a product's `type`, and both are filter tokens, so renaming
- * changes only the name. The server owns the ids and never reissues a deleted
+ * a type is a product's `subcat:<sub>:<type>` tag, and both are filter tokens,
+ * so renaming changes only the name. The server owns the ids and never reissues a deleted
  * one.
  *
  * ## Reads fall back, writes do not
@@ -26,8 +27,8 @@ import { audited } from "../auth/audited";
  *
  * ## The in-use guards stay here
  *
- * "A category still holding products cannot be deleted", "a type still on a
- * product cannot be removed", and "nothing the Mega Menu links to can be
+ * "A category still holding products cannot be deleted", "a type still tagged
+ * on a product cannot be removed", and "nothing the Mega Menu links to can be
  * removed" all need the products and the menu, which still live in this
  * browser. So they are checked here before the request is sent. The server
  * cannot see them, which is why it spends deleted ids instead.
@@ -67,13 +68,12 @@ function mirrorOne(category) {
  * exists can't be removed out from under it — same rule as a type still on a
  * product.
  *
- * `gone` describes what is being removed: { category, type?, subcategory?, subcategoryType? }.
+ * `gone` describes what is being removed: { category, subcategory?, subcategoryType? }.
  */
 function menuUsing(gone) {
   const uses = (t) => {
     if (!t) return false;
-    if (t.kind === "category") return t.id === gone.category && !gone.type && !gone.subcategory;
-    if (t.kind === "type") return t.category === gone.category && t.id === gone.type;
+    if (t.kind === "category") return t.id === gone.category && !gone.subcategory;
     if (t.kind === "filter" && String(t.dimension).startsWith("subcat:") && t.category === gone.category) {
       if (t.dimension !== `subcat:${gone.subcategory}`) return false;
       return !gone.subcategoryType || (t.values ?? []).includes(gone.subcategoryType);
@@ -95,13 +95,6 @@ function inMenuError(name, where) {
 }
 
 const products = (n) => `${n} ${n === 1 ? "product" : "products"}`;
-
-function inUseError(name, count) {
-  return new ApiError(
-    `${name} is on ${products(count)}. Give ${count === 1 ? "it" : "them"} another type before removing it.`,
-    409,
-  );
-}
 
 /**
  * Every category, in display order.
@@ -136,17 +129,22 @@ export async function categoryUsage() {
   return counts;
 }
 
-/** How many products sit in each type, keyed by `<categoryId>:<typeId>`. */
+/** How many products are tagged with each Subcategory type, keyed by `<categoryId>:<subId>:<typeId>`. */
 export async function typeUsage() {
   const counts = {};
   for (const p of catalogItems()) {
-    if (p.type) counts[`${p.collectionId}:${p.type}`] = (counts[`${p.collectionId}:${p.type}`] ?? 0) + 1;
+    for (const tag of p.tags ?? []) {
+      const [prefix, subId, typeId] = String(tag).split(":");
+      if (prefix !== "subcat" || !typeId) continue;
+      const key = `${p.collectionId}:${subId}:${typeId}`;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
   }
   return counts;
 }
 
 /** Blank rows dropped, and only the keys the server accepts. */
-function toBody({ name, sizes, types, subcategories } = {}) {
+function toBody({ name, sizes, subcategories } = {}) {
   const named = (list) =>
     (Array.isArray(list) ? list : [])
       .map((item) => ({ ...item, name: String(item?.name ?? "").trim() }))
@@ -157,7 +155,6 @@ function toBody({ name, sizes, types, subcategories } = {}) {
   return {
     name: trimmed,
     sizes: Array.isArray(sizes) ? sizes : [],
-    types: named(types).map(({ id, name: n }) => (id ? { id, name: n } : { name: n })),
     subcategories: named(subcategories).map(({ id, name: n, types: t }) => ({
       ...(id ? { id } : {}),
       name: n,
@@ -176,15 +173,6 @@ function toBody({ name, sizes, types, subcategories } = {}) {
 function assertRemovable(existing, body) {
   const id = existing.id;
   const items = catalogItems().filter((p) => p.collectionId === id);
-
-  const kept = new Set(body.types.map((t) => t.id).filter(Boolean));
-  for (const type of existing.types ?? []) {
-    if (kept.has(type.id)) continue;
-    const count = items.filter((p) => p.type === type.id).length;
-    if (count) throw inUseError(type.name, count);
-    const where = menuUsing({ category: id, type: type.id });
-    if (where) throw inMenuError(type.name, where);
-  }
 
   const nextSubs = new Map(body.subcategories.filter((s) => s.id).map((s) => [s.id, s]));
   const tagged = (subId, typeId) =>
