@@ -6,7 +6,7 @@ import { Package } from "lucide-react";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { useToast } from "../../../context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
-import { getCategories } from "../../../services/catalog/categoriesApi";
+import { getStaffCategories } from "../../../services/catalog/categoriesApi";
 import { getColors } from "../../../services/catalog/colorsApi";
 import { usePageSize } from "../../lib/usePageSize";
 import { useProductsList } from "./sections/productsTable/useProductsList";
@@ -38,7 +38,7 @@ export default function DashProducts() {
   const refresh = useCallback(() => setRevision((n) => n + 1), []);
 
   const { data: products, loading } = useAsyncData(getAllProducts, [revision]);
-  const { data: categories } = useAsyncData(getCategories, []);
+  const { data: categories } = useAsyncData(getStaffCategories, []);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
   const [viewing, setViewing] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);

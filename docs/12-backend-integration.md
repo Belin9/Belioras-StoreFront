@@ -117,11 +117,11 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   and the client re-reads the list after every write so the offline copy matches.
 - **The delete guard is weaker than it was, and it should be said plainly.** The
   dashboard still refuses to delete a size a category offers or a product
-  carries — but the server cannot check that, because it has no `Category` and
-  no `Product` model; the catalogue lives in this browser's localStorage. So the
+  carries — but the server cannot check that, because it has no `Product`
+  model; the catalogue lives in this browser's localStorage. So the
   guard holds for whoever holds the catalogue and for nobody else. What the
   server does guarantee is the spent id, which bounds how badly an unguarded
-  delete can go. The guard moves server-side when products and categories do.
+  delete can go. The guard moves server-side when products do.
 - **Writes stopped bumping the content version, so something had to.** Six
   storefront components read sizes keyed on `contentStore`'s version counter, and
   it used to move only because `setState` did. A server-side write does not go
@@ -146,6 +146,28 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   garment guide has no row for. That is a content decision about what the shop
   actually sells, so it is left visible rather than reconciled by a refactor.
 
+
+## What categories cost
+
+- **Same id contract as sizes.** `categoriesApi.js` now talks to
+  `/taxonomy/categories`; the server derives and owns ids, keeps type and
+  subcategory ids across renames, and spends deleted category ids.
+- **The local `categories` domain became a mirror.** Five places read categories
+  synchronously (`reportsApi`, `sizesApi.sizeUsage`, `productCatalog.searchProducts`,
+  `navigationApi`, the menu checks in `categoriesApi`), so rather than make them
+  async, every API read and write is written into the domain. It is registered
+  with `mirror: true`, which skips the seed merge on hydrate — otherwise a
+  reload would bring back deleted seed categories and undo a reorder until the
+  first fetch. Reads mirror with `setState(..., { silent: true })`: readers keyed
+  on the content version re-run their read when it moves, so a read that
+  announced itself would loop. Writes notify as usual.
+- **Fallback is API → the mirror** (which starts as the bundled seed). No
+  IndexedDB store this time — the mirror is already persisted.
+- **The in-use guards stay client-side**: products in a category, a type on a
+  product, a subcategory type tagged on a product, and Mega Menu links. They
+  move to the server with products.
+- **Order** is `PUT /order` with the full id list; types and subcategories are
+  ordered by array position in the category itself.
 
 ## Orders and payment
 

@@ -86,6 +86,13 @@ export const routes = {
     sizes: "taxonomy/sizes",
     size: "taxonomy/sizes/:id",
     sizesReset: "taxonomy/sizes/reset",
+    // Categories: same contract. A category id is every product's
+    // `collectionId` and the `/dresses` URL, so it is only ever in the path.
+    // Order is a property of the whole list and has its own edge.
+    categories: "taxonomy/categories",
+    category: "taxonomy/categories/:id",
+    categoriesOrder: "taxonomy/categories/order",
+    categoriesReset: "taxonomy/categories/reset",
   },
 };
 

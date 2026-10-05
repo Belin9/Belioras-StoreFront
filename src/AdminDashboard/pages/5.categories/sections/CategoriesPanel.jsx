@@ -1,5 +1,5 @@
 /* Admin Dashboard Page: Categories - CategoriesPanel */
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus } from "lucide-react";
 
 import Button from "@/components/ui/Button";
@@ -9,11 +9,13 @@ import { useAsyncData } from "@/hooks/useAsyncData";
 import CategoryDialog from "@/AdminDashboard/components/CategoryDialog";
 import DashListToolbar from "@/AdminDashboard/components/DashListToolbar";
 import { sizeOptionsFrom } from "@/AdminDashboard/lib/catalogOptions";
+import { reorder } from "@/AdminDashboard/lib/useDragReorder";
 import {
   categoryUsage,
   createCategory,
   deleteCategory,
-  getCategories,
+  getStaffCategories,
+  reorderCategories,
   typeUsage,
   updateCategory,
 } from "@/services/catalog/categoriesApi";
@@ -25,10 +27,34 @@ export default function CategoriesPanel() {
   const [revision, setRevision] = useState(0);
   const refresh = () => setRevision((n) => n + 1);
 
-  const { data: categories, loading } = useAsyncData(getCategories, [revision]);
+  const { data: categories, loading } = useAsyncData(getStaffCategories, [revision]);
   const { data: usage } = useAsyncData(categoryUsage, [revision]);
   const { data: types } = useAsyncData(typeUsage, [revision]);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
+
+  // A reorder shows at once and saves behind it. The override remembers which
+  // read it was made over and lapses as soon as a newer read lands (or the
+  // save fails), so the list is never left showing an order the server does
+  // not have. Saves run one after another, so two quick arrow clicks cannot
+  // land out of order.
+  const [optimistic, setOptimistic] = useState(null);
+  const saving = useRef(Promise.resolve());
+  const list = (optimistic?.over === categories ? optimistic.list : categories) ?? [];
+
+  const move = (from, to) => {
+    const next = reorder(list, from, to);
+    if (!next) return;
+    setOptimistic({ over: categories, list: next });
+    saving.current = saving.current.then(() =>
+      reorderCategories(next.map((c) => c.id))
+        .then(refresh)
+        .catch((err) => {
+          setOptimistic(null);
+          refresh();
+          toast(err.message ?? "Could not save that order.", "error");
+        }),
+    );
+  };
 
   const [dialog, setDialog] = useState({ open: false, initial: null, n: 0 });
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -95,12 +121,13 @@ export default function CategoriesPanel() {
         <p className="text-[13px] text-espresso-soft">Loading…</p>
       ) : (
         <CategoriesTree
-          categories={categories ?? []}
+          categories={list}
           usage={usage}
           typeUsage={types}
           query={query}
           onEdit={open}
           onDelete={askDelete}
+          onMove={move}
         />
       )}
 

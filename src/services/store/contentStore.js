@@ -68,7 +68,12 @@ const DOMAINS = {
   products: { seed: catalogSeed, collection: "items" },
   // The lists products choose from, managed under Categories & Colours.
   colors: { seed: colorsSeed, collection: "items" },
-  categories: { seed: categoriesSeed, collection: "items" },
+  // A mirror of the server's list, not an editable copy: `categoriesApi`
+  // overwrites it after every API read or write so the synchronous readers
+  // (search, reports, the size usage count, menu checks) keep working and a
+  // reload offline still has the last list. `mirror` skips the seed merge —
+  // the server's order and deletions are the truth, not the bundle's.
+  categories: { seed: categoriesSeed, collection: "items", mirror: true },
   orders: { seed: ordersSeed, collection: "items" },
   // Discount codes. Global-only — no per-product/category scoping.
   coupons: { seed: couponsSeed, collection: "items" },
@@ -148,6 +153,8 @@ function hydrate(domain) {
 
   if (!stored || stored.rev !== seed.rev) return seed;
 
+  if (DOMAINS[domain].mirror) return { ...seed, ...stored, rev: seed.rev };
+
   if (!collection) return { ...seed, ...stored, rev: seed.rev };
 
   return {
@@ -174,12 +181,19 @@ export function getState(domain) {
   return ensure(domain);
 }
 
-/** Applies `updater` to a domain, persists the result, and notifies subscribers. */
-export function setState(domain, updater) {
+/**
+ * Applies `updater` to a domain, persists the result, and notifies subscribers.
+ *
+ * `silent` persists without notifying. It is for mirroring a server read into
+ * a domain: readers keyed on `version` re-run their read when it moves, so a
+ * read that announced itself would trigger itself again, forever.
+ */
+export function setState(domain, updater, { silent = false } = {}) {
 
   const next = typeof updater === "function" ? updater(getState(domain)) : updater;
   state[domain] = next;
   writeStored(domain, next);
+  if (silent) return next;
   version += 1;
   listeners.forEach((listener) => listener());
   return next;

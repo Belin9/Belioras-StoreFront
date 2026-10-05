@@ -6,7 +6,7 @@ import { useStaffAuth } from "@/context/auth/useAuthRealm";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
-import { getCategories } from "@/services/catalog/categoriesApi";
+import { getStaffCategories } from "@/services/catalog/categoriesApi";
 import { getInventory, getLowStockThreshold } from "@/services/catalog/inventory/inventoryApi";
 import { getTaxonomy } from "@/services/catalog/navigationApi";
 import DashTable from "../../components/DashTable";
@@ -36,7 +36,7 @@ export default function DashInventory() {
 
   const { data: rows, loading } = useAsyncData(getInventory, [revision]);
   const { data: threshold } = useAsyncData(getLowStockThreshold, [revision]);
-  const { data: categories } = useAsyncData(getCategories, []);
+  const { data: categories } = useAsyncData(getStaffCategories, []);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
   const [pageSize, setPageSize] = usePageSize("inventory");
   const [adjusting, setAdjusting] = useState(null);

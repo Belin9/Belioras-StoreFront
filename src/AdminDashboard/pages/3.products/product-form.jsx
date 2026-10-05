@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { useProductDraft } from "@/context/ProductDraftContext";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
-import { getCategories } from "@/services/catalog/categoriesApi";
+import { getStaffCategories } from "@/services/catalog/categoriesApi";
 import { getColors } from "@/services/catalog/colorsApi";
 import { getModels } from "@/services/catalog/modelsApi";
 import { getTaxonomy } from "@/services/catalog/navigationApi";
@@ -39,7 +39,7 @@ export default function ProductForm() {
   // Bumped after a colour or category is created from inside the form.
   const [revision, setRevision] = useState(0);
   const { data: existing, loading } = useAsyncData(() => (isEdit ? getProduct(id, { includeDrafts: true }) : Promise.resolve(null)), [id]);
-  const { data: categories } = useAsyncData(getCategories, [revision]);
+  const { data: categories } = useAsyncData(getStaffCategories, [revision]);
   const { data: colors } = useAsyncData(getColors, [revision]);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
   const { data: models } = useAsyncData(getModels, []);

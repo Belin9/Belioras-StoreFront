@@ -1,9 +1,10 @@
 /* Admin Dashboard Page: Categories - CategoriesTree */
 import { useMemo, useState } from "react";
-import { ChevronDown, Pencil, Shapes, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Pencil, Shapes, Trash2 } from "lucide-react";
 
 import EmptyState from "@/components/ui/EmptyState";
 import IconAction from "@/AdminDashboard/components/IconAction";
+import { useDragReorder } from "@/AdminDashboard/lib/useDragReorder";
 import { cn } from "@/utils/cn";
 
 /**
@@ -13,11 +14,18 @@ import { cn } from "@/utils/cn";
  * `subcategories` — a category's own "Shop by …" groups (Shop by Occasion,
  * Shop by Fabric…), each holding its own types one level deeper. No category
  * nests inside another.
+ *
+ * Categories reorder by drag handle or arrows (`onMove(from, to)`), which is
+ * the order the shop's filters, menu pickers and footer list them in. Turned
+ * off while searching: positions in a filtered list are not positions in the
+ * real one.
  */
-export default function CategoriesTree({ categories, usage, typeUsage, query, onEdit, onDelete }) {
+export default function CategoriesTree({ categories, usage, typeUsage, query, onEdit, onDelete, onMove }) {
   const [expanded, setExpanded] = useState(new Set());
+  const drag = useDragReorder((from, to) => onMove?.(from, to));
 
   const q = query.trim().toLowerCase();
+  const reorderable = Boolean(onMove) && !q && categories.length > 1;
   const rows = useMemo(() => {
     if (!q) return categories;
     return categories.filter(
@@ -51,14 +59,12 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
 
   return (
     <ul className="space-y-2">
-      {rows.map((category) => {
+      {rows.map((category, index) => {
         const matches = (name) => !q || name.toLowerCase().includes(q) || category.name.toLowerCase().includes(q);
-        // Once a category has its own subcategories, its flat `types` list
-        // (still the real, product-taggable field — untouched, see
-        // CategoryDialog) would only repeat what "Shop by Category" already
-        // shows here, so this read-only tree stops listing it separately.
+        // Types are listed whether or not there are Subcategories: they are
+        // what products are tagged with, so they must stay visible and editable.
         const hasSubcategories = (category.subcategories?.length ?? 0) > 0;
-        const types = hasSubcategories ? [] : (category.types ?? []).filter((t) => matches(t.name));
+        const types = (category.types ?? []).filter((t) => matches(t.name));
         const subcategories = (category.subcategories ?? [])
           .map((s) => ({ ...s, types: (s.types ?? []).filter((t) => matches(t.name)) }))
           .filter((s) => matches(s.name) || s.types.length > 0);
@@ -66,8 +72,25 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
         const open = isOpen(category.id);
         const subcategoryTypeCount = (category.subcategories ?? []).reduce((n, s) => n + (s.types?.length ?? 0), 0);
         return (
-          <li key={category.id} className="border border-umber-50 bg-ivory-50">
+          <li
+            key={category.id}
+            {...(reorderable ? drag.rowProps(index) : {})}
+            className={cn(
+              "border bg-ivory-50 transition-colors",
+              reorderable && drag.over === index ? "border-gold-500 bg-gold-500/5" : "border-umber-50",
+            )}
+          >
             <div className="flex items-center gap-2 px-4 py-3">
+              {reorderable && (
+                <span
+                  {...drag.handleProps(index)}
+                  title="Drag to reorder"
+                  aria-hidden="true"
+                  className="-ml-1 hidden cursor-grab touch-none text-espresso/30 hover:text-espresso active:cursor-grabbing sm:block"
+                >
+                  <GripVertical className="size-4" />
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => toggle(category.id)}
@@ -88,7 +111,7 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
                   <span className="block truncate font-medium text-espresso">{category.name}</span>
                   <span className="block truncate text-[12px] text-espresso-soft">
                     {[
-                      !hasSubcategories && category.types?.length
+                      category.types?.length
                         ? `${category.types.length} ${category.types.length === 1 ? "type" : "types"}`
                         : null,
                       hasSubcategories
@@ -105,6 +128,22 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
               </button>
 
               <div className="flex shrink-0 items-center">
+                {reorderable && (
+                  <>
+                    <IconAction
+                      label={`Move ${category.name} earlier`}
+                      icon={ChevronUp}
+                      disabled={index === 0}
+                      onClick={() => onMove(index, index - 1)}
+                    />
+                    <IconAction
+                      label={`Move ${category.name} later`}
+                      icon={ChevronDown}
+                      disabled={index === rows.length - 1}
+                      onClick={() => onMove(index, index + 1)}
+                    />
+                  </>
+                )}
                 <IconAction label={`Edit ${category.name}`} icon={Pencil} onClick={() => onEdit(category)} />
                 <IconAction label={`Delete ${category.name}`} icon={Trash2} destructive onClick={() => onDelete(category)} />
               </div>
@@ -112,8 +151,11 @@ export default function CategoriesTree({ categories, usage, typeUsage, query, on
 
             {open && hasChildren && (
               <div className="border-t border-umber-50 px-4 py-4 pl-[3.25rem]">
+                {types.length > 0 && subcategories.length > 0 && (
+                  <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-gold-700">Types</p>
+                )}
                 {types.length > 0 && (
-                  <ul className={cn("space-y-1", subcategories.length > 0 && "mb-5")}>
+                  <ul className={cn("space-y-1", subcategories.length > 0 && "mb-5 mt-1")}>
                     {types.map((type) => (
                       <li key={type.id} className="flex items-center justify-between gap-3 py-1 text-[13px]">
                         <span className="min-w-0 truncate text-espresso">{type.name}</span>

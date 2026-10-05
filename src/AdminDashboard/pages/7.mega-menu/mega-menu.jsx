@@ -8,7 +8,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useContentVersion } from "@/context/ContentContext";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
-import { getCategories } from "@/services/catalog/categoriesApi";
+import { getStaffCategories } from "@/services/catalog/categoriesApi";
 import { getNavigationForEditing, getTaxonomy, resetNavigation, updateNavigation } from "@/services/catalog/navigationApi";
 import { getProducts } from "@/services/catalog/productsApi";
 import { useDragReorder } from "../../lib/useDragReorder";
@@ -25,7 +25,7 @@ export default function DashMegaMenu() {
 
   const { data: navigation, loading } = useAsyncData(getNavigationForEditing, [version]);
   const { data: products } = useAsyncData(getProducts, [version]);
-  const { data: categories } = useAsyncData(getCategories, [version]);
+  const { data: categories } = useAsyncData(getStaffCategories, [version]);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
 
   // null means "not edited yet, show what loaded".

@@ -1,6 +1,7 @@
-import { ApiError, mockApi } from "@/api/mock";
+import { http } from "@/api/client";
+import { ApiError } from "@/api/error";
+import { resourcePath, routes } from "@/api/routes";
 import { getState, setState } from "../store/contentStore";
-import { slugify } from "./products/productSlug";
 import { catalogItems } from "./products/productStore";
 import { audited } from "../auth/audited";
 
@@ -11,11 +12,53 @@ import { audited } from "../auth/audited";
  *
  * Ids are fixed at creation: a category id is every product's collectionId and
  * a type id is a product's `type`, and both are filter tokens, so renaming
- * changes only the name. A category or type still in use cannot be removed.
+ * changes only the name. The server owns the ids and never reissues a deleted
+ * one.
+ *
+ * ## Reads fall back, writes do not
+ *
+ * The list lives on the server (`/taxonomy/categories`). Every successful read
+ * or write is mirrored into the local `categories` domain, which is what the
+ * synchronous readers — search, reports, size usage, the menu checks below —
+ * read, and what a read falls back to when the API cannot be reached. Writes
+ * never fall back: a category id is permanent, so a save that did not land has
+ * to fail visibly.
+ *
+ * ## The in-use guards stay here
+ *
+ * "A category still holding products cannot be deleted", "a type still on a
+ * product cannot be removed", and "nothing the Mega Menu links to can be
+ * removed" all need the products and the menu, which still live in this
+ * browser. So they are checked here before the request is sent. The server
+ * cannot see them, which is why it spends deleted ids instead.
  */
+
+const LIST = () => resourcePath(routes.taxonomy.categories, "staff");
+const ONE = (id) => resourcePath(routes.taxonomy.category, "staff", { id });
 
 function categoryItems() {
   return getState("categories").items;
+}
+
+function usable(list) {
+  return Array.isArray(list) && list.every((c) => c && typeof c.id === "string" && typeof c.name === "string");
+}
+
+/**
+ * Writes the server's list into the local mirror. A write announces itself so
+ * open pages re-read; a read is silent, or every reader keyed on `version`
+ * would re-run itself forever.
+ */
+function mirror(items, { silent = false } = {}) {
+  setState("categories", (state) => ({ ...state, items }), { silent });
+  return items;
+}
+
+/** Replaces or appends one category in the mirror, keeping the server's order. */
+function mirrorOne(category) {
+  const items = categoryItems();
+  const at = items.findIndex((c) => c.id === category.id);
+  return mirror(at === -1 ? [...items, category] : items.map((c) => (c.id === category.id ? category : c)));
 }
 
 /**
@@ -51,183 +94,178 @@ function inMenuError(name, where) {
   return new ApiError(`${name} is used by the menu (${where}). Remove or change that link in Mega Menu first.`, 409);
 }
 
-export function getCategories() {
-  return mockApi(() => [...categoryItems()], 0);
+const products = (n) => `${n} ${n === 1 ? "product" : "products"}`;
+
+function inUseError(name, count) {
+  return new ApiError(
+    `${name} is on ${products(count)}. Give ${count === 1 ? "it" : "them"} another type before removing it.`,
+    409,
+  );
+}
+
+/**
+ * Every category, in display order.
+ *
+ * `realm` picks the boundary: the storefront reads the public route, the
+ * dashboard reads through `staff` so it is never served a cached public copy
+ * of a list it just edited.
+ */
+export async function getCategories({ realm = "customer" } = {}) {
+  try {
+    const items = await http.get(resourcePath(routes.taxonomy.categories, realm), { realm });
+    if (!usable(items)) throw new ApiError("The category list came back incomplete.", 502);
+    return [...mirror(items, { silent: true })];
+  } catch (err) {
+    // A 401 or 403 is an answer, not an outage — don't hide it behind a copy.
+    if (err?.status === 401 || err?.status === 403) throw err;
+    return [...categoryItems()];
+  }
+}
+
+/** The dashboard's read. A named function so `useAsyncData` keys it apart from the storefront's. */
+export function getStaffCategories() {
+  return getCategories({ realm: "staff" });
 }
 
 /** How many products sit in each category, keyed by category id. */
-export function categoryUsage() {
-  return mockApi(() => {
-    const counts = {};
-    for (const product of catalogItems()) {
-      counts[product.collectionId] = (counts[product.collectionId] ?? 0) + 1;
-    }
-    return counts;
-  }, 0);
+export async function categoryUsage() {
+  const counts = {};
+  for (const product of catalogItems()) {
+    counts[product.collectionId] = (counts[product.collectionId] ?? 0) + 1;
+  }
+  return counts;
 }
 
 /** How many products sit in each type, keyed by `<categoryId>:<typeId>`. */
-export function typeUsage() {
-  return mockApi(() => {
-    const counts = {};
-    for (const p of catalogItems()) {
-      if (p.type) counts[`${p.collectionId}:${p.type}`] = (counts[`${p.collectionId}:${p.type}`] ?? 0) + 1;
-    }
-    return counts;
-  }, 0);
+export async function typeUsage() {
+  const counts = {};
+  for (const p of catalogItems()) {
+    if (p.type) counts[`${p.collectionId}:${p.type}`] = (counts[`${p.collectionId}:${p.type}`] ?? 0) + 1;
+  }
+  return counts;
 }
 
-function createCategory$raw(input) {
-  return mockApi(() => {
-    const fields = clean(input);
-    const category = { id: uniqueId(slugify(fields.name)), ...fields };
-    setState("categories", (state) => ({ ...state, items: [...state.items, category] }));
-    return category;
-  });
-}
-
-function updateCategory$raw(id, input) {
-  return mockApi(() => {
-    const existing = categoryItems().find((c) => c.id === id);
-    if (!existing) throw new ApiError("That category no longer exists.", 404);
-
-    const fields = clean(input, existing);
-    const kept = new Set(fields.types.map((t) => t.id));
-    for (const type of existing.types ?? []) {
-      if (kept.has(type.id)) continue;
-      const count = catalogItems().filter((p) => p.collectionId === id && p.type === type.id).length;
-      if (count) {
-        throw new ApiError(
-          `${type.name} is on ${count} ${count === 1 ? "product" : "products"}. Give ${count === 1 ? "it" : "them"} another type before removing it.`,
-          409,
-        );
-      }
-    }
-
-    for (const type of existing.types ?? []) {
-      if (kept.has(type.id)) continue;
-      const where = menuUsing({ category: id, type: type.id });
-      if (where) throw inMenuError(type.name, where);
-    }
-    const nextSubs = new Map(fields.subcategories.map((s) => [s.id, s]));
-    for (const sub of existing.subcategories ?? []) {
-      const next = nextSubs.get(sub.id);
-      if (!next) {
-        const where = menuUsing({ category: id, subcategory: sub.id });
-        if (where) throw inMenuError(sub.name, where);
-        continue;
-      }
-      const stay = new Set(next.types.map((t) => t.id));
-      for (const type of sub.types ?? []) {
-        if (stay.has(type.id)) continue;
-        const where = menuUsing({ category: id, subcategory: sub.id, subcategoryType: type.id });
-        if (where) throw inMenuError(type.name, where);
-      }
-    }
-
-    const updated = { ...existing, ...fields };
-    setState("categories", (state) => ({
-      ...state,
-      items: state.items.map((c) => (c.id === id ? updated : c)),
-    }));
-    return updated;
-  });
-}
-
-function deleteCategory$raw(id) {
-  return mockApi(() => {
-    const category = categoryItems().find((c) => c.id === id);
-    if (!category) throw new ApiError("That category no longer exists.", 404);
-
-    const count = catalogItems().filter((p) => p.collectionId === id).length;
-    if (count) {
-      throw new ApiError(
-        `${category.name} still holds ${count} ${count === 1 ? "product" : "products"}. Move them to another category first.`,
-        409,
-      );
-    }
-
-    const where = menuUsing({ category: id });
-    if (where) throw inMenuError(category.name, where);
-
-    setState("categories", (state) => ({
-      ...state,
-      items: state.items.filter((c) => c.id !== id),
-    }));
-    return category;
-  });
-}
-
-function clean({ name, sizes, types, subcategories } = {}, existing = null) {
+/** Blank rows dropped, and only the keys the server accepts. */
+function toBody({ name, sizes, types, subcategories } = {}) {
+  const named = (list) =>
+    (Array.isArray(list) ? list : [])
+      .map((item) => ({ ...item, name: String(item?.name ?? "").trim() }))
+      .filter((item) => item.name);
   const trimmed = String(name ?? "").trim();
   if (!trimmed) throw new ApiError("Give the category a name.", 422);
-
-  const clash = categoryItems().find(
-    (c) => c.id !== existing?.id && c.name.toLowerCase() === trimmed.toLowerCase(),
-  );
-  if (clash) throw new ApiError(`There is already a category called ${clash.name}.`, 409);
 
   return {
     name: trimmed,
     sizes: Array.isArray(sizes) ? sizes : [],
-    types: cleanTypes(types, existing?.types ?? []),
-    subcategories: cleanSubcategories(subcategories, existing?.subcategories ?? []),
+    types: named(types).map(({ id, name: n }) => (id ? { id, name: n } : { name: n })),
+    subcategories: named(subcategories).map(({ id, name: n, types: t }) => ({
+      ...(id ? { id } : {}),
+      name: n,
+      types: named(t).map(({ id: tid, name: tn }) => (tid ? { id: tid, name: tn } : { name: tn })),
+    })),
   };
 }
 
-/** A flat named list — a category's own types, or one subcategory's types.
-    Ids keep stable across a rename by matching the previous list; a name
-    repeated within the same list is rejected. */
-function cleanNamedList(list, previous, noun = "type") {
-  const known = new Set(previous.map((t) => t.id));
-  const names = new Set();
-  const ids = new Set();
+/**
+ * Refuses an edit that would remove something still in use.
+ *
+ * An entry survives the save when the body still carries its id — that is how
+ * the server matches them — so anything in `existing` whose id is missing from
+ * the body is being removed.
+ */
+function assertRemovable(existing, body) {
+  const id = existing.id;
+  const items = catalogItems().filter((p) => p.collectionId === id);
 
-  return (Array.isArray(list) ? list : []).flatMap((item) => {
-    const itemName = String(item?.name ?? "").trim();
-    if (!itemName) return [];
-    if (names.has(itemName.toLowerCase())) {
-      throw new ApiError(`${itemName} is listed twice. Each ${noun} needs its own name.`, 409);
+  const kept = new Set(body.types.map((t) => t.id).filter(Boolean));
+  for (const type of existing.types ?? []) {
+    if (kept.has(type.id)) continue;
+    const count = items.filter((p) => p.type === type.id).length;
+    if (count) throw inUseError(type.name, count);
+    const where = menuUsing({ category: id, type: type.id });
+    if (where) throw inMenuError(type.name, where);
+  }
+
+  const nextSubs = new Map(body.subcategories.filter((s) => s.id).map((s) => [s.id, s]));
+  const tagged = (subId, typeId) =>
+    items.filter((p) => (p.tags ?? []).includes(`subcat:${subId}:${typeId}`)).length;
+
+  for (const sub of existing.subcategories ?? []) {
+    const next = nextSubs.get(sub.id);
+    const stay = new Set((next?.types ?? []).map((t) => t.id).filter(Boolean));
+    for (const type of sub.types ?? []) {
+      if (stay.has(type.id)) continue;
+      const count = tagged(sub.id, type.id);
+      if (count) {
+        const label = next ? type.name : `${sub.name} (${type.name})`;
+        throw new ApiError(
+          `${label} is tagged on ${products(count)}. Untag ${count === 1 ? "it" : "them"} before removing it.`,
+          409,
+        );
+      }
+      if (next) {
+        const where = menuUsing({ category: id, subcategory: sub.id, subcategoryType: type.id });
+        if (where) throw inMenuError(type.name, where);
+      }
     }
-    names.add(itemName.toLowerCase());
-
-    let id = known.has(item.id) ? item.id : slugify(itemName) || noun;
-    for (let n = 2; ids.has(id) || (!known.has(item.id) && known.has(id)); n += 1) {
-      id = `${slugify(itemName) || noun}-${n}`;
+    if (!next) {
+      const where = menuUsing({ category: id, subcategory: sub.id });
+      if (where) throw inMenuError(sub.name, where);
     }
-    ids.add(id);
-    return [{ id, name: itemName }];
-  });
+  }
 }
 
-/** Types keep their id when renamed; new ones get an id from their name. */
-function cleanTypes(types, previous) {
-  return cleanNamedList(types, previous, "type");
+async function createCategory$raw(input) {
+  const saved = await http.post(LIST(), toBody(input), { realm: "staff" });
+  mirrorOne(saved);
+  return saved;
 }
 
-/** A category's own "Shop by …" groups, each holding its own freely-named
-    types. Independent of the shared taxonomy and of Mega Menu — purely this
-    category's own breakdown of itself. */
-function cleanSubcategories(subcategories, previous) {
-  const previousById = new Map(previous.map((s) => [s.id, s]));
-  const shells = cleanNamedList(subcategories, previous, "subcategory");
-  const raw = Array.isArray(subcategories) ? subcategories.filter((s) => String(s?.name ?? "").trim()) : [];
+async function updateCategory$raw(id, input) {
+  const existing = categoryItems().find((c) => c.id === id);
+  if (!existing) throw new ApiError("That category no longer exists.", 404);
 
-  return shells.map((shell, i) => {
-    const previousTypes = previousById.get(shell.id)?.types ?? [];
-    return { ...shell, types: cleanNamedList(raw[i]?.types, previousTypes, "type") };
-  });
+  const body = toBody(input);
+  assertRemovable(existing, body);
+
+  const saved = await http.patch(ONE(id), body, { realm: "staff" });
+  mirrorOne(saved);
+  return saved;
 }
 
-function uniqueId(base) {
-  const root = base || "category";
-  const taken = new Set(categoryItems().map((c) => c.id));
-  let id = root;
-  for (let n = 2; taken.has(id); n += 1) id = `${root}-${n}`;
-  return id;
+async function deleteCategory$raw(id) {
+  const category = categoryItems().find((c) => c.id === id);
+  if (!category) throw new ApiError("That category no longer exists.", 404);
+
+  const count = catalogItems().filter((p) => p.collectionId === id).length;
+  if (count) {
+    throw new ApiError(`${category.name} still holds ${products(count)}. Move them to another category first.`, 409);
+  }
+  const where = menuUsing({ category: id });
+  if (where) throw inMenuError(category.name, where);
+
+  const deleted = await http.del(ONE(id), { realm: "staff" });
+  mirror(categoryItems().filter((c) => c.id !== id));
+  return deleted;
+}
+
+/** Sets the display order. `ids` must be every category id, in the new order. */
+async function reorderCategories$raw(ids) {
+  const items = await http.put(resourcePath(routes.taxonomy.categoriesOrder, "staff"), { ids }, { realm: "staff" });
+  mirror(items);
+  return items;
+}
+
+/** Puts the shipped categories back. */
+async function resetCategories$raw() {
+  const items = await http.post(resourcePath(routes.taxonomy.categoriesReset, "staff"), undefined, { realm: "staff" });
+  mirror(items);
+  return items;
 }
 
 /* Recorded in the staff activity log. */
 export const createCategory = audited("categories", (_, r) => `Created category ${r.name}`, createCategory$raw);
 export const updateCategory = audited("categories", (_, r) => `Updated category ${r.name}`, updateCategory$raw);
 export const deleteCategory = audited("categories", (_, r) => `Deleted category ${r.name}`, deleteCategory$raw);
+export const reorderCategories = audited("categories", () => "Reordered categories", reorderCategories$raw);
+export const resetCategories = audited("categories", () => "Reset categories to defaults", resetCategories$raw);

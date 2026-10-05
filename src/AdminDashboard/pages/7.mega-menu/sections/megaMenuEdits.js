@@ -3,14 +3,9 @@
  * and tiles. Each hands a patch back up, so components stay declarative.
  */
 
-/** Moves one entry to another position, the rest keeping their order. */
-export function reorder(list, from, to) {
-  if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return null;
-  const next = [...list];
-  const [moved] = next.splice(from, 1);
-  next.splice(to, 0, moved);
-  return next;
-}
+import { reorder } from "../../../lib/useDragReorder";
+
+export { reorder };
 
 function swap(list, index, delta) {
   const target = index + delta;

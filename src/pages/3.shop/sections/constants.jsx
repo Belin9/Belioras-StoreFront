@@ -6,8 +6,6 @@ export const COLOR_MAP = {
   "Natural Black": "#1c1a19", Rosewood: "#b05b6f", Sand: "#d4bc8f",
 };
 
-export const CATEGORIES = ["All", "Dresses", "Hair", "Accessories"];
-
 export const STYLES = ["All", "Evening", "Everyday", "Midi", "Maxi", "Bags", "Jewelry", "Scarves", "Belts", "Straight", "Wavy"];
 
 /* SORT OPTIONS */
