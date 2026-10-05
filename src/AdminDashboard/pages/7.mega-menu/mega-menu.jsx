@@ -23,13 +23,23 @@ export default function DashMegaMenu() {
   const { toast } = useToast();
   const version = useContentVersion();
 
-  const { data: navigation, loading } = useAsyncData(getNavigationForEditing, [version]);
+  const { data: stored, loading } = useAsyncData(getNavigationForEditing, [version]);
+  const navigation = stored?.items;
   const { data: products } = useAsyncData(getProducts, [version]);
   const { data: categories } = useAsyncData(getStaffCategories, [version]);
   const { data: taxonomy } = useAsyncData(getTaxonomy, []);
 
-  // null means "not edited yet, show what loaded".
-  const [edits, setEdits] = useState(null);
+  // null means "not edited yet, show what loaded". `baseVersion` is the menu
+  // version the first edit was made on: a save names it, so if someone else
+  // saved in the meantime the server refuses rather than overwriting them.
+  // It is captured once, because the stored menu can refresh mid-edit.
+  const [edits, setEditsState] = useState(null);
+  const [baseVersion, setBaseVersion] = useState(null);
+  const setEdits = (tree) => {
+    if (tree === null) setBaseVersion(null);
+    else if (edits === null) setBaseVersion(stored?.version ?? null);
+    setEditsState(tree);
+  };
   const draft = edits ?? navigation ?? [];
   const [saving, setSaving] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -56,7 +66,7 @@ export default function DashMegaMenu() {
   const save = async () => {
     setSaving(true);
     try {
-      await updateNavigation(draft);
+      await updateNavigation(draft, baseVersion ?? stored?.version);
       setEdits(null);
       toast("Menu saved. The shop is showing it now.", "success");
     } catch (err) {

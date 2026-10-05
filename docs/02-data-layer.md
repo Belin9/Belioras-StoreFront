@@ -29,7 +29,7 @@ services/
 | `collectionsApi.js` | `getCollections()` | dress/hair/accessory collections |
 | `categoriesApi.js` | `getCategories({realm})`, `getStaffCategories()`, `categoryUsage()`, `typeUsage()`, `createCategory()`, `updateCategory()`, `deleteCategory()`, `reorderCategories(ids)`, `resetCategories()` | categories from `/taxonomy/categories`: name, sizes offered, subcategories and their types (mirrored into the local `categories` domain) |
 | `colorsApi.js` | `getColors({realm})`, `getStaffColors()`, `syncColors()`, `colorUsage()`, `createColor()`, `updateColor()`, `deleteColor()`, `resetColors()` | colours from `/taxonomy/colors`: name, swatch hex, shop-filter family (mirrored into the local `colors` domain) |
-| `navigationApi.js` | `getNavigation()` (tiles resolved), `getNavigationForEditing()`, `updateNavigation(items)` (validated), `resetNavigation()`, `getTaxonomy()` | the menu tree |
+| `navigationApi.js` | `getNavigation()` (tiles resolved), `getNavigationForEditing()` → `{items, version}`, `updateNavigation(items, version)` (validated; stale version → 409), `resetNavigation()`, `syncNavigation()`, `getTaxonomy()` | the menu tree, from `/navigation` (mirrored into the local `navigation` domain) |
 | `catalogApi.js` | `getCatalog(pathname)`, `getFeaturedCollection()`, `getSiblingLeaves(pathname)` | a menu page's products |
 | `sizeChartApi.js` | `getSizeCharts()` | size reference tables |
 | `visualSearchApi.js` | `searchByImage()`, `isVisualSearchAvailable()` | products matching a photo |

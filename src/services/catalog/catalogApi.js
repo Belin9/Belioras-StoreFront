@@ -1,6 +1,6 @@
 import { mockApi } from "@/api/mock";
 import { getState } from "../store/contentStore";
-import { flattenLeaves } from "./navigationApi";
+import { flattenLeaves, syncNavigation } from "./navigationApi";
 import { getProducts } from "./productsApi";
 import { matchesTarget } from "../../utils/menuTargets";
 
@@ -50,6 +50,7 @@ function findNavMatch(pathname) {
  */
 export function getCatalog(pathname) {
   return mockApi(async () => {
+    await syncNavigation();
     const match = findNavMatch(pathname);
     if (!match?.node?.target) {
       return { valid: false, resolved: null, products: [], total: 0 };
@@ -83,6 +84,7 @@ export function getCatalog(pathname) {
  */
 export function getFeaturedCollection(limit = 4) {
   return mockApi(async () => {
+    await syncNavigation();
     const { items } = getState("navigation");
     const nodes = [...flattenLeaves(items), ...items];
     const node = nodes.find((n) => n.target?.kind === "label" && n.target.id === "featured");
@@ -99,7 +101,8 @@ export function getFeaturedCollection(limit = 4) {
 
 /** Sibling leaves under the same section — the chips shown above the grid. */
 export function getSiblingLeaves(pathname) {
-  return mockApi(() => {
+  return mockApi(async () => {
+    await syncNavigation();
     const slug = pathname.replace(/^\//, "").replace(/\/+$/, "");
     const { items } = getState("navigation");
 

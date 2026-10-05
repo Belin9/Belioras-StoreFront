@@ -54,6 +54,9 @@ const DOMAINS = {
   navigation: {
     seed: navigationSeed,
     collection: "items",
+    // Server-owned: a mirror `navigationApi` refreshes from `/navigation`, read
+    // synchronously when a URL is resolved to its catalogue page.
+    mirror: true,
     // Flat-type links became Subcategory filters (see legacyTypes.js).
     upgrade: {
       from: navigationSeed.rev - 1,

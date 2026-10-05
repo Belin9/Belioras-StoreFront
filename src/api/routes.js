@@ -98,6 +98,15 @@ export const routes = {
     color: "taxonomy/colors/:id",
     colorsReset: "taxonomy/colors/reset",
   },
+
+  /**
+   * The mega menu, one tree saved whole. A save carries the version it was
+   * edited from, so two editors cannot silently overwrite each other.
+   */
+  navigation: {
+    tree: "navigation",
+    reset: "navigation/reset",
+  },
 };
 
 /**

@@ -189,6 +189,23 @@ measures. It is separate on purpose, and the two are allowed to disagree.
 - **The delete guard (a colour still on a product) stays client-side** until
   products move.
 
+## What the mega menu cost
+
+- **One document, saved whole** (`/navigation` → `{ items, version }`), because
+  the editor already saved the whole tree at once. The `navigation` domain is a
+  mirror (`mirror: true`), and keeps its `upgrade` hook for old stored menus.
+- **A save names the version the editor started from.** `mega-menu.jsx`
+  captures it on the first edit, not at save time — the stored menu can refresh
+  mid-edit, and sending the fresh version would defeat the check. A stale save
+  is a 409 telling the editor to reload.
+- **Catalogue URLs wait for the menu.** `syncNavigation()` runs at boot, and
+  `getCatalog`, `getFeaturedCollection` and `getSiblingLeaves` await it, so a
+  deep link to a page added since this browser last looked resolves instead of
+  404ing on the stale mirror.
+- **Target checks stay client-side** (`menuProblem`): whether a link's category,
+  filter or product still exists needs the catalogue. The server checks shape,
+  names and addresses.
+
 ## Orders and payment
 
 Payment is confirmed only by the payment provider. **Nobody marks an order paid by hand**: the dashboard has no control for it, and `updateOrderStatus` refuses it.
