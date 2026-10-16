@@ -90,6 +90,9 @@ export default function CheckoutPage() {
           productId: i.id,
           slug: i.slug,
           name: i.name,
+          // Kept on the order, so it still shows the piece it sold if the
+          // product is later re-photographed, unpublished or deleted.
+          image: i.image ?? null,
           price: i.price,
           quantity: i.quantity,
           size: i.size ?? null,
@@ -101,6 +104,7 @@ export default function CheckoutPage() {
         tax: totals.tax,
         total: totals.total,
         couponCode: coupon?.code ?? null,
+        country: values.country,
         shippingAddress: [values.line1, values.city, values.postcode, values.country]
           .filter(Boolean)
           .join(", "),

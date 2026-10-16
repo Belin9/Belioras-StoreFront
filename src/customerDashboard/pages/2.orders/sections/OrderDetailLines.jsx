@@ -20,9 +20,11 @@ export default function OrderLines({ order, thumbnails, taxonomy, format, discou
               className="block size-16 shrink-0 overflow-hidden rounded-xl border border-umber-50"
               aria-label={item.name}
             >
-              {thumbnails[item.productId] ? (
+              {item.image || thumbnails[item.productId] ? (
                 <img
-                  src={thumbnails[item.productId]}
+                  // The photo saved on the order first; the live catalogue only
+                  // for orders placed before lines kept one.
+                  src={item.image || thumbnails[item.productId]}
                   alt=""
                   loading="lazy"
                   className="size-full object-cover"

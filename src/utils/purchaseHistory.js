@@ -39,8 +39,10 @@ export function ownedPieces(orders, catalog) {
         color: line.color,
         lastBought: placed,
         timesBought: 1,
-        // Resolved against the live catalogue so a withdrawn piece is still
-        // listed, just without a link or an image.
+        // The photo and address the order kept, so a withdrawn piece still
+        // shows; the live product (for the link and Buy again) when it exists.
+        image: line.image ?? null,
+        slug: line.slug ?? null,
         product: catalog?.find((p) => p.id === line.productId) ?? null,
       });
     }

@@ -65,7 +65,8 @@ const DOMAINS = {
   taxonomy: { seed: taxonomySeed, collection: null },
   hero: { seed: heroSeed, collection: "slides" },
   instagram: { seed: instagramSeed, collection: "posts" },
-  settings: { seed: settingsSeed, collection: null },
+  // Server-owned (`/settings`): a mirror `settingsApi` refreshes.
+  settings: { seed: settingsSeed, collection: null, mirror: true },
   // The size guides used to live here. They do not any more: they are the first
   // resource owned by the API rather than this store, and keeping a second
   // localStorage copy of measurements that someone can edit in the dashboard
@@ -102,14 +103,18 @@ const DOMAINS = {
   // reload offline still has the last list. `mirror` skips the seed merge —
   // the server's order and deletions are the truth, not the bundle's.
   categories: { seed: categoriesSeed, collection: "items", mirror: true },
-  orders: { seed: ordersSeed, collection: "items" },
+  // Orders, transactions and coupons are the server's. These are mirrors of
+  // what the dashboard last read — never seeded with the demo fixtures, which
+  // would otherwise count as real orders holding stock — and the rev bump
+  // drops any orders a browser kept from before they moved.
+  orders: { seed: { rev: ordersSeed.rev + 1, items: [] }, collection: "items", mirror: true },
   // Discount codes. Global-only — no per-product/category scoping.
-  coupons: { seed: couponsSeed, collection: "items" },
+  coupons: { seed: { rev: couponsSeed.rev + 1, items: [] }, collection: "items", mirror: true },
   // Product reviews. status: pending | published | hidden — only published is ever shown on the storefront.
   reviews: { seed: reviewsSeed, collection: "items" },
   // Payments and refunds against those orders. Read-only today; registered here
   // so checkout can record a payment once a provider is connected.
-  transactions: { seed: transactionsSeed, collection: "items" },
+  transactions: { seed: { rev: transactionsSeed.rev + 1, items: [] }, collection: "items", mirror: true },
   users: { seed: usersSeed, collection: "items" },
   // Dashboard roles and what each may see or change (Team → Roles).
   roles: { seed: rolesSeed, collection: "items" },

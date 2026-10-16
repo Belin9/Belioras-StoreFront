@@ -118,6 +118,35 @@ export const routes = {
     restore: "products/:id/restore",
   },
 
+  /**
+   * Orders. The storefront leaves check ownership (a signed-in customer's
+   * own, or a guest with the order's email); the same paths under the staff
+   * boundary are the dashboard's.
+   */
+  orders: {
+    checkout: "checkout",
+    simulatePayment: "checkout/:id/simulate-payment",
+    list: "orders",
+    one: "orders/:id",
+    invoice: "orders/:id/invoice",
+    cancel: "orders/:id/cancel",
+    status: "orders/:id/status",
+    refund: "orders/:id/refund",
+    resend: "orders/:id/resend-confirmation",
+    bestSellers: "rankings/best-sellers",
+  },
+
+  coupons: {
+    list: "coupons",
+    one: "coupons/:id",
+    stats: "coupons/stats",
+    validate: "coupons/validate",
+  },
+
+  transactions: "transactions",
+  emails: "emails",
+  settings: "settings",
+
   /** Photos and videos: one file per request, answered with its permanent URL. */
   uploads: "uploads",
 

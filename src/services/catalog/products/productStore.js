@@ -16,7 +16,9 @@ function catalogItems() {
  * form edits.
  */
 function withAvailability(product, expanded) {
-  const reserved = reservedUnits();
+  // The public list comes with open orders already taken off; subtracting the
+  // (staff-only) orders mirror again would count them twice.
+  const reserved = getState("products").realm === "customer" ? new Map() : reservedUnits();
   const held = reserved.get(variantKey(product.id)) ?? 0;
   const onHand = expanded.stock;
 

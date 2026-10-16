@@ -31,9 +31,14 @@ function usable(list) {
   return Array.isArray(list) && list.every((p) => p && typeof p.id === "string" && typeof p.name === "string");
 }
 
-function replaceAll(items, { notify = false } = {}) {
-  const changed = JSON.stringify(items) !== JSON.stringify(getState("products").items);
-  setState("products", (state) => ({ ...state, items }), { silent: !(notify || changed) });
+/**
+ * `realm` records which list this is: the public one already has what open
+ * orders hold taken off, so the stock maths must not subtract it again
+ * (see productStore.js); the staff one is on hand.
+ */
+function replaceAll(items, { notify = false, realm: from = getState("products").realm } = {}) {
+  const changed = JSON.stringify(items) !== JSON.stringify(getState("products").items) || from !== getState("products").realm;
+  setState("products", (state) => ({ ...state, items, realm: from }), { silent: !(notify || changed) });
   return items;
 }
 
@@ -43,7 +48,7 @@ export async function refreshProducts() {
   try {
     const items = await http.get(resourcePath(routes.products.list, r), { realm: r });
     if (!usable(items)) throw new ApiError("The catalogue came back incomplete.", 502);
-    return replaceAll(items);
+    return replaceAll(items, { realm: r });
   } catch (err) {
     if (err?.status === 401 || err?.status === 403) throw err;
     return getState("products").items;
@@ -64,7 +69,8 @@ export function mirrorProducts(products) {
   const items = getState("products").items;
   const known = new Set(items.map((p) => p.id));
   const added = products.filter((p) => !known.has(p.id));
-  return replaceAll([...added, ...items.map((p) => byId.get(p.id) ?? p)], { notify: true });
+  // Written by staff, so these are on-hand counts: mark the list as staff's.
+  return replaceAll([...added, ...items.map((p) => byId.get(p.id) ?? p)], { notify: true, realm: "staff" });
 }
 
 /** Drops a piece from the mirror after a delete. */

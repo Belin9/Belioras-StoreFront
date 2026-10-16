@@ -1,44 +1,53 @@
-import { mockApi } from "@/api/mock";
+import { http } from "@/api/client";
+import { accessToken } from "@/api/tokens";
+import { resourcePath, routes } from "@/api/routes";
 import { getState, setState } from "../store/contentStore";
 import { audited } from "../auth/audited";
 
 /**
- * Store settings.
+ * Store settings, on the server: shipping zones, VAT, the invoice prefix and
+ * seller details, contact and storefront copy. The server prices orders and
+ * prints invoices from its copy, so that is the one that counts.
  *
- * Read through the content store rather than straight from the seed, so what
- * the dashboard saves is what the storefront reads. It previously returned a
- * deep clone of the JSON fixture, which meant the settings page could not
- * change anything even in principle.
+ * Mirrored into the local `settings` domain, which a dozen places read
+ * synchronously (announcements, contact, the checkout summary…). The
+ * dashboard's low-stock line lives in that domain too and is kept on every
+ * write. Reads fall back to the mirror; writes never do.
  */
 
-export function getSettings() {
-  return mockApi(() => structuredClone(getState("settings")), 0);
+function mirror(value, { notify = false } = {}) {
+  const { inventory } = getState("settings");
+  const next = { ...getState("settings"), ...value, ...(inventory ? { inventory } : {}) };
+  const changed = JSON.stringify(next) !== JSON.stringify(getState("settings"));
+  setState("settings", next, { silent: !(notify || changed) });
+  return structuredClone(next);
+}
+
+export async function getSettings() {
+  const realm = accessToken("staff") ? "staff" : "customer";
+  try {
+    return mirror(await http.get(resourcePath(routes.settings, realm), { realm }));
+  } catch (err) {
+    if (err?.status === 401 || err?.status === 403) throw err;
+    return structuredClone(getState("settings"));
+  }
+}
+
+let synced = null;
+
+/** Once per page load, so the synchronous readers have the server's settings. Never rejects. */
+export function syncSettings() {
+  if (!synced) synced = getSettings().catch(() => null);
+  return synced;
 }
 
 /**
- * Merge a patch into settings.
- *
- * Section-wise rather than a whole-document replace, so two people editing
- * different panels do not overwrite each other's work, and so a patch that
- * omits a section leaves it intact.
+ * Merge a patch into settings, section by section, so two people editing
+ * different panels do not overwrite each other's work.
  */
-
-function updateSettings$raw(patch) {
-  return mockApi(() => {
-
-    const next = setState("settings", (state) => {
-
-      const merged = { ...state };
-      for (const [key, value] of Object.entries(patch)) {
-        merged[key] =
-          value && typeof value === "object" && !Array.isArray(value)
-            ? { ...state[key], ...value }
-            : value;
-      }
-      return merged;
-    });
-    return structuredClone(next);
-  });
+async function updateSettings$raw(patch) {
+  const saved = await http.patch(resourcePath(routes.settings, "staff"), patch, { realm: "staff" });
+  return mirror(saved, { notify: true });
 }
 
 /* Recorded in the staff activity log. */

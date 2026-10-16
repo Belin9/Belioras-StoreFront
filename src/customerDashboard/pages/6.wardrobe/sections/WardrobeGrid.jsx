@@ -22,13 +22,14 @@ function WardrobePiece({ piece, dateFmt, onBuyAgain, taxonomy }) {
   const { product } = piece;
 
   // A piece withdrawn from the catalogue is still owned, so it stays on the
-  // shelf — without a link, an image or a way to buy it again.
+  // shelf — with the photo its order kept, but no link or way to buy it again.
+  const photo = product?.images?.[0] ?? piece.image;
   const body = (
     <>
       <div className="aspect-[3/4] overflow-hidden bg-ivory-300">
-        {product?.images?.[0] ? (
+        {photo ? (
           <img
-            src={product.images[0]}
+            src={photo}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

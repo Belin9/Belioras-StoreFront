@@ -1,6 +1,7 @@
 import { ApiError, mockApi } from "@/api/mock";
 import { getState, setState } from "../store/contentStore";
 import { audited } from "../auth/audited";
+import { getOrders } from "../sales/ordersApi";
 
 function reviewItems() {
   return getState("reviews").items;
@@ -18,12 +19,15 @@ function nextId() {
   return `r${n + 1}`;
 }
 
-/** Whether this customer has an order that included this product — a badge, not a gate. */
-function hasPurchased(userId, productId) {
+/**
+ * Whether this customer has an order that included this product — a badge, not
+ * a gate. Asked of the server (their own orders), since a shopper's browser no
+ * longer holds the shop's orders. A failed read just means no badge.
+ */
+async function hasPurchased(userId, productId) {
   if (!userId) return false;
-  return getState("orders").items.some(
-    (o) => o.userId === userId && (o.items ?? []).some((line) => line.productId === productId),
-  );
+  const orders = await getOrders(userId).catch(() => []);
+  return orders.some((o) => (o.items ?? []).some((line) => line.productId === productId));
 }
 
 /** Published reviews for one product, newest first. The only reviews the storefront ever sees. */
@@ -55,7 +59,7 @@ export function getAllReviews() {
  * `published` only, this is what makes that filter meaningful.
  */
 export function createReview({ productId, userId, rating, title, body, name }) {
-  return mockApi(() => {
+  return mockApi(async () => {
     const value = Number(rating);
     if (!(value >= 1 && value <= 5)) throw new ApiError("Choose a rating from 1 to 5.", 422);
     if (!String(body ?? "").trim()) throw new ApiError("Say a little about how it wears.", 422);
@@ -68,7 +72,7 @@ export function createReview({ productId, userId, rating, title, body, name }) {
       title: String(title ?? "").trim(),
       body: String(body).trim(),
       date: new Date().toISOString().slice(0, 10),
-      verified: hasPurchased(userId, productId),
+      verified: await hasPurchased(userId, productId),
       status: "pending",
       reply: null,
     };

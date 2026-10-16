@@ -1,5 +1,6 @@
 /* Email Outbox */
-import { mockApi } from "@/api/mock";
+import { http } from "@/api/client";
+import { resourcePath, routes } from "@/api/routes";
 import { getState, setState } from "../store/contentStore";
 
 /**
@@ -57,9 +58,27 @@ export function queueEmail({ type, to, subject, orderId = null, data = {} }) {
   }
 }
 
-/** Newest first. */
-export function getEmails() {
-  return mockApi(() => getState("emails").items.map((e) => ({ ...e })), 0);
+/**
+ * The outbox, newest first: the order emails the server queued, and the ones
+ * this browser still queues itself (sign-ups, newsletter, contact). The
+ * server's are kept in the same local list, marked `source: "server"` and
+ * replaced on every read, so `emailsForOrder` can answer synchronously once
+ * the dashboard has loaded them. If the server can't be reached, the local
+ * ones still show.
+ */
+export async function getEmails() {
+  let server = null;
+  try {
+    server = (await http.get(resourcePath(routes.emails, "staff"), { realm: "staff" })).map((e) => ({ ...e, source: "server" }));
+  } catch {
+    // Unreachable: show what this browser has.
+  }
+  if (server) {
+    const local = getState("emails").items.filter((e) => e.source !== "server");
+    const items = [...server, ...local].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    setState("emails", (state) => ({ ...state, items }), { silent: true });
+  }
+  return getState("emails").items.map((e) => ({ ...e }));
 }
 
 /** One order's emails, oldest first — for the order's own timeline. */

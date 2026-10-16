@@ -228,8 +228,25 @@ measures. It is separate on purpose, and the two are allowed to disagree.
 - **The product form merges stock** (`stockBase`) and names the edit version it
   opened (`ifEditVersion`), so a delivery or sale while it was open is kept and
   someone else's save is not overwritten.
-- **Known gap:** a shopper's order history can't name a piece that was later
-  unpublished, because the public list leaves drafts out.
+
+## What orders cost
+
+- **Orders, transactions, coupons, the order email outbox and store settings
+  live on the server.** Checkout sends only what the shopper chose plus the
+  total they saw; the server prices, checks the coupon, ships, taxes, holds
+  stock under a per-product lock and numbers everything (`Counter`).
+- **Payment is the server's development stand-in** (`simulate-payment`),
+  refused in production. A provider replaces that one call; the order, invoice
+  and emails downstream are already server-side.
+- **Mirrors:** the dashboard's reads of orders, transactions and coupons are
+  mirrored for the synchronous readers (reserved stock, reports, the refund
+  dialog); a shopper's own orders are not. The public product list arrives
+  with held units already taken off, so `productStore` does not subtract the
+  orders mirror for it (`products.realm`).
+- **Order lines keep their photo and address**, so history survives a product
+  changing or being unpublished.
+- **Still in the browser:** sign-up, newsletter and contact emails (the outbox
+  shows both), reviews, customers' accounts beyond the server's auth.
 
 ## Orders and payment
 
