@@ -225,10 +225,11 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   in `AdminDashboard/lib/imageUpload.js`): resized in the browser, stored on
   ImageKit (or `/api/uploads` in development), and the permanent URL saved. The
   server refuses `blob:`/`data:` URLs.
-- **Known gaps:** the product form saves the stock grid it loaded, so a receipt
-  made while the form is open is overwritten by the form's numbers (and
-  recorded as an adjustment); a shopper's order history can't name a piece that
-  was later unpublished, because the public list leaves drafts out.
+- **The product form merges stock** (`stockBase`) and names the edit version it
+  opened (`ifEditVersion`), so a delivery or sale while it was open is kept and
+  someone else's save is not overwritten.
+- **Known gap:** a shopper's order history can't name a piece that was later
+  unpublished, because the public list leaves drafts out.
 
 ## Orders and payment
 

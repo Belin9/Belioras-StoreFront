@@ -27,7 +27,7 @@ import ProductFormModel from "./sections/productForm/ProductFormModel";
 import ProductFormVideo from "./sections/productForm/ProductFormVideo";
 import ProductFormVariants from "./sections/productForm/ProductFormVariants";
 import { useProductDraftSync } from "./sections/productForm/useProductFormDraftSync";
-import { EMPTY_VALUES, toPayload, validateProduct } from "./sections/productForm/productFormPayload";
+import { EMPTY_VALUES, toFormModel, toPayload, validateProduct } from "./sections/productForm/productFormPayload";
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -83,7 +83,16 @@ export default function ProductForm() {
         }
         const payload = toPayload(formValues, { photos, videos, colorIds, stock, sizes, tags, category, status });
         try {
-          const saved = isEdit ? await updateProduct(id, payload) : await createProduct(payload);
+          // An edit names what it opened: the version (so someone else's save
+          // is not overwritten) and the stock grid (so the server moves only
+          // the cells changed here, and a delivery or sale since is kept).
+          const saved = isEdit
+            ? await updateProduct(id, {
+                ...payload,
+                ifEditVersion: existing?.editVersion,
+                stockBase: existing ? { colorways: toFormModel(existing).stock } : undefined,
+              })
+            : await createProduct(payload);
           if (!isEdit) draft.clearDraft("new-product");
           toast(status === "active" ? `${saved.name} is live in the shop.` : `${saved.name} saved as a draft.`, "success");
           navigate("/dashboard/products");
