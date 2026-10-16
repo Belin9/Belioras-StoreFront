@@ -247,8 +247,6 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   changing or being unpublished.
 - **Unpaid orders lapse** after `ORDER_PAYMENT_TTL_MINUTES`: their hold ends by
   time alone, and the server's minute sweep cancels them.
-- **Unpaid orders lapse** after `ORDER_PAYMENT_TTL_MINUTES`: their hold ends by
-  time alone, and the server's minute sweep cancels them.
 
 ## What accounts, reviews, the newsletter and contact cost
 
@@ -260,8 +258,9 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   queued there. `authSession.js`, `authProfile.js` and `useAuthSession.js` are
   gone. Saved addresses stay per device, as before.
 - **Reviews** are moderated on the server; products carry their stars.
-- **Still in the browser:** newsletter and contact emails (the outbox shows
-  both), roles and the old team-invitation flow
+- **Newsletter and contact** are on the server; scheduled campaigns are sent by
+  the minute sweep.
+- **Still in the browser:** roles and the old team-invitation flow
   (`authRoles.js`) — new staff are created on the server with a temporary
   password, so invitations are legacy.
 
