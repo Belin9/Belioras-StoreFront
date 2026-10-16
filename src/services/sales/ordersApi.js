@@ -285,7 +285,7 @@ export function refundQuote(order) {
  * that came back can go back into stock. A refund that leaves nothing paid
  * closes the order: "cancelled" if it never shipped, "refunded" if it had.
  */
-function applyRefund(order, { lines = [], includeShipping = false, amount = null, reason = "", restock = false, by = null, cancel = false } = {}) {
+async function applyRefund(order, { lines = [], includeShipping = false, amount = null, reason = "", restock = false, by = null, cancel = false } = {}) {
   const { refundable } = paymentsFor(order.id);
   if (refundable <= 0) throw new ApiError("Nothing is left to refund on this order.", 409);
 
@@ -299,17 +299,19 @@ function applyRefund(order, { lines = [], includeShipping = false, amount = null
   if (!(total > 0)) throw new ApiError("Choose what to refund, or enter an amount.", 422);
   if (total > refundable + 0.001) throw new ApiError(`At most €${refundable.toFixed(2)} can be refunded on this order.`, 422);
 
-  const txn = refundPayment(order.id, total, reason);
-
-  // Pieces only go back on the shelf if they had left it.
+  // Pieces only go back on the shelf if they had left it. Done before the
+  // money moves: stock is on the server now, and a refund whose restock
+  // failed should stop here rather than leave the shelf short.
   if (restock && order.stockDeductedAt && chosen.length) {
     const products = new Map(getState("products").items.map((p) => [p.id, p]));
-    applyStockChanges(
+    await applyStockChanges(
       chosen
         .filter((c) => products.has(c.line.productId))
         .map((c) => ({ ...returnLine(order, c.line, c.quantity, by) })),
     );
   }
+
+  const txn = refundPayment(order.id, total, reason);
 
   const creditNote = {
     number: nextCreditNoteNumber(),
@@ -401,7 +403,7 @@ export function cancelMyOrder(id, as = {}) {
  * setting a status.
  */
 function updateOrderStatus$raw(id, status, { by = null, trackingRef, carrier } = {}) {
-  return mockApi(() => {
+  return mockApi(async () => {
     const canonical = normalizeStatus(status);
     if (!canonical) throw new ApiError(`Unknown order status: ${status}`, 422);
     const order = findOrder(id);
@@ -412,8 +414,9 @@ function updateOrderStatus$raw(id, status, { by = null, trackingRef, carrier } =
     if (!nextStatuses(from).includes(canonical)) throw new ApiError(`An order that is ${from} can't become ${canonical}.`, 409);
 
     // Shipping takes the pieces off the shelf.
+    // On the server; if it fails the order stays as it was, so it can be retried.
     const { changes, patch } = stockChangesForStatus(order, canonical, { by });
-    applyStockChanges(changes);
+    await applyStockChanges(changes);
 
     const updated = writeOrder({
       ...order,

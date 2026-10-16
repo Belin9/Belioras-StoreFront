@@ -24,7 +24,6 @@ import instagramSeed from "../../data/instagram.json";
 import settingsSeed from "../../data/settings.json";
 import catalogSeed from "../../data/catalogSeed";
 import ordersSeed from "../../data/ordersSeed";
-import stockMovementsSeed from "../../data/stockMovementsSeed";
 import activitySeed from "../../data/activitySeed";
 import emailsSeed from "../../data/emailsSeed";
 import modelsSeed from "../../data/modelsSeed";
@@ -80,6 +79,10 @@ const DOMAINS = {
   products: {
     seed: catalogSeed,
     collection: "items",
+    // Server-owned: a mirror `productSync` refreshes from `/products`. Every
+    // storefront read, the stock maths and the in-use guards read it
+    // synchronously.
+    mirror: true,
     // A product's flat `type` became a Subcategory tag (see legacyTypes.js).
     upgrade: {
       from: catalogSeed.rev - 1,
@@ -104,9 +107,6 @@ const DOMAINS = {
   coupons: { seed: couponsSeed, collection: "items" },
   // Product reviews. status: pending | published | hidden — only published is ever shown on the storefront.
   reviews: { seed: reviewsSeed, collection: "items" },
-  // Every change to what is on the shelf, and why. On hand itself stays on
-  // each product; what open orders hold is worked out from orders.
-  stockMovements: { seed: stockMovementsSeed, collection: "items" },
   // Payments and refunds against those orders. Read-only today; registered here
   // so checkout can record a payment once a provider is connected.
   transactions: { seed: transactionsSeed, collection: "items" },

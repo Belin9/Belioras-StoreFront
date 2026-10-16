@@ -4,6 +4,7 @@ import { filedUnderNames } from "../../../utils/productFiling";
 import { getState } from "../../store/contentStore";
 import { getBestSellerProductIds } from "../../sales/ordersApi";
 import { catalogItems, normalize } from "./productStore";
+import { refreshProducts, syncProducts } from "./productSync";
 
 /**
  * What the shop may show: a piece is live unless the dashboard has it as a
@@ -15,18 +16,36 @@ function isLive(product) {
   return (product.status ?? "active") === "active";
 }
 
+/*
+ * Every read waits for the catalogue to be in the local mirror first (see
+ * productSync.js): the storefront's once per page load, the dashboard's fresh
+ * each time, so staff never edit from a stale list.
+ */
+
 /** Live pieces, for the storefront. */
 export function getProducts() {
-  return mockApi(() => catalogItems().filter(isLive).map(normalize));
+  return mockApi(async () => {
+    await syncProducts();
+    return catalogItems().filter(isLive).map(normalize);
+  }, 0);
 }
 
-/** Every piece whatever its status — the dashboard, and order history, which must still name a piece that was later unpublished. */
+/**
+ * Every piece whatever its status — the dashboard, and order history, which
+ * must still name a piece that was later unpublished. Without a staff session
+ * the server only sends active pieces, so a shopper's history can lack a piece
+ * that has since been unpublished.
+ */
 export function getAllProducts() {
-  return mockApi(() => catalogItems().map(normalize));
+  return mockApi(async () => {
+    await refreshProducts();
+    return catalogItems().map(normalize);
+  }, 0);
 }
 
 export function getProduct(idOrSlug, { includeDrafts = false } = {}) {
-  return mockApi(() => {
+  return mockApi(async () => {
+    await (includeDrafts ? refreshProducts() : syncProducts());
 
     const product = catalogItems().find((p) => p.id === idOrSlug || p.slug === idOrSlug);
     if (!product || (!includeDrafts && !isLive(product))) throw new ApiError("Product not found.", 404);
@@ -35,9 +54,10 @@ export function getProduct(idOrSlug, { includeDrafts = false } = {}) {
 }
 
 export function getProductsByCollection(collectionId) {
-  return mockApi(() =>
-    catalogItems().filter((p) => p.collectionId === collectionId && isLive(p)).map(normalize)
-  );
+  return mockApi(async () => {
+    await syncProducts();
+    return catalogItems().filter((p) => p.collectionId === collectionId && isLive(p)).map(normalize);
+  }, 0);
 }
 
 /**
@@ -48,12 +68,13 @@ export function getProductsByCollection(collectionId) {
  * was flagged. The flag is now the single switch: badge, menu and rail.
  */
 export function getNewArrivals() {
-  return mockApi(() =>
-    catalogItems()
+  return mockApi(async () => {
+    await syncProducts();
+    return catalogItems()
       .filter((p) => p.isNew && isLive(p))
       .sort((a, b) => new Date(b.createdAt ?? 0) - new Date(a.createdAt ?? 0))
-      .map(normalize),
-  );
+      .map(normalize);
+  }, 0);
 }
 
 /**
@@ -62,7 +83,8 @@ export function getNewArrivals() {
  * "cocktail" find the pieces under them.
  */
 export function searchProducts(query) {
-  return mockApi(() => {
+  return mockApi(async () => {
+    await syncProducts();
 
     const q = String(query ?? "").trim().toLowerCase();
     if (!q) return [];
@@ -75,11 +97,15 @@ export function searchProducts(query) {
 }
 
 export function getFeaturedProducts() {
-  return mockApi(() => catalogItems().filter((p) => isLive(p) && (p.bestseller || p.featured)).map(normalize));
+  return mockApi(async () => {
+    await syncProducts();
+    return catalogItems().filter((p) => isLive(p) && (p.bestseller || p.featured)).map(normalize);
+  }, 0);
 }
 
 export function getBestSellers(limit = 8) {
   return mockApi(async () => {
+    await syncProducts();
 
     const ranked = await getBestSellerProductIds({ limit });
 

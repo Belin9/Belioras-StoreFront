@@ -25,7 +25,8 @@ services/
 | **auth/** | | |
 | `authApi.js` | `login({email,password})`, `register(user)`, `logout()`, `requestPasswordReset()`, `getUsers()`, `updateProfile()`, `verifyPassword()`, `changePassword()`, `updateUserRole()` | `{token, user}` from `users.json`; validate; throws `ApiError` on bad creds |
 | **catalog/** | | |
-| `productsApi.js` | `getProducts()`, `getProduct(id)`, `getProductsByCollection()`, `getNewArrivals()`, `searchProducts(query)`, `getFeaturedProducts()`, `getBestSellers()`, `createProduct()`, `updateProduct()`, `deleteProduct()`, `restoreProduct()` | product objects |
+| `productsApi.js` | `getProducts()`, `getAllProducts()`, `getProduct(id)`, `getProductsByCollection()`, `getNewArrivals()`, `searchProducts(query)`, `getFeaturedProducts()`, `getBestSellers()`, `createProduct()`, `updateProduct()`, `deleteProduct()` (soft), `restoreProduct()` | product objects from `/products`, mirrored into the local `products` domain by `products/productSync.js` |
+| `inventory/inventoryApi.js` | `getInventory()`, `adjustStock()`, `receiveStock()`, `getStockHistory()`, `getLowStockThreshold()`, `setLowStockThreshold()` | variant rows (on hand from the server, reserved from local orders); changes and history on `/inventory` |
 | `collectionsApi.js` | `getCollections()` | dress/hair/accessory collections |
 | `categoriesApi.js` | `getCategories({realm})`, `getStaffCategories()`, `categoryUsage()`, `typeUsage()`, `createCategory()`, `updateCategory()`, `deleteCategory()`, `reorderCategories(ids)`, `resetCategories()` | categories from `/taxonomy/categories`: name, sizes offered, subcategories and their types (mirrored into the local `categories` domain) |
 | `colorsApi.js` | `getColors({realm})`, `getStaffColors()`, `syncColors()`, `colorUsage()`, `createColor()`, `updateColor()`, `deleteColor()`, `resetColors()` | colours from `/taxonomy/colors`: name, swatch hex, shop-filter family (mirrored into the local `colors` domain) |

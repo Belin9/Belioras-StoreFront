@@ -115,13 +115,9 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   all of them, and their stock, at a different size. The server records spent ids
   in `FreedId`, with a unique index so two racing creates cannot both claim one,
   and the client re-reads the list after every write so the offline copy matches.
-- **The delete guard is weaker than it was, and it should be said plainly.** The
-  dashboard still refuses to delete a size a category offers or a product
-  carries — but the server cannot check that, because it has no `Product`
-  model; the catalogue lives in this browser's localStorage. So the
-  guard holds for whoever holds the catalogue and for nobody else. What the
-  server does guarantee is the spent id, which bounds how badly an unguarded
-  delete can go. The guard moves server-side when products do.
+- **The delete guard is the server's** since products moved: a size a category
+  offers or a live product carries is a `409`. (Until then it was client-only,
+  which is why spent ids exist.)
 - **Writes stopped bumping the content version, so something had to.** Six
   storefront components read sizes keyed on `contentStore`'s version counter, and
   it used to move only because `setState` did. A server-side write does not go
@@ -163,9 +159,9 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   announced itself would loop. Writes notify as usual.
 - **Fallback is API → the mirror** (which starts as the bundled seed). No
   IndexedDB store this time — the mirror is already persisted.
-- **The in-use guards stay client-side**: products in a category, a type on a
-  product, a subcategory type tagged on a product, and Mega Menu links. They
-  move to the server with products.
+- **The in-use guards for products are the server's** (products in a
+  category, a subcategory type tagged on a product); the client checks them
+  first too, for a friendlier message. Mega Menu links are checked client-side.
 - **Order** is `PUT /order` with the full id list; subcategories and their
   types are ordered by array position in the category itself.
 - **Flat category types were removed.** Types live only inside subcategories.
@@ -186,8 +182,8 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   `main.jsx`. A read notifies only when the list actually changed — pages keyed
   on the content version re-run their reads, and an always-notifying read would
   loop.
-- **The delete guard (a colour still on a product) stays client-side** until
-  products move.
+- **The delete guard (a colour still on a product) is the server's** too, now
+  that products live there.
 
 ## What the mega menu cost
 
@@ -205,6 +201,32 @@ measures. It is separate on purpose, and the two are allowed to disagree.
 - **Target checks stay client-side** (`menuProblem`): whether a link's category,
   filter or product still exists needs the catalogue. The server checks shape,
   names and addresses.
+
+## What products and inventory cost
+
+- **Products live on the server; the `products` domain is a mirror**
+  (`productSync.js`). Storefront reads wait on `syncProducts()` (once per page
+  load, started in `main.jsx`); dashboard reads, reports and the inventory page
+  call `refreshProducts()` so staff never work from a stale list. The read uses
+  the staff boundary when a staff session exists, otherwise the public one —
+  which leaves out drafts and cost price.
+- **The server owns ids, slugs, the stock total and the history.** A product
+  save writes history rows for whatever stock it changed, in the same
+  transaction; `stockDiff.js` and the local `stockMovements` domain are gone.
+  Stock changes are conditional on the piece's `updatedAt` and retried, so
+  concurrent receipts all land.
+- **Delete is soft**, which is what keeps the Undo toast working and an order
+  line's product id meaningful.
+- **Orders still live here**, so "reserved" (units in unshipped orders) and the
+  "on hand can't drop below reserved" check stay client-side. Shipping and
+  restocking refunds call `/inventory/order-movements`; the order is written
+  only after that succeeds, and the server refuses shipping one order twice.
+- **Known gaps:** photos are still blob URLs until uploads go to ImageKit, so a
+  photo added in one browser does not show in another; the product form saves
+  the stock grid it loaded, so a receipt made while the form is open is
+  overwritten by the form's numbers (and recorded as an adjustment); a
+  shopper's order history can't name a piece that was later unpublished,
+  because the public list leaves drafts out.
 
 ## Orders and payment
 

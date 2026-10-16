@@ -1,132 +1,67 @@
 /* Catalogue Writes */
-import { ApiError, mockApi } from "@/api/mock";
-import { setState } from "../../store/contentStore";
-import { recordMovements } from "../inventory/stockLedger";
-import { stockDiff } from "../inventory/stockDiff";
-import { slugify } from "./productSlug";
-import { catalogItems, normalize } from "./productStore";
+import { http } from "@/api/client";
+import { ApiError } from "@/api/error";
+import { resourcePath, routes } from "@/api/routes";
+import { normalize } from "./productStore";
+import { forgetProduct, mirrorProducts } from "./productSync";
 import { audited } from "../../auth/audited";
 
-function nextProductId(items) {
+/**
+ * Creating, editing and deleting pieces, on the server (`/products`).
+ *
+ * The server numbers new pieces, keeps addresses unique, recomputes stock from
+ * the colourways and writes the stock history for whatever a save changed —
+ * all in one step, so none of that happens here any more. Writes never fall
+ * back: a save that did not land has to fail visibly.
+ */
 
-  const highest = items.reduce((max, p) => {
+const ONE = (id) => resourcePath(routes.products.one, "staff", { id });
 
-    const n = Number(String(p.id).match(/\d+/)?.[0] ?? 0);
-    return n > max ? n : max;
-  }, 0);
-  return `p${highest + 1}`;
+/** Only the fields the server accepts, so an extra key from a form never turns a save into a 400. */
+const WRITABLE = [
+  "name", "slug", "sku", "description", "collectionId", "price", "costPrice", "originalPrice",
+  "isNew", "featured", "bestseller", "limited", "status", "colorways", "sizes", "images", "stock",
+  "lowStockThreshold", "tags", "modelFit", "details", "materials", "care",
+  "isNonReturnable", "hairType", "lengthInInches", "weight",
+];
+
+function body(input) {
+  const out = {};
+  for (const key of WRITABLE) if (input[key] !== undefined) out[key] = input[key];
+  if ("name" in out) out.name = String(out.name ?? "").trim();
+  for (const key of ["price", "costPrice", "originalPrice", "stock", "lowStockThreshold"]) {
+    if (out[key] !== undefined && out[key] !== null) out[key] = Number(out[key]);
+  }
+  return out;
 }
 
-/** Ensures a slug is unique, suffixing -2, -3 … when a name repeats. */
-function uniqueSlug(items, base, ignoreId = null) {
-
-  const taken = new Set(items.filter((p) => p.id !== ignoreId).map((p) => p.slug));
-  if (!taken.has(base)) return base;
-  let n = 2;
-  while (taken.has(`${base}-${n}`)) n += 1;
-  return `${base}-${n}`;
+async function createProduct$raw(input) {
+  const payload = body(input);
+  if (!payload.name) throw new ApiError("A product needs a name.", 422);
+  if (!(payload.price > 0)) throw new ApiError("A product needs a price.", 422);
+  const saved = await http.post(resourcePath(routes.products.list, "staff"), payload, { realm: "staff" });
+  mirrorProducts([saved]);
+  return normalize(saved);
 }
 
-function createProduct$raw(input) {
-  return mockApi(() => {
-
-    const name = String(input.name ?? "").trim();
-    if (!name) throw new ApiError("A product needs a name.", 422);
-    if (!(Number(input.price) > 0)) throw new ApiError("A product needs a price.", 422);
-
-    const items = catalogItems();
-
-    const id = nextProductId(items);
-
-    const product = {
-      ...input,
-      id,
-      name,
-      slug: uniqueSlug(items, input.slug ? slugify(input.slug) : slugify(name)),
-      price: Number(input.price),
-      originalPrice: input.originalPrice ? Number(input.originalPrice) : null,
-      stock: Number(input.stock) || 0,
-      images: input.images ?? [],
-      ...(Array.isArray(input.colorways) ? {} : { colors: input.colors ?? [] }),
-      sizes: input.sizes ?? [],
-      status: input.status ?? "draft",
-      createdAt: new Date().toISOString(),
-    };
-
-    setState("products", (state) => ({ ...state, items: [product, ...state.items] }));
-    recordMovements(stockDiff(null, product));
-    return normalize(product);
-  });
+async function updateProduct$raw(id, patch) {
+  const saved = await http.patch(ONE(id), body(patch), { realm: "staff" });
+  mirrorProducts([saved]);
+  return normalize(saved);
 }
 
-function updateProduct$raw(id, patch) {
-  return mockApi(() => {
-
-    const items = catalogItems();
-
-    const existing = items.find((p) => p.id === id);
-    if (!existing) throw new ApiError("Product not found.", 404);
-
-    const name = patch.name !== undefined ? String(patch.name).trim() : existing.name;
-    if (!name) throw new ApiError("A product needs a name.", 422);
-
-    const updated = {
-      ...existing,
-      ...patch,
-      id,
-      name,
-      // Re-slug only when the name actually changed, so an existing product
-      // URL does not quietly break on an unrelated edit.
-      slug:
-        name !== existing.name
-          ? uniqueSlug(items, slugify(name), id)
-          : existing.slug,
-      price: patch.price !== undefined ? Number(patch.price) : existing.price,
-      stock: patch.stock !== undefined ? Number(patch.stock) || 0 : existing.stock,
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Colourways supersede the older per-name fields; leaving them would let
-    // a stale colour list reappear if colourways were ever cleared.
-    if (Array.isArray(patch.colorways)) {
-      delete updated.colors;
-      delete updated.colorImages;
-    }
-
-    setState("products", (state) => ({
-      ...state,
-      items: state.items.map((p) => (p.id === id ? updated : p)),
-    }));
-    recordMovements(stockDiff(existing, updated));
-    return normalize(updated);
-  });
+/** Hides the piece. Returned so the caller can offer Undo. */
+async function deleteProduct$raw(id) {
+  const removed = await http.del(ONE(id), { realm: "staff" });
+  forgetProduct(id);
+  return removed;
 }
 
-function deleteProduct$raw(id) {
-  return mockApi(() => {
-
-    const existing = catalogItems().find((p) => p.id === id);
-    if (!existing) throw new ApiError("Product not found.", 404);
-
-    setState("products", (state) => ({
-      ...state,
-      items: state.items.filter((p) => p.id !== id),
-    }));
-    // Returned so the caller can offer Undo without having kept a copy.
-    return existing;
-  });
-}
-
-/** Re-inserts a deleted product, for the Undo action on the delete toast. */
-function restoreProduct$raw(product) {
-  return mockApi(() => {
-    setState("products", (state) =>
-      state.items.some((p) => p.id === product.id)
-        ? state
-        : { ...state, items: [product, ...state.items] },
-    );
-    return normalize(product);
-  });
+/** Brings a deleted piece back, with its id and address, for the Undo on the delete toast. */
+async function restoreProduct$raw(product) {
+  const restored = await http.post(resourcePath(routes.products.restore, "staff", { id: product.id }), undefined, { realm: "staff" });
+  mirrorProducts([restored]);
+  return normalize(restored);
 }
 
 /* Recorded in the staff activity log. */

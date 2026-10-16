@@ -107,6 +107,25 @@ export const routes = {
     tree: "navigation",
     reset: "navigation/reset",
   },
+
+  /**
+   * The catalogue. A product id is what order lines and the stock history point
+   * at, so delete is soft and `restore` is the dashboard's Undo.
+   */
+  products: {
+    list: "products",
+    one: "products/:id",
+    restore: "products/:id/restore",
+  },
+
+  /** Stock changes, history and the low-stock line. Order-driven moves have their own edge. */
+  inventory: {
+    adjust: "inventory/adjust",
+    receive: "inventory/receive",
+    orderMovements: "inventory/order-movements",
+    movements: "inventory/movements",
+    settings: "inventory/settings",
+  },
 };
 
 /**

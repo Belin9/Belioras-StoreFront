@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import { syncColors } from './services/catalog/colorsApi'
 import { syncNavigation } from './services/catalog/navigationApi'
+import { syncProducts } from './services/catalog/products/productSync'
 
 // Every product read resolves its colours synchronously from the local mirror,
 // so pull the server's list once up front. The first paint uses the last list
@@ -11,6 +12,9 @@ import { syncNavigation } from './services/catalog/navigationApi'
 syncColors()
 // The menu is also what catalogue URLs resolve against; see syncNavigation.
 syncNavigation()
+// The catalogue: storefront reads wait on this, and the dashboard's overview,
+// reports and stock maths read the mirror it fills.
+syncProducts()
 
 /* Application Entry Point: Renders the root App component into the DOM */
 createRoot(document.getElementById('root')).render(

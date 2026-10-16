@@ -3,6 +3,7 @@ import { mockApi } from "@/api/mock";
 import { getState } from "../store/contentStore";
 import { normalizeStatus } from "../../utils/orderStatus";
 import { catalogItems, normalize } from "../catalog/products/productStore";
+import { refreshProducts } from "../catalog/products/productSync";
 import { lowStockThreshold } from "../catalog/inventory/inventoryApi";
 
 /**
@@ -21,7 +22,10 @@ function inPeriod(iso, { from, to }) {
 }
 
 export function getReports(period) {
-  return mockApi(() => {
+  return mockApi(async () => {
+    // The stock and best-seller figures read the catalogue mirror; fetch it
+    // fresh so a report never counts from a list the boot sync left public-only.
+    await refreshProducts();
     const all = getState("orders").items;
     const orders = all.filter((o) => inPeriod(o.createdAt, period));
     const paid = orders.filter((o) => PAID.has(normalizeStatus(o.status)));
