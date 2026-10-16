@@ -12,7 +12,7 @@ import { useLanguage } from "../../../context/LanguageContext";
 import { useToast } from "../../../context/ToastContext";
 
 export default function AccountSettings() {
-  const { user, updateProfile, changePassword, verifyPassword } = useCustomerAuth();
+  const { user, updateProfile, changePassword } = useCustomerAuth();
   const { language, setLanguage, locales } = useLanguage();
   const { currency, setCurrency, currencies } = useCurrency();
   const { toast } = useToast();
@@ -36,10 +36,9 @@ export default function AccountSettings() {
     const { currentPassword, ...patch } = values;
 
     try {
-      // Throws 401 before anything is written, so a wrong password cannot
-      // half-apply the change.
-      if (emailChanged) await verifyPassword(currentPassword);
-      await updateProfile(patch);
+      // The server checks the password with the change itself, so a wrong
+      // password cannot half-apply it.
+      await updateProfile(emailChanged ? { ...patch, currentPassword } : patch);
       toast("Profile saved.", "success");
       profile.reset({ ...patch, currentPassword: "" });
     } catch (err) {

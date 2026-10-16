@@ -247,8 +247,22 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   changing or being unpublished.
 - **Unpaid orders lapse** after `ORDER_PAYMENT_TTL_MINUTES`: their hold ends by
   time alone, and the server's minute sweep cancels them.
-- **Still in the browser:** sign-up, newsletter and contact emails (the outbox
-  shows both), reviews, customers' accounts beyond the server's auth.
+- **Unpaid orders lapse** after `ORDER_PAYMENT_TTL_MINUTES`: their hold ends by
+  time alone, and the server's minute sweep cancels them.
+
+## What accounts, reviews, the newsletter and contact cost
+
+- **Shopper accounts are the server's** (`authCustomerApi.js`,
+  `useCustomerSession.js`): same shape as the old mock hook, nothing persisted
+  — the access token is in memory and the refresh token an httpOnly cookie.
+  Profile edits, password changes and the forgotten-password flow
+  (`/reset-password?token=`) are server-side; the welcome and reset emails are
+  queued there. `authSession.js`, `authProfile.js` and `useAuthSession.js` are
+  gone. Saved addresses stay per device, as before.
+- **Still in the browser:** reviews, newsletter and contact emails (the outbox
+  shows both), roles and the old team-invitation flow
+  (`authRoles.js`) — new staff are created on the server with a temporary
+  password, so invitations are legacy.
 
 ## Orders and payment
 

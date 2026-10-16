@@ -4,6 +4,7 @@ import { Route } from "react-router-dom";
 import LoginPage from "../pages/0.auth/customer/login";
 import SignupPage from "../pages/0.auth/customer/signup";
 import ForgotPasswordPage from "../pages/0.auth/customer/forgotpassword";
+import ResetPasswordPage from "../pages/0.auth/customer/resetpassword";
 import AtelierLoginPage from "../pages/0.auth/admin/atelier";
 import AtelierInvitePage from "../pages/0.auth/admin/atelierInvite";
 import AtelierSetPasswordPage from "../pages/0.auth/admin/atelierSetPassword";
@@ -18,6 +19,7 @@ export default function authRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Staff door: admin login, separate from shopper's — where 2FA and rate limiting attach. */}
         <Route path="/atelier" element={<AtelierLoginPage />} />

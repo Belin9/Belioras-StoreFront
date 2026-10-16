@@ -1,9 +1,9 @@
 /* Context Provider: Customer Auth */
 import { CustomerAuthContext } from "./auth/authContexts";
-import { useAuthSession } from "./auth/useAuthSession";
+import { useCustomerSession } from "./auth/useCustomerSession";
 
 export default function CustomerAuthProvider({ children }) {
-  const value = useAuthSession({ realm: "customer", storageKey: "belioras:auth:customer" });
+  const value = useCustomerSession();
 
   return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>;
 }

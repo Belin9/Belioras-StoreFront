@@ -5,7 +5,7 @@ import { Users } from "lucide-react";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
-import { getUsers } from "../../../services/auth/authApi";
+import { listCustomers } from "../../../services/auth/authCustomerApi";
 import { getAllOrders } from "../../../services/sales/ordersApi";
 import DashTable from "../../components/DashTable";
 import { usePageSize } from "../../lib/usePageSize";
@@ -18,7 +18,7 @@ export default function DashCustomers() {
   const { format } = useCurrency();
   const { locale } = useLanguage();
 
-  const { data: users, loading } = useAsyncData(getUsers, []);
+  const { data: users, loading } = useAsyncData(listCustomers, []);
   const { data: orders } = useAsyncData(getAllOrders, []);
   const [viewing, setViewing] = useState(null);
   const [query, setQuery] = useState("");

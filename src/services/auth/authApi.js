@@ -1,11 +1,8 @@
 /* Accounts API */
 
-// Split by concern: the store accessors, the session doors, profile and
-// credential edits, and role changes. updateUserRole carries the
-// privilege-escalation guard and is easier to audit on its own. This file
-// stays the public entry point.
-export { login, register, logout, requestPasswordReset } from "./authSession";
-export { getUsers, updateProfile, verifyPassword, changePassword } from "./authProfile";
+// Roles and the (browser-side) team invitation flow. Signing in, accounts,
+// profiles and password resets are on the server now: `authCustomerApi.js`
+// for shoppers, `authStaffApi.js` for the atelier.
 export {
   acceptInvite, addTeamMember, cancelInvite, createRole, deleteRole, getInvite, getRoles, renewInvite, updateRole, updateUserRole,
 } from "./authRoles";

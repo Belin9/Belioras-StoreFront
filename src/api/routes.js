@@ -47,6 +47,8 @@ export const routes = {
     preferences: "auth/me/preferences",
     sessions: "auth/sessions",
     changePassword: "auth/change-password",
+    passwordReset: "auth/password-reset",
+    passwordResetConfirm: "auth/password-reset/confirm",
     staff: "auth/staff",
     // The two edits to an existing member. They are separate leaves rather than
     // one `staff/:id` with a body that may or may not carry a change, because a
@@ -143,6 +145,7 @@ export const routes = {
     validate: "coupons/validate",
   },
 
+  customers: "customers",
   transactions: "transactions",
   emails: "emails",
   settings: "settings",

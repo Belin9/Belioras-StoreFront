@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { ArrowLeft, KeyRound, Loader2, MailCheck } from "lucide-react";
 
 import BrandMark from "../../../components/shared/BrandMark";
-import { requestPasswordReset } from "@/services/auth/authApi";
+import { requestPasswordReset } from "@/services/auth/authCustomerApi";
 import { useToast } from "@/context/ToastContext";
 
 /* HERO IMAGE */
@@ -14,7 +14,7 @@ const HERO_IMAGE = "https://ik.imagekit.io/sbgenu6wj/Belioras/Home/model-beliora
 const inputBase =
   "w-full border-b border-umber-50 bg-transparent px-0 py-3 text-sm text-espresso placeholder:text-espresso/40 focus:border-espresso focus:outline-none transition-colors";
 
-function FloatingInput({ id, label, type = "text", value, onChange, error, autoComplete }) {
+export function FloatingInput({ id, label, type = "text", value, onChange, error, autoComplete }) {
   return (
     <div className="relative">
       <label
@@ -134,7 +134,7 @@ export default function ForgotPasswordPage() {
               <h2 className="font-display text-lg text-espresso mb-2">Email sent</h2>
               <p className="text-sm text-espresso/70 leading-relaxed">
                 If an account exists for <span className="font-medium text-espresso">{email.trim()}</span>, reset
-                instructions are on their way. They expire within 30 minutes.
+                instructions are on their way. The link works once, within an hour.
               </p>
             </motion.div>
           ) : (
