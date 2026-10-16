@@ -259,8 +259,9 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   (`/reset-password?token=`) are server-side; the welcome and reset emails are
   queued there. `authSession.js`, `authProfile.js` and `useAuthSession.js` are
   gone. Saved addresses stay per device, as before.
-- **Still in the browser:** reviews, newsletter and contact emails (the outbox
-  shows both), roles and the old team-invitation flow
+- **Reviews** are moderated on the server; products carry their stars.
+- **Still in the browser:** newsletter and contact emails (the outbox shows
+  both), roles and the old team-invitation flow
   (`authRoles.js`) — new staff are created on the server with a temporary
   password, so invitations are legacy.
 

@@ -111,7 +111,8 @@ const DOMAINS = {
   // Discount codes. Global-only — no per-product/category scoping.
   coupons: { seed: { rev: couponsSeed.rev + 1, items: [] }, collection: "items", mirror: true },
   // Product reviews. status: pending | published | hidden — only published is ever shown on the storefront.
-  reviews: { seed: reviewsSeed, collection: "items" },
+  // Server-owned: the moderation queue as the dashboard last read it.
+  reviews: { seed: { rev: reviewsSeed.rev + 1, items: [] }, collection: "items", mirror: true },
   // Payments and refunds against those orders. Read-only today; registered here
   // so checkout can record a payment once a provider is connected.
   transactions: { seed: { rev: transactionsSeed.rev + 1, items: [] }, collection: "items", mirror: true },

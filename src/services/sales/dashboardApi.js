@@ -3,6 +3,7 @@ import { getState } from "../store/contentStore";
 import { normalizeStatus } from "../../utils/orderStatus";
 import { getAllOrders } from "./ordersApi";
 import { getAllProducts } from "../catalog/productsApi";
+import { getAllReviews } from "../catalog/reviewsApi";
 import { lowStockThreshold } from "../catalog/inventory/inventoryApi";
 import { stockLevel, thresholdFor } from "../../utils/stockLevel";
 
@@ -54,7 +55,8 @@ export function getDashboardStats() {
 
     const average = (m) => (m.count ? m.revenue / m.count : 0);
 
-    const reviews = getState("reviews")?.items ?? [];
+    // The moderation queue, fresh; the last mirror if the server cannot be reached.
+    const reviews = await getAllReviews().catch(() => getState("reviews")?.items ?? []);
 
     return {
       revenue,

@@ -47,20 +47,14 @@ function withAvailability(product, expanded) {
   return { onHand, reserved: held, stock, inventory, reservedCells };
 }
 
-/** Average and count of the published reviews, keyed by product id. Reviews are the one source: a stored rating would drift from them. */
-function reviewSummary(productId) {
-  const rows = (getState("reviews")?.items ?? []).filter((r) => r.productId === productId && r.status === "published");
-  if (!rows.length) return { rating: 0, reviewCount: 0 };
-  const total = rows.reduce((sum, r) => sum + r.rating, 0);
-  return { rating: Math.round((total / rows.length) * 10) / 10, reviewCount: rows.length };
-}
-
 function normalize(product) {
   const expanded = expandColorways(product);
   return {
     ...product,
     status: product.status ?? "active",
-    ...reviewSummary(product.id),
+    // Stars come from the server with the product, counted from published reviews.
+    rating: product.rating ?? 0,
+    reviewCount: product.reviewCount ?? 0,
     ...expanded,
     ...withAvailability(product, expanded),
     tags: deriveTags(product, expanded.colorFamilies),

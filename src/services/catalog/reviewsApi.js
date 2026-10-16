@@ -1,119 +1,53 @@
-import { ApiError, mockApi } from "@/api/mock";
-import { getState, setState } from "../store/contentStore";
+import { http } from "@/api/client";
+import { ApiError } from "@/api/error";
+import { resourcePath } from "@/api/routes";
+import { setState } from "../store/contentStore";
 import { audited } from "../auth/audited";
-import { getOrders } from "../sales/ordersApi";
-
-function reviewItems() {
-  return getState("reviews").items;
-}
-
-function write(items) {
-  setState("reviews", (state) => ({ ...state, items }));
-}
-
-function nextId() {
-  const n = reviewItems().reduce((max, r) => {
-    const num = Number(String(r.id).replace(/^r/, ""));
-    return Number.isFinite(num) ? Math.max(max, num) : max;
-  }, 0);
-  return `r${n + 1}`;
-}
 
 /**
- * Whether this customer has an order that included this product — a badge, not
- * a gate. Asked of the server (their own orders), since a shopper's browser no
- * longer holds the shop's orders. A failed read just means no badge.
+ * Reviews, on the server. A shopper's submission lands `pending` and shows
+ * nowhere until a moderator publishes it; the storefront only ever receives
+ * published reviews. "Verified" is decided by the server from the reviewer's
+ * own orders. Each product's stars arrive with the product itself.
+ *
+ * The moderation queue is mirrored into the local `reviews` domain, which the
+ * dashboard's overview counts pending reviews from.
  */
-async function hasPurchased(userId, productId) {
-  if (!userId) return false;
-  const orders = await getOrders(userId).catch(() => []);
-  return orders.some((o) => (o.items ?? []).some((line) => line.productId === productId));
-}
 
-/** Published reviews for one product, newest first. The only reviews the storefront ever sees. */
+const shop = (path) => resourcePath(path, "customer");
+const staff = (path) => resourcePath(path, "staff");
+
+/** Published reviews for one product, newest first. */
 export function getReviews(productId) {
-  return mockApi(() =>
-    reviewItems()
-      .filter((r) => r.productId === productId && r.status === "published")
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-  );
+  return http.get(shop("reviews"), { realm: "customer", params: { productId } });
 }
 
 export function getRecentReviews(limit = 3) {
-  return mockApi(() =>
-    reviewItems()
-      .filter((r) => r.status === "published")
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .slice(0, limit)
+  return http.get(shop("reviews"), { realm: "customer", params: { limit } });
+}
+
+/** Every review, for the moderation queue — every status, most recent first. */
+export async function getAllReviews() {
+  const items = await http.get(staff("reviews"), { realm: "staff" });
+  setState("reviews", (state) => ({ ...state, items }), { silent: true });
+  return items;
+}
+
+/** A shopper's own submission: pending until published. Signed in, the server knows who they are. */
+export function createReview({ productId, rating, title, body, name }) {
+  const value = Number(rating);
+  if (!(value >= 1 && value <= 5)) throw new ApiError("Choose a rating from 1 to 5.", 422);
+  if (!String(body ?? "").trim()) throw new ApiError("Say a little about how it wears.", 422);
+  return http.post(
+    shop("reviews"),
+    { productId, rating: Math.round(value), title: String(title ?? "").trim(), body: String(body).trim(), ...(name ? { name: String(name).trim() } : {}) },
+    { realm: "customer" },
   );
 }
 
-/** Every review, for the admin moderation queue — every status, most recent first. */
-export function getAllReviews() {
-  return mockApi(() => reviewItems().slice().sort((a, b) => (a.date < b.date ? 1 : -1)));
-}
-
-/**
- * A shopper's own submission. Lands as `pending`, so it never shows anywhere
- * on the storefront until a moderator publishes it — `getReviews` filters to
- * `published` only, this is what makes that filter meaningful.
- */
-export function createReview({ productId, userId, rating, title, body, name }) {
-  return mockApi(async () => {
-    const value = Number(rating);
-    if (!(value >= 1 && value <= 5)) throw new ApiError("Choose a rating from 1 to 5.", 422);
-    if (!String(body ?? "").trim()) throw new ApiError("Say a little about how it wears.", 422);
-
-    const review = {
-      id: nextId(),
-      productId,
-      name: String(name ?? "").trim() || "Anonymous",
-      rating: Math.round(value),
-      title: String(title ?? "").trim(),
-      body: String(body).trim(),
-      date: new Date().toISOString().slice(0, 10),
-      verified: await hasPurchased(userId, productId),
-      status: "pending",
-      reply: null,
-    };
-    write([...reviewItems(), review]);
-    return review;
-  });
-}
-
-function publishReview$raw(id) {
-  return mockApi(() => {
-    const current = reviewItems();
-    const existing = current.find((r) => r.id === id);
-    if (!existing) throw new ApiError("That review no longer exists.", 404);
-    const updated = { ...existing, status: "published" };
-    write(current.map((r) => (r.id === id ? updated : r)));
-    return updated;
-  });
-}
-
-function hideReview$raw(id) {
-  return mockApi(() => {
-    const current = reviewItems();
-    const existing = current.find((r) => r.id === id);
-    if (!existing) throw new ApiError("That review no longer exists.", 404);
-    const updated = { ...existing, status: "hidden" };
-    write(current.map((r) => (r.id === id ? updated : r)));
-    return updated;
-  });
-}
-
-function replyToReview$raw(id, text) {
-  return mockApi(() => {
-    const current = reviewItems();
-    const existing = current.find((r) => r.id === id);
-    if (!existing) throw new ApiError("That review no longer exists.", 404);
-    const trimmed = String(text ?? "").trim();
-    const updated = { ...existing, reply: trimmed ? { text: trimmed, at: new Date().toISOString() } : null };
-    write(current.map((r) => (r.id === id ? updated : r)));
-    return updated;
-  });
-}
+const publishReview$raw = (id) => http.post(staff(`reviews/${encodeURIComponent(id)}/publish`), undefined, { realm: "staff" });
+const hideReview$raw = (id) => http.post(staff(`reviews/${encodeURIComponent(id)}/hide`), undefined, { realm: "staff" });
+const replyToReview$raw = (id, text) => http.put(staff(`reviews/${encodeURIComponent(id)}/reply`), { text: String(text ?? "") }, { realm: "staff" });
 
 /* Recorded in the staff activity log. */
 export const publishReview = audited("reviews", ([id]) => `Published review ${id}`, publishReview$raw);
