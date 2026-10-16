@@ -245,6 +245,8 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   orders mirror for it (`products.realm`).
 - **Order lines keep their photo and address**, so history survives a product
   changing or being unpublished.
+- **Unpaid orders lapse** after `ORDER_PAYMENT_TTL_MINUTES`: their hold ends by
+  time alone, and the server's minute sweep cancels them.
 - **Still in the browser:** sign-up, newsletter and contact emails (the outbox
   shows both), reviews, customers' accounts beyond the server's auth.
 
