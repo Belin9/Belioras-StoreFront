@@ -221,12 +221,14 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   "on hand can't drop below reserved" check stay client-side. Shipping and
   restocking refunds call `/inventory/order-movements`; the order is written
   only after that succeeds, and the server refuses shipping one order twice.
-- **Known gaps:** photos are still blob URLs until uploads go to ImageKit, so a
-  photo added in one browser does not show in another; the product form saves
-  the stock grid it loaded, so a receipt made while the form is open is
-  overwritten by the form's numbers (and recorded as an adjustment); a
-  shopper's order history can't name a piece that was later unpublished,
-  because the public list leaves drafts out.
+- **Photos and videos upload** (`services/content/uploadsApi.js`, `uploadImage`
+  in `AdminDashboard/lib/imageUpload.js`): resized in the browser, stored on
+  ImageKit (or `/api/uploads` in development), and the permanent URL saved. The
+  server refuses `blob:`/`data:` URLs.
+- **Known gaps:** the product form saves the stock grid it loaded, so a receipt
+  made while the form is open is overwritten by the form's numbers (and
+  recorded as an adjustment); a shopper's order history can't name a piece that
+  was later unpublished, because the public list leaves drafts out.
 
 ## Orders and payment
 

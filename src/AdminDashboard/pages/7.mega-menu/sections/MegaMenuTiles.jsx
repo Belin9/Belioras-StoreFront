@@ -2,7 +2,7 @@
 import { useRef } from "react";
 import { Plus } from "lucide-react";
 
-import { ACCEPT, processImage } from "@/AdminDashboard/lib/imageUpload";
+import { ACCEPT, uploadImage } from "@/AdminDashboard/lib/imageUpload";
 import { useToast } from "@/context/ToastContext";
 import { resolveTile } from "@/services/catalog/navigationApi";
 import { describeTarget } from "@/utils/menuTargetText";
@@ -49,11 +49,11 @@ function TileCard({ tile, root, editor, lookups, onPick }) {
   const replace = async (file) => {
     if (!file) return;
     try {
-      const { url } = await processImage(file);
+      const { url } = await uploadImage(file, { folder: "menu" });
       editor.patchTile(tile.id, { image: url });
       toast("Photo added. Save the menu to show it in the shop.", "success");
-    } catch {
-      toast(`${file.name} could not be read. Try a JPEG, PNG or WebP.`, "error");
+    } catch (err) {
+      toast(err?.status ? err.message : `${file.name} could not be uploaded. Try a JPEG, PNG or WebP.`, "error");
     }
   };
 

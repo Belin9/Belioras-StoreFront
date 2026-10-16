@@ -118,6 +118,9 @@ export const routes = {
     restore: "products/:id/restore",
   },
 
+  /** Photos and videos: one file per request, answered with its permanent URL. */
+  uploads: "uploads",
+
   /** Stock changes, history and the low-stock line. Order-driven moves have their own edge. */
   inventory: {
     adjust: "inventory/adjust",

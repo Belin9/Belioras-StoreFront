@@ -1,4 +1,5 @@
 /* Image Preparation */
+import { uploadFile } from "@/services/content/uploadsApi";
 
 export const ACCEPT = "image/jpeg,image/png,image/webp,image/avif";
 
@@ -26,4 +27,22 @@ export async function processImage(file) {
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
   return { blob, width, height, url: URL.createObjectURL(blob) };
+}
+
+/**
+ * Shrinks a photo to at most 1600px in the browser, then uploads it. Answers
+ * `{ url, width, height }` with the permanent URL to save.
+ *
+ * Resizing first keeps uploads small and fast on a phone connection; the
+ * storefront still asks the CDN for the size each place needs.
+ */
+export async function uploadImage(file, { folder = "products" } = {}) {
+  const { blob, width, height, url: preview } = await processImage(file);
+  try {
+    const name = `${String(file.name ?? "photo").replace(/\.[^.]+$/, "")}.jpg`;
+    const stored = await uploadFile(blob, { folder, name });
+    return { url: stored.url, width, height };
+  } finally {
+    URL.revokeObjectURL(preview);
+  }
 }

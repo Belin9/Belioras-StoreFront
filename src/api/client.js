@@ -11,9 +11,11 @@ import { refreshSession } from "./refresh";
  */
 
 async function request(method, path, options = {}) {
-  const { body, params, realm = "customer", headers, signal, retry = true } = options;
+  // `timeout` overrides the default for the few calls that need longer — a
+  // 100 MB video upload cannot finish inside a timeout sized for JSON.
+  const { body, params, realm = "customer", headers, signal, retry = true, timeout = apiTimeout } = options;
   const hadToken = Boolean(accessToken(realm));
-  const control = abortAfter(apiTimeout, signal);
+  const control = abortAfter(timeout, signal);
   let response;
 
   try {

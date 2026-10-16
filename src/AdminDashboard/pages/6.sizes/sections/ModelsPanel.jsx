@@ -10,6 +10,7 @@ import Field from "@/components/ui/Field";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { createModel, deleteModel, getModels, modelUsage, updateModel } from "@/services/catalog/modelsApi";
+import { uploadImage } from "@/AdminDashboard/lib/imageUpload";
 import IconAction from "../../../components/IconAction";
 
 const MEASURES = [
@@ -31,14 +32,21 @@ function ModelDialog({ open, model, onClose, onSave }) {
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const pickPhoto = (file) => {
+  const pickPhoto = async (file) => {
     if (!file?.type.startsWith("image/")) return setError("Choose a photo (JPG, PNG or WebP).");
-    // Read as data so it survives a reload in this demo; the backend stores it with the product photos.
-    const reader = new FileReader();
-    reader.onload = () => setForm((f) => ({ ...f, photo: reader.result }));
-    reader.readAsDataURL(file);
+    setError("");
+    setUploading(true);
+    try {
+      const { url } = await uploadImage(file, { folder: "models" });
+      setForm((f) => ({ ...f, photo: url }));
+    } catch (err) {
+      setError(err?.status ? err.message : "The photo could not be uploaded. Try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const submit = async (e) => {
@@ -90,7 +98,7 @@ function ModelDialog({ open, model, onClose, onSave }) {
         {error && <p role="alert" className="border-l-2 border-error py-1 pl-3 text-[13px] text-error">{error}</p>}
         <div className="flex justify-end gap-2 border-t border-umber-50 pt-4">
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button type="submit" loading={saving}>{model ? "Save" : "Add model"}</Button>
+          <Button type="submit" loading={saving} disabled={uploading}>{uploading ? "Uploading photo…" : model ? "Save" : "Add model"}</Button>
         </div>
       </form>
     </Modal>

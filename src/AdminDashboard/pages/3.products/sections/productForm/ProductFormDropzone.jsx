@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 
 import { cn } from "../../../../../utils/cn";
-import { ACCEPT, MAX_BYTES, processImage } from "@/AdminDashboard/lib/imageUpload";
+import { ACCEPT, MAX_BYTES, uploadImage } from "@/AdminDashboard/lib/imageUpload";
 import { useToast } from "@/context/ToastContext";
 import ProductFormDropzoneThumbs from "./ProductFormDropzoneThumbs";
 
@@ -24,12 +24,8 @@ export default function ProductFormDropzone({
 
   const inputRef = useRef(null);
 
-  // Object URLs minted here are revoked only when a photo is removed, never on
-  // unmount. They are what a saved product points at until uploads go to
-  // ImageKit; revoking on unmount broke every photo of a piece the moment it
-  // was published and the form closed. They still do not survive a reload.
-  const mintedRef = useRef(new Set());
-
+  // Each photo is resized in the browser and uploaded as it is added, so what
+  // the form holds — and what a save stores — is its permanent URL.
   const ingest = useCallback(
     async (fileList) => {
 
@@ -67,19 +63,17 @@ export default function ProductFormDropzone({
         setBusy(progress);
         onProgress?.(progress);
         try {
-          const { blob, width, height, url } = await processImage(file);
-          mintedRef.current.add(url);
+          const { width, height, url } = await uploadImage(file, { folder: "products" });
           added.push({
             id: `img_${Date.now()}_${i}`,
             url,
-            blob,
             width,
             height,
             name: file.name,
             colorId: defaultColorId,
           });
-        } catch {
-          fail(`${file.name} could not be read.`);
+        } catch (err) {
+          fail(err?.status ? `${file.name}: ${err.message}` : `${file.name} could not be uploaded.`);
         }
       }
 
@@ -95,12 +89,6 @@ export default function ProductFormDropzone({
   );
 
   const removeAt = (i) => {
-
-    const image = images[i];
-    if (image?.url && mintedRef.current.has(image.url)) {
-      URL.revokeObjectURL(image.url);
-      mintedRef.current.delete(image.url);
-    }
     onChange(images.filter((_, idx) => idx !== i));
   };
 

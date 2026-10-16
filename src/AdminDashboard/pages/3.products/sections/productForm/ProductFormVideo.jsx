@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { Link2, Trash2, Upload } from "lucide-react";
 
 import IconAction from "@/AdminDashboard/components/IconAction";
+import { uploadFile } from "@/services/content/uploadsApi";
 import FormSection from "./ProductFormSection";
 
 const ACCEPT = "video/mp4,video/webm,video/quicktime";
@@ -13,6 +14,7 @@ function ColourVideo({ swatch, video, poster, onChange }) {
   const fileRef = useRef(null);
   const [link, setLink] = useState("");
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const addLink = () => {
     const url = link.trim();
@@ -22,13 +24,20 @@ function ColourVideo({ swatch, video, poster, onChange }) {
     onChange({ url, poster: poster ?? null });
   };
 
-  const upload = (file) => {
+  const upload = async (file) => {
     if (!file) return;
     if (!file.type.startsWith("video/")) return setError("Choose an MP4, WebM or MOV file.");
     if (file.size > MAX_MB * 1024 * 1024) return setError(`That file is over ${MAX_MB} MB. Shorten or compress it first.`);
     setError("");
-    // Held in the browser for now; with the backend the file goes to media storage and a link comes back.
-    onChange({ url: URL.createObjectURL(file), poster: poster ?? null, name: file.name, local: true });
+    setUploading(true);
+    try {
+      const stored = await uploadFile(file, { folder: "products" });
+      onChange({ url: stored.url, poster: poster ?? null, name: file.name, uploaded: true });
+    } catch (err) {
+      setError(err?.message ?? "The video could not be uploaded. Try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -43,7 +52,7 @@ function ColourVideo({ swatch, video, poster, onChange }) {
           <video src={video.url} poster={video.poster ?? undefined} muted loop playsInline controls className="aspect-[3/4] w-32 shrink-0 bg-ivory-200 object-cover" />
           <div className="min-w-0 flex-1 space-y-1 text-[12px] text-espresso-soft">
             <p className="truncate text-espresso">{video.name ?? video.url}</p>
-            <p>{video.local ? "Uploaded here. It stays until the page reloads; with the backend it is stored with your photos." : "From a link."}</p>
+            <p>{video.uploaded ? "Uploaded." : "From a link."}</p>
             <p>Plays silently and loops on the product page, after the first photo.</p>
           </div>
           <IconAction label={`Remove the ${swatch.name} video`} icon={Trash2} destructive onClick={() => onChange(null)} />
@@ -73,9 +82,10 @@ function ColourVideo({ swatch, video, poster, onChange }) {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="inline-flex h-10 items-center gap-2 border border-umber-100 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-espresso transition-colors hover:border-espresso"
+              disabled={uploading}
+              className="inline-flex h-10 items-center gap-2 border border-umber-100 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-espresso transition-colors hover:border-espresso disabled:opacity-50"
             >
-              <Upload className="size-3.5" aria-hidden="true" /> Upload
+              <Upload className="size-3.5" aria-hidden="true" /> {uploading ? "Uploading…" : "Upload"}
             </button>
             <input ref={fileRef} type="file" accept={ACCEPT} className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
           </div>
