@@ -24,7 +24,6 @@ import instagramSeed from "../../data/instagram.json";
 import settingsSeed from "../../data/settings.json";
 import catalogSeed from "../../data/catalogSeed";
 import ordersSeed from "../../data/ordersSeed";
-import emailsSeed from "../../data/emailsSeed";
 import { migrateNavigation, migrateProduct } from "../catalog/legacyTypes";
 import transactionsSeed from "../../data/transactionsSeed";
 import colorsSeed from "../../data/colorsSeed";
@@ -32,7 +31,6 @@ import categoriesSeed from "../../data/categoriesSeed";
 import rolesSeed from "../../data/rolesSeed";
 import { couponsSeed } from "../../data/couponsSeed";
 import { reviewsSeed } from "../../data/reviewsSeed";
-import { campaignsSeed, newsletterSettingsSeed, subscribersSeed } from "../../data/newsletterSeed";
 
 /* KEY PREFIX */
 const KEY_PREFIX = "belioras:content:";
@@ -119,12 +117,8 @@ const DOMAINS = {
   // Server-owned (`/roles`): what the server checks on every request. The
   // shipped roles are the floor until the first read.
   roles: { seed: rolesSeed, collection: "items", mirror: true },
-  // Every email the shop sends, queued for the backend mailer (notifications module).
-  emails: { seed: emailsSeed, collection: "items" },
-  // The Belioras Letter: who has consented, what was sent, and the welcome email.
-  subscribers: { seed: subscribersSeed, collection: "items" },
-  campaigns: { seed: campaignsSeed, collection: "items" },
-  newsletter: { seed: newsletterSettingsSeed, collection: null },
+  // The server's email outbox, as the dashboard last read it.
+  emails: { seed: { rev: 2, items: [] }, collection: "items", mirror: true },
 };
 
 function storageKey(domain) {
