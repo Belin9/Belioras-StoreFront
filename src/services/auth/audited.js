@@ -1,14 +1,17 @@
 import { ApiError } from "@/api/mock";
 import { accessFor } from "../../utils/roles";
 import { SECTIONS } from "../../utils/permissions";
-import { currentActor, logActivity } from "./activityApi";
+import { currentActor } from "./activityApi";
 
 /**
  * Wraps a dashboard write. Before it runs, the signed-in person must have
- * "edit" on its section — the same check a backend makes, so a view-only role
- * cannot change anything whatever the screen offers. After it succeeds, the
- * change is written to the activity log: `describe(args, result)` returns the
- * sentence. `section` may be a function of the arguments.
+ * "edit" on its section — a quick answer in the screen; the server makes the
+ * same check, from the same roles, and is the one that counts. `section` may
+ * be a function of the arguments.
+ *
+ * The change itself is recorded by the server in its audit log, which is what
+ * the Activity page shows, so nothing is logged here. `describe` is kept so
+ * each call site still says, in one line, what the write is.
  */
 export function audited(section, describe, fn) {
   return (...args) => {
@@ -18,13 +21,6 @@ export function audited(section, describe, fn) {
       const label = SECTIONS.find((s) => s.id === where)?.label ?? where;
       return Promise.reject(new ApiError(`Your role can view ${label} but not change it. Ask an administrator for edit access.`, 403));
     }
-    return fn(...args).then((result) => {
-      try {
-        logActivity({ section: where, summary: describe(args, result), actor });
-      } catch {
-        /* never let the log break the write */
-      }
-      return result;
-    });
+    return fn(...args);
   };
 }

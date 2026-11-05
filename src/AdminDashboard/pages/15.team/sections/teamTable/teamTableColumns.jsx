@@ -107,9 +107,7 @@ export function buildTeamColumns({ timeFmt, roles, lastSeen, signedInId, canMana
     {
       id: "lastSeen",
       header: "Last signed in",
-      // The API does not report a last-seen time yet, and this table now reads
-      // from it. Sorting on a column nothing populates would silently put every
-      // member in an arbitrary order, so the column stays and the sort goes.
+      // From the server's audit log (`/activity/sign-ins`).
       enableSorting: false,
       accessorFn: (r) => lastSeen?.[r.id] ?? "",
       cell: ({ row }) => {
@@ -118,10 +116,9 @@ export function buildTeamColumns({ timeFmt, roles, lastSeen, signedInId, canMana
         if (at) {
           return <span className="whitespace-nowrap text-[12px] text-espresso-soft">{timeFmt.format(new Date(at))}</span>;
         }
-        // "Not since logging began" was the mock's way of saying "no data" — for
-        // a real account it is a lie, because the API simply does not collect it
-        // yet and they may well have signed in this morning.
-        return <span className="text-[12px] text-espresso-soft">Not tracked yet</span>;
+        // The audit log has no sign-in for them yet: a new account, or one
+        // that has not signed in since sign-ins were recorded.
+        return <span className="text-[12px] text-espresso-soft">Not yet</span>;
       },
     },
     {

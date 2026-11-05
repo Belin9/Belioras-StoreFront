@@ -14,6 +14,7 @@ import {
   createRole, deleteRole, getRoles, updateRole,
 } from "../../../services/auth/authApi";
 import { createStaff, listStaff, updateStaffRole, updateStaffStatus } from "../../../services/auth/authStaffApi";
+import { lastSignIns } from "../../../services/auth/activityApi";
 import DashHeaderActions from "../../components/DashHeaderActions";
 import DashListToolbar from "../../components/DashListToolbar";
 import DashTable from "../../components/DashTable";
@@ -71,15 +72,8 @@ export default function DashTeam() {
   const { data: staff, loading, error: rosterError } = useAsyncData(listStaff, []);
   const { data: roles } = useAsyncData(getRoles, [revision]);
 
-  /**
-   * No last-seen data, on purpose. The mock `lastSignIns` service only knows
-   * about the accounts it invented, so wiring it to a roster that now comes
-   * from the API would have every real member showing as "Not since logging
-   * began" — which is not "no data", it is a false statement about a colleague
-   * who signed in this morning. `null` renders the honest "Not tracked yet", and
-   * passing real data here later changes nothing else.
-   */
-  const lastSeen = null;
+  // When each member last signed in, from the server's audit log.
+  const { data: lastSeen } = useAsyncData(lastSignIns, []);
 
   const [tab, setTab] = useState("members");
   const [query, setQuery] = useState("");

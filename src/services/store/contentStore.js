@@ -24,7 +24,6 @@ import instagramSeed from "../../data/instagram.json";
 import settingsSeed from "../../data/settings.json";
 import catalogSeed from "../../data/catalogSeed";
 import ordersSeed from "../../data/ordersSeed";
-import activitySeed from "../../data/activitySeed";
 import emailsSeed from "../../data/emailsSeed";
 import modelsSeed from "../../data/modelsSeed";
 import { migrateNavigation, migrateProduct } from "../catalog/legacyTypes";
@@ -119,8 +118,6 @@ const DOMAINS = {
   // Server-owned (`/roles`): what the server checks on every request. The
   // shipped roles are the floor until the first read.
   roles: { seed: rolesSeed, collection: "items", mirror: true },
-  // Who did what in the dashboard, and when: sign-ins, role changes and every edit staff make.
-  activity: { seed: activitySeed, collection: "items" },
   // Every email the shop sends, queued for the backend mailer (notifications module).
   emails: { seed: emailsSeed, collection: "items" },
   // The models in the photographs, with their measurements (Sizes & Guides → Models).

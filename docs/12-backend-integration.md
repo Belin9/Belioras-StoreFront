@@ -269,6 +269,9 @@ measures. It is separate on purpose, and the two are allowed to disagree.
   `roles` on sign-in, which `utils/roles.js` reads to draw the dashboard. The
   browser-side team invitations were removed (staff are created on the server
   with a temporary password).
+- **The Activity page reads the server's audit log**, including failed staff
+  sign-ins; `audited()` no longer logs anything itself. The Team roster's
+  "Last signed in" is real.
 
 ## Orders and payment
 
