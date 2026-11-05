@@ -25,7 +25,6 @@ import settingsSeed from "../../data/settings.json";
 import catalogSeed from "../../data/catalogSeed";
 import ordersSeed from "../../data/ordersSeed";
 import emailsSeed from "../../data/emailsSeed";
-import modelsSeed from "../../data/modelsSeed";
 import { migrateNavigation, migrateProduct } from "../catalog/legacyTypes";
 import transactionsSeed from "../../data/transactionsSeed";
 import colorsSeed from "../../data/colorsSeed";
@@ -60,7 +59,9 @@ const DOMAINS = {
       run: (stored) => ({ ...stored, items: migrateNavigation(stored.items, getState("categories").items) }),
     },
   },
-  taxonomy: { seed: taxonomySeed, collection: null },
+  // Server-owned filter dimensions (colour families from `/taxonomy/colors/families`,
+  // sizes through sizesApi), mirrored for the synchronous menu checks.
+  taxonomy: { seed: taxonomySeed, collection: null, mirror: true },
   hero: { seed: heroSeed, collection: "slides" },
   instagram: { seed: instagramSeed, collection: "posts" },
   // Server-owned (`/settings`): a mirror `settingsApi` refreshes.
@@ -120,8 +121,6 @@ const DOMAINS = {
   roles: { seed: rolesSeed, collection: "items", mirror: true },
   // Every email the shop sends, queued for the backend mailer (notifications module).
   emails: { seed: emailsSeed, collection: "items" },
-  // The models in the photographs, with their measurements (Sizes & Guides → Models).
-  models: { seed: modelsSeed, collection: "items" },
   // The Belioras Letter: who has consented, what was sent, and the welcome email.
   subscribers: { seed: subscribersSeed, collection: "items" },
   campaigns: { seed: campaignsSeed, collection: "items" },

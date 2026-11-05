@@ -272,6 +272,8 @@ measures. It is separate on purpose, and the two are allowed to disagree.
 - **The Activity page reads the server's audit log**, including failed staff
   sign-ins; `audited()` no longer logs anything itself. The Team roster's
   "Last signed in" is real.
+- **Fit models and colour families** are on the server; the local `models`
+  store is gone.
 
 ## Orders and payment
 

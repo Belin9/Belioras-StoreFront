@@ -97,23 +97,28 @@ export async function getNavItem(id) {
  * packing slips, the invoice) and none of them should have to learn where the
  * list came from.
  *
- * Only `size` is replaced. `color` here is the *family* dimension (black,
- * brown…), which is still local. The boutique colour list (Ebony, Champagne) is
- * a separate resource on the server (`colorsApi`); each colour's `family`
- * points at one of these ids, and that id is what the storefront facet and
- * every mega-menu `filter:color` link resolve against.
+ * Both halves come from the server now. `color` here is the *family*
+ * dimension (black, brown…) — `/taxonomy/colors/families` — which each boutique
+ * colour (`colorsApi`) points at, and which the storefront facet and every
+ * mega-menu `filter:color` link resolve against. The families are mirrored
+ * into the local `taxonomy` domain, which the menu checks read synchronously.
  *
- * The size read falls back (API, then IndexedDB, then the bundled list) inside
- * `getSizes`, so this resolves even with the network down. Colours resolve
- * synchronously as they always did, and are spread in first so a size read that
- * somehow throws cannot take the colour half with it.
+ * Each half falls back on its own (sizes: API, IndexedDB, the bundled list;
+ * families: API, the mirror), so a failure in one cannot take the other with it.
  */
-export function getTaxonomy({ realm = "customer" } = {}) {
+export async function getTaxonomy({ realm = "customer" } = {}) {
+  const [families, sizes] = await Promise.all([
+    http.get(resourcePath("taxonomy/colors/families", realm), { realm }).catch(() => null),
+    getSizes({ realm }).catch(() => null),
+  ]);
+  if (families?.values?.length) {
+    const current = getState("taxonomy");
+    if (JSON.stringify(current.dimensions.color) !== JSON.stringify(families)) {
+      setState("taxonomy", { ...current, dimensions: { ...current.dimensions, color: families } }, { silent: true });
+    }
+  }
   const local = getState("taxonomy").dimensions;
-  return getSizes({ realm }).then(
-    (values) => ({ ...local, size: { ...local.size, values } }),
-    () => local,
-  );
+  return sizes ? { ...local, size: { ...local.size, values: sizes } } : local;
 }
 
 /** Flat list of every link, used for address resolution and breadcrumbs. */

@@ -1,35 +1,32 @@
 /* Models */
-import { ApiError, mockApi } from "@/api/mock";
-import { getState, setState } from "../store/contentStore";
+import { http } from "@/api/client";
+import { ApiError } from "@/api/error";
+import { resourcePath } from "@/api/routes";
+import { accessToken } from "@/api/tokens";
 import { audited } from "../auth/audited";
-import { slugify } from "./products/productSlug";
 
 /**
  * The models who wear the pieces, with the measurements a shopper compares
- * against their own. A product names its model and the size she wears
- * (`modelFit: { modelId, size }`); the product page shows her card from that.
+ * against their own — on the server. A product names its model and the size
+ * she wears (`modelFit: { modelId, size }`); the product page shows her card
+ * from that. A model on a product cannot be deleted, and a deleted model's id
+ * is never reused.
  */
-function items() {
-  return getState("models").items;
-}
+
+const realm = () => (accessToken("staff") ? "staff" : "customer");
 
 export function getModels() {
-  return mockApi(() => items().map((m) => ({ ...m })), 0);
+  const r = realm();
+  return http.get(resourcePath("models", r), { realm: r });
 }
 
 /** How many products each model appears on, keyed by id. */
 export function modelUsage() {
-  return mockApi(() => {
-    const counts = {};
-    for (const p of getState("products").items) {
-      const id = p.modelFit?.modelId;
-      if (id) counts[id] = (counts[id] ?? 0) + 1;
-    }
-    return counts;
-  }, 0);
+  return http.get(resourcePath("models/usage", "staff"), { realm: "staff" });
 }
 
-function clean(input = {}) {
+/** The form's values as the server takes them, with the form's own checks first. */
+function body(input = {}) {
   const name = String(input.name ?? "").trim();
   if (!name) throw new ApiError("Give the model a name.", 422);
   const cm = (v, label, min, max) => {
@@ -48,38 +45,9 @@ function clean(input = {}) {
   };
 }
 
-function createModel$raw(input) {
-  return mockApi(() => {
-    const fields = clean(input);
-    const base = slugify(fields.name) || "model";
-    let id = base;
-    for (let n = 2; items().some((m) => m.id === id); n += 1) id = `${base}-${n}`;
-    const model = { id, ...fields };
-    setState("models", (s) => ({ ...s, items: [...s.items, model] }));
-    return model;
-  });
-}
-
-function updateModel$raw(id, input) {
-  return mockApi(() => {
-    const existing = items().find((m) => m.id === id);
-    if (!existing) throw new ApiError("That model no longer exists.", 404);
-    const updated = { ...existing, ...clean(input) };
-    setState("models", (s) => ({ ...s, items: s.items.map((m) => (m.id === id ? updated : m)) }));
-    return updated;
-  });
-}
-
-function deleteModel$raw(id) {
-  return mockApi(() => {
-    const model = items().find((m) => m.id === id);
-    if (!model) throw new ApiError("That model no longer exists.", 404);
-    const used = getState("products").items.filter((p) => p.modelFit?.modelId === id).length;
-    if (used) throw new ApiError(`${model.name} is on ${used} ${used === 1 ? "piece" : "pieces"}. Choose another model on them first.`, 409);
-    setState("models", (s) => ({ ...s, items: s.items.filter((m) => m.id !== id) }));
-    return model;
-  });
-}
+const createModel$raw = async (input) => http.post(resourcePath("models", "staff"), body(input), { realm: "staff" });
+const updateModel$raw = async (id, input) => http.patch(resourcePath(`models/${encodeURIComponent(id)}`, "staff"), body(input), { realm: "staff" });
+const deleteModel$raw = (id) => http.del(resourcePath(`models/${encodeURIComponent(id)}`, "staff"), { realm: "staff" });
 
 export const createModel = audited("sizes", (_, r) => `Added the model ${r.name}`, createModel$raw);
 export const updateModel = audited("sizes", (_, r) => `Updated the model ${r.name}`, updateModel$raw);
