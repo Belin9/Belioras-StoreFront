@@ -1,8 +1,5 @@
 /* Admin Dashboard Page: Team - teamTableColumns */
-import { Copy, RefreshCw, X } from "lucide-react";
-
 import Avatar from "../../../../../components/account/Avatar";
-import IconAction from "../../../../components/IconAction";
 import { cn } from "../../../../../utils/cn";
 import { reach } from "../../../../../utils/permissions";
 
@@ -15,7 +12,7 @@ function reachText(role) {
   return `${sections.length} ${sections.length === 1 ? "section" : "sections"}${edits ? ` · ${edits} to change` : " · view only"}`;
 }
 
-export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId, canManage, onStageRoleChange, onStageStatusChange, onCopyInvite, onRenewInvite, onCancelInvite }) {
+export function buildTeamColumns({ timeFmt, roles, lastSeen, signedInId, canManage, onStageRoleChange, onStageStatusChange }) {
   const roleOf = (id) => roles.find((r) => r.id === id);
   return [
     {
@@ -27,9 +24,6 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
           <div className="min-w-0">
             <p className="flex items-center gap-2 truncate font-medium text-espresso">
               {row.original.name}
-              {row.original.status === "invited" && (
-                <span className="bg-gold-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gold-800">Invited</span>
-              )}
               {/* Real, from the API: the account exists but has not replaced
                   the temporary password yet, so it cannot reach the dashboard.
                   Worth showing here because this table is where an admin looks
@@ -120,13 +114,6 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
       accessorFn: (r) => lastSeen?.[r.id] ?? "",
       cell: ({ row }) => {
         const m = row.original;
-        if (m.status === "invited") {
-          return (
-            <span className="text-[12px] text-espresso-soft">
-              Invited {m.invitedAt ? dateFmt.format(new Date(m.invitedAt)) : ""}
-            </span>
-          );
-        }
         const at = lastSeen?.[m.id];
         if (at) {
           return <span className="whitespace-nowrap text-[12px] text-espresso-soft">{timeFmt.format(new Date(at))}</span>;
@@ -145,15 +132,6 @@ export function buildTeamColumns({ dateFmt, timeFmt, roles, lastSeen, signedInId
       cell: ({ row }) => {
         const m = row.original;
         if (!canManage || m.id === signedInId) return null;
-        if (m.status === "invited") {
-          return (
-            <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-              <IconAction label={`Copy ${m.name}'s invitation link`} icon={Copy} onClick={() => onCopyInvite(m)} />
-              <IconAction label={`New invitation link for ${m.name}`} icon={RefreshCw} onClick={() => onRenewInvite(m)} />
-              <IconAction label={`Withdraw ${m.name}'s invitation`} icon={X} destructive onClick={() => onCancelInvite(m)} />
-            </div>
-          );
-        }
         // The undo is offered on the same row as the thing it undoes. An admin
         // who has just removed somebody's access is exactly the person most
         // likely to be asked to put it back, and the fastest way back is the one

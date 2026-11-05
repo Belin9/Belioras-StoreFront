@@ -11,6 +11,7 @@ import {
   staffRestore,
 } from "@/services/auth/authStaffApi";
 import { setCurrentStaff } from "@/services/auth/staffRegistry";
+import { getRoles } from "@/services/auth/authRoles";
 
 /**
  * The atelier session, backed by the real API.
@@ -103,6 +104,13 @@ export function useStaffSession() {
 
   /* Side Effect */
   useEffect(() => setCurrentStaff(user), [user]);
+
+  // The roles draw this person's dashboard (which sections, view or edit), and
+  // the server decides with the same records — so they are read from it as
+  // soon as someone is signed in. Until then the shipped roles stand in.
+  useEffect(() => {
+    if (user) getRoles().catch(() => null);
+  }, [user]);
 
   /**
    * A token that disappears takes the user with it. This is the mid-flight case

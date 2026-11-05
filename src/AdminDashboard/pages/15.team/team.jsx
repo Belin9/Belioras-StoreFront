@@ -11,7 +11,7 @@ import { useToast } from "../../../context/ToastContext";
 import { queryKeyFor, useAsyncData } from "../../../hooks/useAsyncData";
 import { ROLES } from "../../../utils/roles";
 import {
-  cancelInvite, createRole, deleteRole, getRoles, renewInvite, updateRole,
+  createRole, deleteRole, getRoles, updateRole,
 } from "../../../services/auth/authApi";
 import { createStaff, listStaff, updateStaffRole, updateStaffStatus } from "../../../services/auth/authStaffApi";
 import DashHeaderActions from "../../components/DashHeaderActions";
@@ -23,7 +23,6 @@ import RolesPanel from "./sections/roles/RolesPanel";
 import { buildTeamColumns } from "./sections/teamTable/teamTableColumns";
 import { CreateMemberDialog } from "./sections/teamTable/CreateMemberDialog";
 import { RoleChangeDialog, SuspendDialog } from "./sections/teamTable/TeamTableDialogs";
-import { inviteUrl } from "./sections/teamTable/inviteUrl";
 
 /**
  * Who works in the dashboard and what each of them can do. Members holds the
@@ -86,7 +85,6 @@ export default function DashTeam() {
   const [query, setQuery] = useState("");
   const [pendingRole, setPendingRole] = useState(null);
   const [pendingStatus, setPendingStatus] = useState(null);
-  const [pendingCancel, setPendingCancel] = useState(null);
   const [pendingDeleteRole, setPendingDeleteRole] = useState(null);
   const [adding, setAdding] = useState({ open: false, n: 0 });
   const [editing, setEditing] = useState({ open: false, role: null, n: 0 });
@@ -101,7 +99,6 @@ export default function DashTeam() {
    */
   const team = useMemo(() => staff ?? [], [staff]);
 
-  const dateFmt = useMemo(() => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }), [locale]);
   const timeFmt = useMemo(() => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), [locale]);
 
   const run = async (fn, message) => {
@@ -168,15 +165,6 @@ export default function DashTeam() {
       if (result) patchMember(user.id, result);
   };
 
-  const copyInvite = async (member, token = member.inviteToken) => {
-    try {
-      await navigator.clipboard.writeText(inviteUrl(token));
-      toast(`Invitation link for ${member.name} copied.`, "success");
-    } catch {
-      toast("Could not copy the link.", "error");
-    }
-  };
-
   /**
    * Creates the account, then puts the new member at the top of the list.
    *
@@ -203,16 +191,11 @@ export default function DashTeam() {
   const columns = useMemo(
     () =>
       buildTeamColumns({
-        dateFmt, timeFmt, roles: roleList, lastSeen, signedInId: signedIn?.id, canManage,
+        timeFmt, roles: roleList, lastSeen, signedInId: signedIn?.id, canManage,
         onStageRoleChange: setPendingRole,
         onStageStatusChange: setPendingStatus,
-        onCopyInvite: (m) => copyInvite(m),
-        onRenewInvite: (m) => run(() => renewInvite(m.id), (r) => { copyInvite(m, r.token); return `New link for ${m.name} created and copied.`; }),
-        onCancelInvite: setPendingCancel,
       }),
-    // copyInvite/run close over toast and refresh only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dateFmt, timeFmt, roleList, lastSeen, signedIn?.id, canManage],
+    [timeFmt, roleList, lastSeen, signedIn?.id, canManage],
   );
 
   const tabs = [
@@ -314,19 +297,6 @@ export default function DashTeam() {
         roles={roleList}
         onClose={() => setEditing((e) => ({ ...e, open: false }))}
         onSave={saveRole}
-      />
-
-      <ConfirmDialog
-        open={Boolean(pendingCancel)}
-        onClose={() => setPendingCancel(null)}
-        onConfirm={async () => {
-          const m = pendingCancel;
-          setPendingCancel(null);
-          await run(() => cancelInvite(m.id), `Invitation for ${m.name} withdrawn.`);
-        }}
-        title="Withdraw this invitation?"
-        description="The link stops working and the waiting account is removed. You can invite them again later."
-        confirmLabel="Withdraw"
       />
 
       <ConfirmDialog

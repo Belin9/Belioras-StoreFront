@@ -31,7 +31,6 @@ import { migrateNavigation, migrateProduct } from "../catalog/legacyTypes";
 import transactionsSeed from "../../data/transactionsSeed";
 import colorsSeed from "../../data/colorsSeed";
 import categoriesSeed from "../../data/categoriesSeed";
-import usersSeed from "../../data/usersSeed";
 import rolesSeed from "../../data/rolesSeed";
 import { couponsSeed } from "../../data/couponsSeed";
 import { reviewsSeed } from "../../data/reviewsSeed";
@@ -116,9 +115,10 @@ const DOMAINS = {
   // Payments and refunds against those orders. Read-only today; registered here
   // so checkout can record a payment once a provider is connected.
   transactions: { seed: { rev: transactionsSeed.rev + 1, items: [] }, collection: "items", mirror: true },
-  users: { seed: usersSeed, collection: "items" },
   // Dashboard roles and what each may see or change (Team → Roles).
-  roles: { seed: rolesSeed, collection: "items" },
+  // Server-owned (`/roles`): what the server checks on every request. The
+  // shipped roles are the floor until the first read.
+  roles: { seed: rolesSeed, collection: "items", mirror: true },
   // Who did what in the dashboard, and when: sign-ins, role changes and every edit staff make.
   activity: { seed: activitySeed, collection: "items" },
   // Every email the shop sends, queued for the backend mailer (notifications module).

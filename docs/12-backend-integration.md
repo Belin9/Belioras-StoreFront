@@ -260,9 +260,15 @@ measures. It is separate on purpose, and the two are allowed to disagree.
 - **Reviews** are moderated on the server; products carry their stars.
 - **Newsletter and contact** are on the server; scheduled campaigns are sent by
   the minute sweep.
-- **Still in the browser:** roles and the old team-invitation flow
-  (`authRoles.js`) — new staff are created on the server with a temporary
-  password, so invitations are legacy.
+
+## What roles, activity, fit models and colour families cost
+
+- **Roles are the server's** (`/roles`), and every staff route asks
+  `requireAccess("section:level")` of them — so a role made or edited under
+  Team → Roles changes what the server allows. The client mirrors them into
+  `roles` on sign-in, which `utils/roles.js` reads to draw the dashboard. The
+  browser-side team invitations were removed (staff are created on the server
+  with a temporary password).
 
 ## Orders and payment
 
