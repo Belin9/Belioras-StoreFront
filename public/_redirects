@@ -1,6 +1,0 @@
-# The proxy must come before the SPA fallback, or /api calls are answered
-# with index.html. Inert until the API is deployed; nothing calls /api yet.
-/api/*  https://api.belioras.com/api/:splat  200!
-# Public pages have their own HTML file (built by scripts/seo), served before
-# this rule; every other address gets the neutral app shell.
-/*      /app.html                            200

@@ -24,7 +24,7 @@ import {
  * description, canonical, preview image and structured data. The app then
  * boots on top exactly as before. It also writes sitemap.xml and robots.txt,
  * and `app.html`, the neutral shell every other address falls back to
- * (see public/_redirects).
+ * (see scripts/netlify/vitePluginRedirects.js).
  *
  * Data comes from the catalogue seed in src/data. Once the API is live, read
  * the same collections from it here, and trigger a rebuild (a Netlify build
