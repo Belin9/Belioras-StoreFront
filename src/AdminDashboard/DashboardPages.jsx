@@ -36,6 +36,7 @@ export const DashDiscounts = lazy(() => import("./pages/10.discounts/discounts")
 export const DashCustomers = lazy(() => import("./pages/11.customers/customers"));
 export const DashReviews = lazy(() => import("./pages/12.reviews/reviews"));
 export const DashNewsletter = lazy(() => import("./pages/14.newsletter/newsletter"));
+export const DashHome = lazy(() => import("./pages/19.home/home"));
 export const DashTeam = lazy(() => import("./pages/15.team/team"));
 export const DashShipping = lazy(() => import("./pages/17.shipping/shipping"));
 export const DashSettings = lazy(() => import("./pages/16.settings/settings"));

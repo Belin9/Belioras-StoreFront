@@ -2,19 +2,24 @@
 import { Link } from "react-router-dom";
 
 import { useAsyncData } from "../../../hooks/useAsyncData";
-import { getCollections } from "../../../services/catalog/collectionsApi";
+import { getHomeTiles } from "../../../services/content/homeApi";
 
+/**
+ * The photo tiles under "Explore the Collection". Edited in the dashboard under
+ * Home page, read from the server; each opens a page in the mega menu.
+ */
 export default function FeaturedCategoriesSection() {
-  const { data: collections, loading } = useAsyncData(getCollections, []);
+  const { data, loading } = useAsyncData(getHomeTiles, []);
 
-  const tiles = loading ? Array.from({ length: 3 }, (_, i) => ({ id: `skeleton-${i}` })) : collections ?? [];
+  const tiles = loading ? Array.from({ length: 3 }, (_, i) => ({ id: `skeleton-${i}` })) : data ?? [];
+  if (!loading && !tiles.length) return null;
 
   return (
     <section aria-label="Shop by category" className="mx-auto max-w-[87.5rem] px-6 py-16 md:px-10">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className={`grid grid-cols-1 gap-4 ${tiles.length % 2 === 0 && tiles.length % 3 !== 0 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         {tiles.map((collection) =>
-          collection.slug ? (
-            <Link key={collection.id} to={`/${collection.slug}`} className="group block">
+          collection.url ? (
+            <Link key={collection.id} to={collection.url} className="group block">
               <div className="relative overflow-hidden bg-ivory-300">
                 <img
                   src={collection.image}

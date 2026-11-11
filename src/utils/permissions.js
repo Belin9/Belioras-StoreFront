@@ -17,6 +17,7 @@ export const SECTIONS = [
   { id: "reports", label: "Reports", group: "Sales", readOnly: true },
   { id: "discounts", label: "Discounts", group: "Marketing" },
   { id: "newsletter", label: "Newsletter", group: "Marketing" },
+  { id: "home", label: "Home page", group: "Marketing" },
   { id: "team", label: "Team & roles", group: "Store" },
   { id: "activity", label: "Activity log", group: "Store", readOnly: true },
   { id: "shipping", label: "Shipping", group: "Store" },

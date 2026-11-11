@@ -16,6 +16,7 @@ import {
   DashDiscounts,
   DashReviews,
   DashNewsletter,
+  DashHome,
   DashTeam,
   DashShipping,
   DashSettings,
@@ -55,6 +56,7 @@ export default function dashboardRoutes() {
       <Route path="reports" element={<DashReports />} />
       <Route path="discounts" element={<DashDiscounts />} />
       <Route path="newsletter" element={<DashNewsletter />} />
+      <Route path="home" element={<DashHome />} />
 
       {/* Access mgmt: grant control beside delivery history, enables super-admin promote. */}
       <Route path="team" element={<DashTeam />} />

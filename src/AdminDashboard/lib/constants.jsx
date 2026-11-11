@@ -43,6 +43,8 @@ export const DASHBOARD_NAV_GROUPS = [
       { id: "discounts", label: "Discounts", icon: "Percent" },
       // Subscribers, campaigns and the welcome email for the Belioras Letter.
       { id: "newsletter", label: "Newsletter", icon: "Mail" },
+      // The photo tiles under "Explore the Collection" on the home page.
+      { id: "home", label: "Home page", icon: "House" },
     ],
   },
   {
