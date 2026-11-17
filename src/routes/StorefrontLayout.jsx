@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/Footer";
-import BackToTop from "@/components/layout/BackToTop";
+import FloatingActions from "@/components/layout/FloatingActions";
 import CookieConsent from "@/components/layout/CookieConsent";
 
 export default function StorefrontLayout() {
@@ -14,7 +14,7 @@ export default function StorefrontLayout() {
         <Outlet />
       </main>
       <Footer />
-      <BackToTop />
+      <FloatingActions />
       <CookieConsent />
     </div>
   );
