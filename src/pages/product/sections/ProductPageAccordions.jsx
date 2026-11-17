@@ -1,10 +1,18 @@
-/* Details Care And Shipping */
+/* Details Care Shipping And Product Safety */
+import { Link } from "react-router-dom";
+
 import CareIcon from "../../../components/storefront/CareIcon";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useContentVersion } from "../../../context/ContentContext";
+import { useAsyncData } from "../../../hooks/useAsyncData";
+import { getSettings } from "../../../services/content/settingsApi";
 import { splitCare } from "../../../utils/careSymbols";
 
 export default function ProductPageAccordions({ product }) {
   const { t } = useLanguage();
+  const version = useContentVersion();
+  const { data: settings } = useAsyncData(getSettings, [version]);
+  const gpsr = settings?.gpsr;
 
   return (
     <div className="mt-10 divide-y divide-umber-50 border-y border-umber-50">
@@ -44,6 +52,30 @@ export default function ProductPageAccordions({ product }) {
           )}
         </p>
       </Accordion>
+
+      {/* EU product safety (GPSR) contact, kept on the product it concerns.
+          The postal address is in the Impressum only, at the owner's request. */}
+      {gpsr?.manufacturer && (
+        <Accordion title={t("pdp.safety", "Product safety")}>
+          <p className="leading-relaxed">
+            {t("pdp.safetyManufacturer", "Manufacturer")}: {gpsr.manufacturer}
+            {gpsr.email && (
+              <>
+                <br />
+                {t("pdp.safetyContact", "Safety enquiries")}:{" "}
+                <a href={`mailto:${gpsr.email}`} className="underline underline-offset-2 hover:text-gold-700">
+                  {gpsr.email}
+                </a>
+              </>
+            )}
+            <br />
+            {t("pdp.safetyAddress", "Postal address")}:{" "}
+            <Link to="/impressum" className="underline underline-offset-2 hover:text-gold-700">
+              Impressum
+            </Link>
+          </p>
+        </Accordion>
+      )}
     </div>
   );
 }

@@ -26,9 +26,12 @@ export function GpsrPanel({ register, errors }) {
 export function SocialPanel({ register }) {
   return (
     <Panel title="Social">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Instagram">
           <input {...register("instagram")} />
+        </Field>
+        <Field label="Facebook">
+          <input {...register("facebook")} />
         </Field>
         <Field label="Pinterest">
           <input {...register("pinterest")} />

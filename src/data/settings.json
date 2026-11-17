@@ -33,7 +33,7 @@
     "button": "I understand"
   },
   "gpsr": {
-    "manufacturer": "Belioras \u2013 Online Boutique (Belindah Ongessa)",
+    "manufacturer": "Belioras \u2013 Online Boutique",
     "address": "c/o flexdienst \u2013 #12271, Kurt-Schumacher-Stra\u00dfe 76, 67663 Kaiserslautern, Germany",
     "email": "support@belioras.com",
     "note": "For product safety or conformity enquiries, contact our GPSR responsible person.",
@@ -60,6 +60,7 @@
   },
   "social": {
     "instagram": "https://instagram.com/belioras",
+    "facebook": "",
     "pinterest": "https://pinterest.com/belioras",
     "tiktok": "https://tiktok.com/@belioras"
   },

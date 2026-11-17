@@ -10,12 +10,14 @@ import PageShell from "../../components/layout/PageShell";
 import { useCustomerAuth } from "@/context/auth/useAuthRealm";
 import { useCart } from "../../context/CartContext";
 import { useContentVersion } from "../../context/ContentContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useScopedStorage } from "../../hooks/useScopedStorage";
 import { placeOrder as payAndPlace } from "../../services/sales/checkoutApi";
 import { PAYMENTS_SIMULATED, PAYMENT_METHODS } from "../../services/sales/paymentsApi";
 import { cn } from "../../utils/cn";
+import { formatCurrency } from "../../utils/formatCurrency";
 import { getProducts } from "../../services/catalog/productsApi";
 import { getSettings } from "../../services/content/settingsApi";
 import { computeTotals, nonReturnableItems } from "../../utils/checkout";
@@ -26,6 +28,7 @@ export default function CheckoutPage() {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { locale } = useLanguage();
   const { user } = useCustomerAuth();
   const { items, clear } = useCart();
 
@@ -209,7 +212,9 @@ export default function CheckoutPage() {
 
           <div className="flex flex-wrap items-center gap-4">
             <Button type="submit" size="lg" loading={placing}>
-              Pay {totals.shippable ? new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(totals.total) : ""} and place order
+              {/* Always euros: that is what the card or PayPal is charged. The
+                  summary beside it says so when another currency is shown. */}
+              Pay {totals.shippable ? formatCurrency(totals.total, "EUR", locale) : ""} and place order
             </Button>
             <p className="text-[12px] text-espresso-soft">
               By ordering you accept our{" "}

@@ -21,7 +21,7 @@ export default function RouteSeo() {
     else if (STATIC_PAGES[path]) applyHead(path === "/" ? homeSeo(SITE_URL) : { ...STATIC_PAGES[path], path });
     else applyHead({});
 
-    // The home page's structured data names the boutique's address and social
+    // The home page's structured data names the boutique's email and social
     // accounts, which Settings holds; it is filled in once they arrive.
     if (path !== "/") return undefined;
     let current = true;

@@ -20,6 +20,7 @@ import ShoeSizeGuidePage from "../pages/customer-support/shoe-size-guide";
 import PrivacyPolicyPage from "../pages/legal/privacy-policy";
 import TermsOfServicePage from "../pages/legal/terms-of-service";
 import CookiePolicyPage from "../pages/legal/cookie-policy";
+import ImpressumPage from "../pages/legal/impressum";
 import ShippingPolicyPage from "../pages/legal/shipping-policy";
 import ReturnAndRefundPolicyPage from "../pages/legal/return-and-refund-policy";
 import NewsletterConfirmPage from "../pages/newsletter/confirm";
@@ -82,6 +83,7 @@ export default function storefrontRoutes() {
       <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
       <Route path="/return-and-refund-policy" element={<ReturnAndRefundPolicyPage />} />
       <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+      <Route path="/impressum" element={<ImpressumPage />} />
 
       {/* The two links newsletter emails carry. */}
       <Route path="/newsletter/confirm" element={<NewsletterConfirmPage />} />

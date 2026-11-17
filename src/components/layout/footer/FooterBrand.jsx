@@ -1,12 +1,16 @@
-/* Brand Blurb Socials And GPSR */
+/* Brand Blurb And Socials */
 import { Link } from "react-router-dom";
 
-import { InstagramIcon } from "./FooterIcons";
+import { FacebookIcon, InstagramIcon, PinterestIcon, TikTokIcon } from "./FooterIcons";
 
 export default function FooterBrand({ social }) {
+  // Icons only, one style for every network. A network with no address in
+  // dashboard › Settings › Social is left out rather than linking nowhere.
   const networks = [
-    { label: "Pinterest", href: social?.pinterest },
-    { label: "TikTok", href: social?.tiktok },
+    { label: "Instagram", href: social?.instagram ?? "https://instagram.com/belioras", Icon: InstagramIcon },
+    { label: "Facebook", href: social?.facebook, Icon: FacebookIcon },
+    { label: "Pinterest", href: social?.pinterest, Icon: PinterestIcon },
+    { label: "TikTok", href: social?.tiktok, Icon: TikTokIcon },
   ].filter((n) => n.href);
 
   return (
@@ -24,44 +28,20 @@ export default function FooterBrand({ social }) {
         Your Style. Your Crown. Luxury fashion and hair, curated for confident women.
       </p>
 
-      <div className="mt-7 flex items-center gap-5">
-        <a
-          href={social?.instagram ?? "https://instagram.com"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="-ml-2.5 flex size-11 items-center justify-center text-espresso/50 transition-colors hover:text-gold-700 lg:ml-0 lg:size-auto liquid-hover rounded-full"
-          aria-label="Belioras on Instagram"
-        >
-          <InstagramIcon className="liquid-icon size-[18px]" />
-        </a>
-        {networks.map((net) => (
+      <div className="-ml-2.5 mt-7 flex items-center gap-1 lg:ml-0 lg:gap-5">
+        {networks.map(({ label, href, Icon }) => (
           <a
-            key={net.label}
-            href={net.href}
+            key={label}
+            href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-11 items-center text-[10px] uppercase tracking-[0.2em] text-espresso/50 transition-colors hover:text-gold-700 lg:min-h-0"
+            className="liquid-hover flex size-11 items-center justify-center rounded-full text-espresso/50 transition-colors hover:text-gold-700 lg:size-auto"
+            aria-label={`Belioras on ${label}`}
           >
-            {net.label}
+            <Icon className="liquid-icon size-[18px]" />
           </a>
         ))}
       </div>
     </div>
-  );
-}
-
-// EU General Product Safety Regulation requires a reachable responsible
-// person. It is a legal line, not a selling one, so it sits at the quietest
-// weight the palette allows rather than in caps competing with the columns.
-export function FooterCompliance({ gpsr }) {
-  if (!gpsr) return null;
-
-  return (
-    <p className="text-[11px] leading-[1.9] text-espresso/35">
-      {gpsr.manufacturer}, {gpsr.address}
-      <span className="mx-2 hidden text-espresso/20 sm:inline">·</span>
-      <br className="sm:hidden" />
-      Product safety: {gpsr.email}
-    </p>
   );
 }

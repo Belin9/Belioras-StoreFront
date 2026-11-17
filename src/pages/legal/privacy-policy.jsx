@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
       <LegalFacts
         facts={[
           { label: "Framework", value: "GDPR", note: "EU standard" },
-          { label: "Controller", value: BUSINESS.owner, note: "Kaiserslautern, Germany" },
+          { label: "Controller", value: "Belioras", note: "Kaiserslautern, Germany" },
           { label: "Scope", value: BUSINESS.site, note: "All services" },
           { label: "Your data", value: "Never sold", note: "Shared only to fulfil orders" },
         ]}

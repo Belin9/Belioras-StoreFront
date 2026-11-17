@@ -72,6 +72,7 @@ export function toFormValues(settings) {
     // Stored as a fraction, edited as a percentage.
     taxRate: (settings.tax?.rate ?? 0) * 100,
     instagram: settings.social?.instagram ?? "",
+    facebook: settings.social?.facebook ?? "",
     pinterest: settings.social?.pinterest ?? "",
     tiktok: settings.social?.tiktok ?? "",
   };
@@ -117,6 +118,7 @@ export function toSettingsPayload(values) {
     },
     social: {
       instagram: values.instagram,
+      facebook: values.facebook,
       pinterest: values.pinterest,
       tiktok: values.tiktok,
     },

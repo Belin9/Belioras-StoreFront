@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Loader2, Tag, X } from "lucide-react";
 
 import { useCurrency } from "../../../context/CurrencyContext";
+import { useLanguage } from "../../../context/LanguageContext";
+import { formatCurrency } from "../../../utils/formatCurrency";
 import { validateCoupon } from "../../../services/sales/couponsApi";
 import { getTaxonomy } from "../../../services/catalog/navigationApi";
 import { useToast } from "@/context/ToastContext";
@@ -11,7 +13,8 @@ import { cn } from "../../../utils/cn";
 import { sizeLabel } from "../../../utils/sizeLabel";
 
 export default function OrderSummary({ items, totals, coupon, onCoupon, disabled, customer }) {
-  const { format } = useCurrency();
+  const { format, currency } = useCurrency();
+  const { locale } = useLanguage();
   const [code, setCode] = useState("");
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState("");
@@ -143,6 +146,16 @@ export default function OrderSummary({ items, totals, coupon, onCoupon, disabled
 
         {/* A component of the total, not a line added to it. */}
         <p className="text-[11px] text-espresso-soft">Includes {format(totals.tax)} VAT</p>
+
+        {/* Orders are charged in euros, so a shopper viewing another currency
+            would otherwise see one figure here and another on the pay button. */}
+        {currency !== "EUR" && totals.shippable && (
+          <p className="text-[11px] leading-relaxed text-espresso-soft">
+            You are charged{" "}
+            <span className="font-medium text-espresso">{formatCurrency(totals.total, "EUR", locale)}</span>{" "}
+            in euros. {currency} amounts are an estimate; your bank converts at its own rate.
+          </p>
+        )}
       </dl>
     </aside>
   );

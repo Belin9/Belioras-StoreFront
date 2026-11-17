@@ -1,6 +1,6 @@
 /* Page: Customer-support - contact-us */
 import { useForm } from "react-hook-form";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, Phone } from "lucide-react";
 
 import Button from "../../components/ui/Button";
 import Field from "../../components/ui/Field";
@@ -100,12 +100,6 @@ export default function ContactUsPage() {
           {contact?.hours && (
             <Detail icon={Clock} title="Hours">
               <p className="text-espresso">{contact.hours}</p>
-            </Detail>
-          )}
-
-          {contact?.boutique && (
-            <Detail icon={MapPin} title="Boutique">
-              <p className="text-espresso">{contact.boutique}</p>
             </Detail>
           )}
         </div>

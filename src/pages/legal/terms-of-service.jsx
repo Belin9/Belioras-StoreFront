@@ -1,6 +1,6 @@
 /* Page: Legal - terms-of-service */
 import PageShell, { DraftNotice, Section } from "../../components/layout/PageShell";
-import { BUSINESS, PAYMENT_METHODS, UPDATED } from "./legalDetails";
+import { PAYMENT_METHODS, UPDATED } from "./legalDetails";
 import BusinessAddress from "./sections/BusinessAddress";
 import LegalFacts from "./sections/LegalFacts";
 import TermsWithdrawal from "./sections/TermsWithdrawal";
@@ -11,7 +11,7 @@ export default function TermsOfServicePage() {
       <LegalFacts
         facts={[
           { label: "Scope", value: "Online boutique", note: "International" },
-          { label: "Contract party", value: BUSINESS.owner, note: "Kaiserslautern, Germany" },
+          { label: "Contract party", value: "Belioras", note: "Kaiserslautern, Germany" },
           { label: "Withdrawal", value: "14 days", note: "EU statutory right" },
           { label: "Base currency", value: "EUR (€)", note: "VAT included" },
         ]}

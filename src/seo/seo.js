@@ -100,6 +100,10 @@ export const STATIC_PAGES = {
     title: pageTitle("Returns & Refunds"),
     description: "Fourteen days to change your mind on unworn pieces, how to send them back, and why opened hair can't be returned.",
   },
+  "/impressum": {
+    title: pageTitle("Impressum"),
+    description: "Legal notice for Belioras under § 5 DDG: who operates this website and how to reach us.",
+  },
   "/cookie-policy": {
     title: pageTitle("Cookie Policy"),
     description: "The cookies Belioras uses and how to choose which ones you allow.",
@@ -145,7 +149,6 @@ function breadcrumbJsonLd(siteUrl, trail) {
 
 /** The home page: the brand itself, for Google's knowledge panel. */
 export function homeSeo(siteUrl, settings = {}) {
-  const parts = settings.contact?.boutiqueParts;
   const sameAs = Object.values(settings.social ?? {}).filter((u) => /^https?:\/\//.test(u ?? ""));
   const organization = {
     "@context": "https://schema.org",
@@ -156,15 +159,7 @@ export function homeSeo(siteUrl, settings = {}) {
     image: absoluteUrl(siteUrl, DEFAULT_IMAGE),
     description: DEFAULT_DESCRIPTION,
     ...(settings.contact?.general && { email: settings.contact.general }),
-    ...(parts && {
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: parts.street,
-        postalCode: parts.postcode,
-        addressLocality: parts.city,
-        addressCountry: "DE",
-      },
-    }),
+    // No postal address: it appears only in the Impressum, at the owner's request.
     ...(sameAs.length && { sameAs }),
     // What the returns page promises, so Google can show it beside prices.
     hasMerchantReturnPolicy: {

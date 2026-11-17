@@ -1,6 +1,5 @@
 /* Page: Home - home */
 import HeroSection from "./sections/HeroSection";
-import TrustBadgesSection from "./sections/TrustBadgesSection";
 import CollectionStatementSection from "./sections/CollectionStatementSection";
 import FeaturedCategoriesSection from "./sections/FeaturedCategoriesSection";
 import FeaturedCollectionSection from "./sections/FeaturedCollectionSection";
@@ -14,7 +13,6 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <TrustBadgesSection />
       <CollectionStatementSection />
       <FeaturedCategoriesSection />
       <FeaturedCollectionSection />
