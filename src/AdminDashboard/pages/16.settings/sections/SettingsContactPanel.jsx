@@ -37,6 +37,9 @@ export default function ContactPanel({ register, setValue, watch, errors }) {
 
         <PhoneField register={register} setValue={setValue} watch={watch} name="contactPhone" label="Telephone" />
 
+        {/* Opens the storefront's "Talk to a person" button; hidden while empty. */}
+        <PhoneField register={register} setValue={setValue} watch={watch} name="contactWhatsapp" label="WhatsApp number" />
+
         <Field label="Opening hours">
           <input {...register("contactHours")} />
         </Field>
