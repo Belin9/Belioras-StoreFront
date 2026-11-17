@@ -35,11 +35,13 @@ export default function BackToTop() {
       // instead of vanishing. inert while hidden keeps it off the tab order.
       inert={!visible || undefined}
       className={cn(
-        // Positioned by FloatingActions, which stacks it above WhatsApp and chat.
-        "flex size-11 items-center justify-center rounded-full",
+        // Positioned by FloatingActions, at the bottom of the stack under chat.
+        // While hidden it collapses to nothing (and cancels the stack's gap),
+        // so the chat button above sits at the bottom instead of over a hole.
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-full",
         "border border-gold-500/30 bg-espresso/90 text-gold-400 shadow-large backdrop-blur",
         "transition-all duration-300 hover:bg-espresso hover:text-gold-300 liquid-hover",
-        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0",
+        visible ? "size-11 opacity-100" : "pointer-events-none -mt-3 size-0 border-0 opacity-0",
       )}
     >
       <ArrowUp className="liquid-icon size-5" aria-hidden="true" />
