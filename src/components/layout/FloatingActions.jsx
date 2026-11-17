@@ -1,6 +1,6 @@
 /* Layout Component: FloatingActions
  *
- * The bottom-right stack: back to top, WhatsApp, and the chat launcher, in one
+ * The bottom-right stack: WhatsApp, the chat launcher, then back to top, in one
  * column so they can never overlap each other. The whole stack rides above the
  * cookie bar via --consent-bar-height.
  */
@@ -40,9 +40,6 @@ export default function FloatingActions() {
         className="fixed right-4 z-[60] flex flex-col items-center gap-3 sm:right-6"
         style={{ bottom: "calc(1.5rem + var(--consent-bar-height, 0px))" }}
       >
-        {/* The open panel sits where this would be. */}
-        {!open && <BackToTop />}
-
         {!quiet && waHref && !open && (
           <a
             href={waHref}
@@ -57,6 +54,9 @@ export default function FloatingActions() {
         )}
 
         {!quiet && <ChatLauncher open={open} onToggle={() => (open ? close() : setOpen(true))} buttonRef={launcherRef} />}
+
+        {/* Bottom of the stack, under chat. Hidden while the panel is open. */}
+        {!open && <BackToTop />}
       </div>
 
       {!quiet && <ChatPanel open={open} onClose={close} whatsapp={whatsapp} />}
