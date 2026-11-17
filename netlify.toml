@@ -7,3 +7,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# The shopping assistant (netlify/functions/chat.mjs). It needs GEMINI_API_KEY
+# in the site's environment variables; GEMINI_MODEL optionally overrides the model.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
