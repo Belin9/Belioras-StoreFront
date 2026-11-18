@@ -7,6 +7,7 @@ import BrandMark from "../../components/shared/BrandMark";
 import { useCustomerAuth, useStaffAuth } from "@/context/auth/useAuthRealm";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { getInvoice } from "../../services/sales/ordersApi";
+import { shownColor } from "../../utils/productColors";
 
 const eur = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
 const date = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" });
@@ -124,8 +125,8 @@ export default function InvoicePage() {
               <tr key={`${line.name}-${i}`} className="border-b border-umber-50 align-top">
                 <td className="py-3 pr-4">
                   {line.name}
-                  {(line.size || line.color) && (
-                    <span className="block text-[11px] text-espresso-soft">{[line.color, line.size && (line.size === "one-size" ? "One size" : `Size ${String(line.size).toUpperCase()}`)].filter(Boolean).join(" · ")}</span>
+                  {(line.size || shownColor(line.color)) && (
+                    <span className="block text-[11px] text-espresso-soft">{[shownColor(line.color), line.size && (line.size === "one-size" ? "One size" : `Size ${String(line.size).toUpperCase()}`)].filter(Boolean).join(" · ")}</span>
                   )}
                 </td>
                 <td className="py-3 pr-4 text-right tabular-nums">{line.quantity ?? 1}</td>
