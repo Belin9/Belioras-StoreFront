@@ -8,7 +8,9 @@ import { useProductDraft } from "@/context/ProductDraftContext";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { getStaffCategories } from "@/services/catalog/categoriesApi";
-import { getStaffColors } from "@/services/catalog/colorsApi";
+import { ensureAsShownColor, getStaffColors } from "@/services/catalog/colorsApi";
+import { familyOptionsFrom } from "@/AdminDashboard/lib/catalogOptions";
+import { AS_SHOWN_ID } from "@/utils/productColors";
 import { getModels } from "@/services/catalog/modelsApi";
 import { getTaxonomy } from "@/services/catalog/navigationApi";
 import { createProduct, getProduct, updateProduct } from "@/services/catalog/productsApi";
@@ -77,13 +79,25 @@ export default function ProductForm() {
   const save = (status) =>
     form.handleSubmit(
       async (formValues) => {
-        const problem = validateProduct({ status, category, colorIds, photos });
-        if (problem) {
-          toast(problem, "error");
-          return;
-        }
-        const payload = toPayload(formValues, { photos, videos, colorIds, stock, sizes, tags, category, status });
         try {
+          // Colour is optional. Without one, the piece is filed under the
+          // hidden "As shown" colour, with every photo and the no-colour stock row.
+          let saveColorIds = colorIds;
+          let savePhotos = photos;
+          let saveStock = stock;
+          if (!colorIds.some((c) => c !== AS_SHOWN_ID)) {
+            const asShown = await ensureAsShownColor(familyOptionsFrom(taxonomy));
+            saveColorIds = [asShown.id];
+            savePhotos = photos.map((p) => ({ ...p, colorId: asShown.id }));
+            if (asShown.id !== AS_SHOWN_ID) saveStock = { ...stock, [asShown.id]: stock[AS_SHOWN_ID] ?? {} };
+          }
+
+          const problem = validateProduct({ status, category, colorIds: saveColorIds, photos: savePhotos });
+          if (problem) {
+            toast(problem, "error");
+            return;
+          }
+          const payload = toPayload(formValues, { photos: savePhotos, videos, colorIds: saveColorIds, stock: saveStock, sizes, tags, category, status });
           // An edit names what it opened: the version (so someone else's save
           // is not overwritten) and the stock grid (so the server moves only
           // the cells changed here, and a delivery or sale since is kept).
