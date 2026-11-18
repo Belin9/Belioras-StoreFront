@@ -102,6 +102,15 @@ export function TaxPanel({ register, errors }) {
 export function InvoicePanel({ register }) {
   return (
     <Panel title="Invoices" hint="Every paid order gets a numbered invoice, which is also the customer's receipt. These details print on it.">
+      {/* Its own field: German VAT law (§14 UStG) needs the owner's full name
+          on invoices, while the seller name on product pages (Product safety)
+          is the business name only. */}
+      <Field
+        label="Seller's legal name"
+        helper="Printed on invoices and credit notes only, as the law requires, e.g. Belioras – Online Boutique (Belindah Ongessa). Left empty, invoices use the seller name from Product safety."
+      >
+        <input {...register("invoiceSellerName")} />
+      </Field>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="Number prefix" helper="BEL → BEL-2026-0001.">
           <input {...register("invoicePrefix")} />

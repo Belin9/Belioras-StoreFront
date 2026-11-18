@@ -66,6 +66,7 @@ export function toFormValues(settings) {
     gpsrCity: gpsr.city,
     gpsrCountry: gpsr.country,
     gpsrEmail: settings.gpsr?.email ?? "",
+    invoiceSellerName: settings.invoice?.sellerName ?? "",
     invoicePrefix: settings.invoice?.prefix ?? "BEL",
     invoiceVatId: settings.invoice?.vatId ?? "",
     invoiceTaxNumber: settings.invoice?.taxNumber ?? "",
@@ -113,6 +114,7 @@ export function toSettingsPayload(values) {
     },
     tax: { rate: Number(values.taxRate) / 100 },
     invoice: {
+      sellerName: (values.invoiceSellerName ?? "").trim(),
       prefix: values.invoicePrefix.trim().toUpperCase() || "BEL",
       vatId: values.invoiceVatId.trim(),
       taxNumber: values.invoiceTaxNumber.trim(),
