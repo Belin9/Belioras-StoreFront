@@ -17,6 +17,7 @@ import ContactUsPage from "../pages/customer-support/contact-us";
 import OrderTrackingPage from "../pages/customer-support/order-tracking";
 import HairLengthGuidePage from "../pages/customer-support/hair-length-guide";
 import ShoeSizeGuidePage from "../pages/customer-support/shoe-size-guide";
+import SizeGuidePage from "../pages/customer-support/size-guide";
 import PrivacyPolicyPage from "../pages/legal/privacy-policy";
 import TermsOfServicePage from "../pages/legal/terms-of-service";
 import CookiePolicyPage from "../pages/legal/cookie-policy";
@@ -57,6 +58,7 @@ export default function storefrontRoutes() {
       <Route path="/order-tracking" element={<OrderTrackingPage />} />
       <Route path="/hair-length-guide" element={<HairLengthGuidePage />} />
       <Route path="/shoe-size-guide" element={<ShoeSizeGuidePage />} />
+      <Route path="/size-guide" element={<SizeGuidePage />} />
       {/* The account tree — every page was written but none routed, so /account dumped a signed-in customer on a 404. */}
       <Route
         path="/account"
