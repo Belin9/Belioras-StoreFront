@@ -14,6 +14,7 @@ export const FOOTER_COLUMNS = [
       { label: "Order Tracking", to: "/order-tracking" },
       { label: "Returns & Refunds", to: "/return-and-refund-policy" },
       { label: "Shipping Policy", to: "/shipping-policy" },
+      { label: "Size Guide", to: "/size-guide" },
       { label: "Hair Length Guide", to: "/hair-length-guide" },
       { label: "Shoe Size Guide", to: "/shoe-size-guide" },
     ],
