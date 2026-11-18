@@ -92,12 +92,13 @@ export default function ProductFormDropzone({
     onChange(images.filter((_, idx) => idx !== i));
   };
 
-  const makePrimary = (i) => {
-    if (i === 0) return;
-
+  /** Moves a photo to a new place in the order; the first one leads. */
+  const move = (from, to) => {
+    if (from === to || to < 0 || to >= images.length) return;
     const next = [...images];
-    const [moved] = next.splice(i, 1);
-    onChange([moved, ...next]);
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange(next);
   };
 
   return (
@@ -174,7 +175,7 @@ export default function ProductFormDropzone({
       <ProductFormDropzoneThumbs
         images={images}
         onRemove={removeAt}
-        onMakePrimary={makePrimary}
+        onMove={move}
         swatches={swatches}
         onTag={onTag}
       />
