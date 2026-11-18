@@ -10,6 +10,7 @@ import Field from "@/components/ui/Field";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { createModel, deleteModel, getModels, modelUsage, updateModel } from "@/services/catalog/modelsApi";
+import { getSizes } from "@/services/catalog/sizesApi";
 import { uploadImage } from "@/AdminDashboard/lib/imageUpload";
 import IconAction from "../../../components/IconAction";
 
@@ -20,8 +21,15 @@ const MEASURES = [
   ["hipCm", "Hip"],
 ];
 
+// The letter sizes a model can be: the same test the size guide uses to tell
+// a garment from shoes or hair, so EU shoe sizes and lengths stay out.
+const isClothingSize = (id) => /^(xxs|xs|s|m|l|xl|xxl|xxxl)$/i.test(id);
+
+/** "S", from the store's size list, or the id upper-cased. */
+const sizeName = (sizes, id) => (sizes ?? []).find((s) => s.id === id)?.name ?? String(id).toUpperCase();
+
 /** Add or edit one model. Remount with a `key` per opening. */
-function ModelDialog({ open, model, onClose, onSave }) {
+function ModelDialog({ open, model, sizes, onClose, onSave }) {
   const [form, setForm] = useState({
     name: model?.name ?? "",
     photo: model?.photo ?? "",
@@ -29,6 +37,7 @@ function ModelDialog({ open, model, onClose, onSave }) {
     bustCm: model?.bustCm ?? "",
     waistCm: model?.waistCm ?? "",
     hipCm: model?.hipCm ?? "",
+    size: model?.size ?? "",
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -95,6 +104,14 @@ function ModelDialog({ open, model, onClose, onSave }) {
           </div>
           <p className="mt-2 text-[12px] text-espresso-soft">Inches are worked out for the product page.</p>
         </div>
+        <Field label="Usual size" helper="The size she normally wears. It is filled in for you when you choose her on a product, and can still be changed per piece.">
+          <select value={form.size} onChange={set("size")}>
+            <option value="">Not set</option>
+            {(sizes ?? []).filter((s) => isClothingSize(s.id)).map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </Field>
         {error && <p role="alert" className="border-l-2 border-error py-1 pl-3 text-[13px] text-error">{error}</p>}
         <div className="flex justify-end gap-2 border-t border-umber-50 pt-4">
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
@@ -117,6 +134,7 @@ export default function ModelsPanel() {
   const refresh = () => setRevision((n) => n + 1);
   const { data: models, loading } = useAsyncData(getModels, [revision]);
   const { data: usage } = useAsyncData(modelUsage, [revision]);
+  const { data: sizes } = useAsyncData(() => getSizes({ realm: "staff" }), []);
   const [editing, setEditing] = useState({ open: false, model: null, n: 0 });
   const [removing, setRemoving] = useState(null);
 
@@ -162,6 +180,7 @@ export default function ModelsPanel() {
                 )}
               </div>
               <p className="mt-1 text-[12px] tabular-nums text-espresso-soft">
+                {m.size && <>Size {sizeName(sizes, m.size)} · </>}
                 {MEASURES.filter(([k]) => m[k]).map(([k, label]) => `${label} ${m[k]}`).join(" · ")} cm
               </p>
               <p className="mt-2 text-[12px] text-espresso-soft">{usage?.[m.id] ?? 0} {usage?.[m.id] === 1 ? "piece" : "pieces"}</p>
@@ -170,7 +189,7 @@ export default function ModelsPanel() {
         ))}
       </div>
 
-      <ModelDialog key={editing.n} open={editing.open} model={editing.model} onClose={() => setEditing((e) => ({ ...e, open: false }))} onSave={save} />
+      <ModelDialog key={editing.n} open={editing.open} model={editing.model} sizes={sizes} onClose={() => setEditing((e) => ({ ...e, open: false }))} onSave={save} />
       <ConfirmDialog
         open={Boolean(removing)}
         onClose={() => setRemoving(null)}
