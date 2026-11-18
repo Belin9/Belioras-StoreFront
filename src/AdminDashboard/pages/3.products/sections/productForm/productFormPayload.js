@@ -45,6 +45,10 @@ export const EMPTY_VALUES = {
   materials: "",
   careSymbols: [],
   careNotes: "",
+  manufacturerName: "",
+  manufacturerAddress: "",
+  manufacturerContact: "",
+  safetyWarnings: "",
 };
 
 export function toFormValues(product) {
@@ -70,6 +74,10 @@ export function toFormValues(product) {
     materials: (product.materials ?? []).join("\n"),
     careSymbols: splitCare(product.care).symbols.map((s) => s.id),
     careNotes: splitCare(product.care).notes.join("\n"),
+    manufacturerName: product.manufacturer?.name ?? "",
+    manufacturerAddress: product.manufacturer?.address ?? "",
+    manufacturerContact: product.manufacturer?.contact ?? "",
+    safetyWarnings: (product.safetyWarnings ?? []).join("\n"),
   };
 }
 
@@ -188,5 +196,17 @@ export function toPayload(values, { photos, videos = {}, colorIds, stock, sizes,
     details: lines(values.details),
     materials: lines(values.materials),
     care: [...(values.careSymbols ?? []), ...lines(values.careNotes)],
+    manufacturer: manufacturerPayload(values),
+    safetyWarnings: lines(values.safetyWarnings),
   };
+}
+
+/** The maker of the piece, or null when none is entered. */
+function manufacturerPayload(values) {
+  const out = {
+    name: (values.manufacturerName ?? "").trim(),
+    address: (values.manufacturerAddress ?? "").trim(),
+    contact: (values.manufacturerContact ?? "").trim(),
+  };
+  return out.name || out.address || out.contact ? out : null;
 }
