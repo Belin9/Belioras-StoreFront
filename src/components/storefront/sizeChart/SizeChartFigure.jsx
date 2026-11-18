@@ -1,21 +1,23 @@
-const DEFAULT_SRC = "https://ik.imagekit.io/sbgenu6wj/Belioras/image.png";
+import { useState } from "react";
+
+import BodyFigure from "./figures/BodyFigure";
 
 /**
- * A reference photo for "how to measure" — dashboard-editable
- * (Sizes & Guides > Dresses sizing), so the shop can swap in its own photo
- * without a code change. Falls back to the shipped photo when none is set.
+ * The "how to measure" picture for clothing. A photo set in the dashboard
+ * (Sizes & Guides > Dresses sizing) is shown when there is one and it loads;
+ * otherwise the drawn figure is, so the guide never shows a broken image.
  */
 export default function SizeChartFigure({ src, className = "" }) {
-  // An explicit empty string means the shop chose to show nothing; a missing
-  // prop (an older caller not yet updated) falls back to the shipped photo.
-  const resolved = src === undefined ? DEFAULT_SRC : src;
-  if (!resolved) return null;
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) return <BodyFigure className={className} />;
 
   return (
     <img
-      src={resolved}
-      alt="A woman standing, labelled with where to measure the shoulder, bust, waist, hip and inside leg"
+      src={src}
+      alt="A woman standing, labelled with where to measure the bust, waist, hip and inside leg"
       loading="lazy"
+      onError={() => setFailed(true)}
       className={`h-auto w-full max-w-[220px] object-contain ${className}`}
     />
   );
