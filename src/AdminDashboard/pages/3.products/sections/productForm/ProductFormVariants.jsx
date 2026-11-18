@@ -5,6 +5,7 @@ import { Plus, X } from "lucide-react";
 import ColorDialog from "@/AdminDashboard/components/ColorDialog";
 import { familyOptionsFrom } from "@/AdminDashboard/lib/catalogOptions";
 import { createColor } from "@/services/catalog/colorsApi";
+import { AS_SHOWN_ID } from "@/utils/productColors";
 import FormSection from "./ProductFormSection";
 import ProductFormSizes from "./ProductFormSizes";
 import ProductFormStock from "./ProductFormStock";
@@ -23,17 +24,29 @@ export default function ProductFormVariants({
 
   const byId = new Map([...colors, ...created].map((c) => [c.id, c]));
   const all = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
-  const chosen = colorIds.map((id) => byId.get(id) ?? { id, name: id, hex: "#ccc" });
-  const available = all.filter((c) => !colorIds.includes(c.id));
+  // Colour is optional. A piece saved without one carries the hidden
+  // "As shown" colour, which is never offered or shown as a chip here.
+  const realIds = colorIds.filter((id) => id !== AS_SHOWN_ID);
+  const chosen = realIds.map((id) => byId.get(id) ?? { id, name: id, hex: "#ccc" });
+  const available = all.filter((c) => !colorIds.includes(c.id) && c.id !== AS_SHOWN_ID);
   // The whole palette only until something is chosen; after that it stays
   // folded behind "Add colour", so a long colour list never crowds the form.
-  const showPalette = colorIds.length === 0 || picking;
+  const showPalette = realIds.length === 0 || picking;
   const photoCount = (id) => photos.filter((p) => p.colorId === id).length;
 
   const add = (id) => {
-    onColorIdsChange([...colorIds, id]);
-    // Photos uploaded before any colour was chosen belong to the first one.
-    if (!colorIds.length) onPhotosChange(photos.map((p) => (p.colorId ? p : { ...p, colorId: id })));
+    if (!realIds.length) {
+      // The first real colour takes over everything entered without one:
+      // untagged or "As shown" photos, and the stock typed in the no-colour row.
+      onColorIdsChange([id]);
+      onPhotosChange(photos.map((p) => (!p.colorId || p.colorId === AS_SHOWN_ID ? { ...p, colorId: id } : p)));
+      if (stock[AS_SHOWN_ID]) {
+        const { [AS_SHOWN_ID]: moved, ...rest } = stock;
+        onStockChange({ ...rest, [id]: moved });
+      }
+    } else {
+      onColorIdsChange([...colorIds, id]);
+    }
     setPicking(false);
   };
 
@@ -54,7 +67,12 @@ export default function ProductFormVariants({
   return (
     <FormSection title="Colours, sizes & stock">
       <div>
-        <p className="input-label">Colours</p>
+        <p className="input-label">Colours <span className="normal-case tracking-normal text-espresso-soft">(optional)</span></p>
+        {realIds.length === 0 && (
+          <p className="mb-3 text-[12px] text-espresso-soft">
+            Only needed when the piece comes in more than one colour. Leave empty and shoppers simply see the photos.
+          </p>
+        )}
 
         {chosen.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
