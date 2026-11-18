@@ -7,9 +7,10 @@ const MAX_SUGGESTIONS = 4;
 
 // Facets come from the catalogue actually loaded, not the taxonomy wholesale —
 // offering a colour nothing in stock carries is a dead end.
-export function stockedColours(catalog, taxonomy) {
-  const stocked = new Set(catalog.flatMap((p) => p.colorFamilies ?? []));
-  return (taxonomy?.color?.values ?? []).filter((v) => stocked.has(v.id));
+// Each colour on its own, as added in the dashboard ("As shown" excluded).
+export function stockedColours(catalog, colours = []) {
+  const stocked = new Set(catalog.flatMap((p) => (p.colorways ?? []).map((w) => w.colorId)));
+  return colours.filter((c) => c.id !== "as-shown" && stocked.has(c.id));
 }
 
 /** Sizes in stock — only those of the chosen categories once any is chosen, so dress sizes and shoe sizes are not offered side by side. */
@@ -62,7 +63,7 @@ export function searchResults(catalog, trimmed, picks, categories = []) {
         !values?.length ? true : values.some((v) => (p.tags ?? []).includes(`${dimension}:${v}`)),
       ),
     )
-    .filter((p) => (colours.length === 0 ? true : (p.colorFamilies ?? []).some((f) => colours.includes(f))))
+    .filter((p) => (colours.length === 0 ? true : (p.colorways ?? []).some((w) => colours.includes(w.colorId))))
     .filter((p) => (sizes.length === 0 ? true : (p.sizes ?? []).some((s) => sizes.includes(s))));
 
   const narrowed = trimmed || cats.length || colours.length || sizes.length || Object.values(types).some((v) => v?.length);
@@ -82,7 +83,7 @@ export function shopAddress(trimmed, picks) {
   for (const [dimension, values] of Object.entries(picks.types ?? {})) {
     if (values?.length) params.set(dimension, values.join(","));
   }
-  if (picks.colours?.length) params.set("color", picks.colours.join(","));
+  if (picks.colours?.length) params.set("shade", picks.colours.join(","));
   if (picks.sizes?.length) params.set("size", picks.sizes.join(","));
   return `/shop?${params.toString()}`;
 }
