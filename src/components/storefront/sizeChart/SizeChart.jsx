@@ -58,10 +58,11 @@ export default function SizeChart({ kind = "garment" }) {
             // Each guide carries its own steps, so there is no sibling table to
             // fall back to: the kind being viewed is the guide being read.
             steps={charts[kind]?.howTo ?? charts.garment?.howTo}
-            // The body figure explains a garment measurement. It says nothing
-            // useful about a foot or a weft, so those kinds get the steps alone.
-            showFigure={kind === "garment"}
+            // Each kind gets its own picture: the body photo for garments, the
+            // foot for shoes, and where each length falls for hair.
+            kind={kind}
             figureSrc={charts.garment?.garmentImage}
+            hairLengths={charts.hair?.lengths ?? []}
           />
         )}
       </div>
