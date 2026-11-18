@@ -1,6 +1,25 @@
 /* Product Colour Variants */
 
 /**
+ * The colour a product gets when it is saved without one ("As shown"). It is
+ * a real colour behind the scenes, so photos, stock per size, the cart and
+ * orders work unchanged, but shoppers never see it as a choice or a label.
+ * Colour ids are the slug of the name, so it is always "as-shown".
+ */
+export const AS_SHOWN_ID = "as-shown";
+export const AS_SHOWN_NAME = "As shown";
+
+/** Whether a colour id or name is the hidden "As shown" colour. */
+export function isAsShown(value) {
+  return String(value ?? "").trim().toLowerCase().replace(/\s+/g, "-") === AS_SHOWN_ID;
+}
+
+/** A colour name as shoppers should read it: nothing for "As shown". */
+export function shownColor(value) {
+  return isAsShown(value) ? null : value;
+}
+
+/**
  * A colourway's photographs, or the product's own when it has none.
  *
  * Keyed by colour name rather than modelled as separate variant products: the
