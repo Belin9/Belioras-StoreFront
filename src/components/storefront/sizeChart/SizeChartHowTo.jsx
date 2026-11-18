@@ -1,12 +1,21 @@
 /* Storefront Component: SizeChartHowTo */
 import SizeChartFigure from "./SizeChartFigure";
+import FootFigure from "./figures/FootFigure";
+import HairLengthFigure from "./figures/HairLengthFigure";
 
-export default function SizeChartHowTo({ steps, showFigure = true, figureSrc }) {
+/** The picture beside the steps: the body photo, the foot, or where hair falls. */
+function Figure({ kind, figureSrc, hairLengths }) {
+  if (kind === "footwear") return <FootFigure />;
+  if (kind === "hair") return <HairLengthFigure lengths={hairLengths} className="w-full max-w-[300px]" />;
+  return <SizeChartFigure src={figureSrc} />;
+}
+
+export default function SizeChartHowTo({ steps, kind = "garment", showFigure = true, figureSrc, hairLengths = [] }) {
   return (
     <div className="grid gap-8 sm:grid-cols-[auto_1fr] sm:items-start">
       {showFigure && (
         <div className="mx-auto sm:mx-0">
-          <SizeChartFigure src={figureSrc} />
+          <Figure kind={kind} figureSrc={figureSrc} hairLengths={hairLengths} />
         </div>
       )}
 
