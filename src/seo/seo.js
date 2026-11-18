@@ -80,6 +80,10 @@ export const STATIC_PAGES = {
     title: pageTitle("Hair Length Guide"),
     description: "How each wig and hair length falls on the body, from bob to waist length, to choose the right Belioras piece.",
   },
+  "/size-guide": {
+    title: pageTitle("Size Guide"),
+    description: "Belioras dress sizes with bust, waist and hip measurements, and how to measure yourself.",
+  },
   "/shoe-size-guide": {
     title: pageTitle("Shoe Size Guide"),
     description: "EU, UK and US shoe sizes side by side, with foot length in centimetres and inches.",
