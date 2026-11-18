@@ -5,6 +5,7 @@ import { getState, setState } from "../store/contentStore";
 import { colorIndex, colorwaysOf } from "./products/productColorways";
 import { catalogItems } from "./products/productStore";
 import { audited } from "../auth/audited";
+import { AS_SHOWN_ID, AS_SHOWN_NAME } from "../../utils/productColors";
 
 /**
  * The colour list: a boutique name, a swatch, and the shop filter family.
@@ -140,3 +141,29 @@ export const createColor = audited("categories", (_, r) => `Added colour ${r.nam
 export const updateColor = audited("categories", (_, r) => `Updated colour ${r.name}`, updateColor$raw);
 export const deleteColor = audited("categories", (_, r) => `Deleted colour ${r.name}`, deleteColor$raw);
 export const resetColors = audited("categories", () => "Reset colours to defaults", resetColors$raw);
+
+/**
+ * The hidden "As shown" colour a product is saved with when no colour is
+ * chosen. Made once, on first need, then reused. It sits in a neutral shop
+ * filter; the storefront leaves it out of filters, swatches and labels.
+ */
+export async function ensureAsShownColor(families = []) {
+  const existing = colorItems().find((c) => c.id === AS_SHOWN_ID);
+  if (existing) return existing;
+  const family = families.find((f) => f.id === "metallic")?.id ?? families[0]?.id;
+  if (!family) throw new ApiError("The shop's colour filters have not loaded yet. Try saving again.", 503);
+  try {
+    return await createColor({ name: AS_SHOWN_NAME, hex: "#C9C4CE", family });
+  } catch (err) {
+    // Made meanwhile by someone else's save: use theirs.
+    const made = colorItems().find((c) => c.id === AS_SHOWN_ID);
+    if (made) return made;
+    if (err?.status === 403) {
+      throw new ApiError(
+        "Saving a piece without a colour needs the one-off \"As shown\" colour, which your role can't create. Ask an admin to save one such piece first, or choose a colour.",
+        403,
+      );
+    }
+    throw err;
+  }
+}
