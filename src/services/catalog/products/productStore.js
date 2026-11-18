@@ -57,7 +57,7 @@ function normalize(product) {
     reviewCount: product.reviewCount ?? 0,
     ...expanded,
     ...withAvailability(product, expanded),
-    tags: deriveTags(product, expanded.colorFamilies),
+    tags: deriveTags(product, expanded.colorFamilies, expanded.colorways.map((w) => w.colorId)),
   };
 }
 
