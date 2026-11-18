@@ -1,5 +1,5 @@
 /* Page: Customer-support - contact-us */
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Clock, Mail, Phone } from "lucide-react";
 
 import Button from "../../components/ui/Button";
@@ -33,13 +33,14 @@ export default function ContactUsPage() {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm({
     defaultValues: { name: "", email: "", subject: "", message: "" },
   });
 
-  const chosen = SUBJECTS.find((s) => s.value === watch("subject"));
+  const subject = useWatch({ control, name: "subject" });
+  const chosen = SUBJECTS.find((s) => s.value === subject);
 
   const routedTo =
     chosen?.to === "general"
