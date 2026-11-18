@@ -11,6 +11,8 @@ The client asked for a batch of storefront changes (17–18 Nov 2026). Most are 
 | 5 | Size guides | Check saves round-trip; clear a dead image URL if seeded | Check |
 | 5b | Products without a colour ("As shown") | Leave "As shown" out of email and invoice PDF colour labels | Small |
 | 6 | New storefront pages | Reserve two slugs if the server validates menu slugs | Check |
+| 7 | Per-product manufacturer (GPSR) and returnability | Store and return `manufacturer`, `safetyWarnings`; return `isNonReturnable` | **Required**: fields are dropped today |
+| 8 | Photo order | Keep `colorways[].images` and `images` in the order sent | Check |
 
 ---
 
@@ -116,6 +118,43 @@ GET {API_ORIGIN}/api/v1/storefront/products     (unauthenticated)
 ## 6. New storefront pages: reserved slugs
 
 Two new storefront routes: **`/impressum`** and **`/size-guide`**. They're added to the client's `RESERVED_SLUGS` ([menuTargets.js](../src/utils/menuTargets.js)). If the server also validates menu-item or category slugs against a reserved list, add both there, so a menu page can't take those addresses.
+
+## 7. Per-product manufacturer (GPSR) and returnability
+
+**Client request:** Belioras sells; it does not manufacture. The product page must not call the shop the "Manufacturer".
+
+**Frontend (done):**
+- The product form has a **Product safety** section: manufacturer or brand, contact (email or website), postal address, and safety warnings (one per line).
+- The product page's Product safety panel shows the piece's manufacturer (when set), then the shop as **Sold by**, the safety email and the Impressum link.
+- Settings → Product safety: the field is relabelled **Seller name**. It is still stored as `gpsr.manufacturer`, so no settings change is needed.
+- Shipping & returns on the product page is built from `settings.shipping.zones` and links to `/shipping-policy` and `/return-and-refund-policy`. The returns line depends on whether the piece is returnable.
+
+**Server:**
+
+| Endpoint | Change |
+|---|---|
+| `POST /api/v1/admin/products`, `PATCH /api/v1/admin/products/:id` | Accept `manufacturer` and `safetyWarnings` |
+| `GET` admin and storefront products (list and one) | Return `manufacturer`, `safetyWarnings` and `isNonReturnable` |
+
+```js
+manufacturer:   z.object({
+  name:    z.string().max(160),
+  address: z.string().max(300),
+  contact: z.string().max(200),   // an email or a website
+}).nullable().optional()          // null clears it
+safetyWarnings: z.array(z.string().max(300)).max(20).optional().default([])
+```
+
+- `isNonReturnable` is already sent on save but the storefront list does not return it. Until it does, the storefront treats every `collectionId: "hair"` piece as non-returnable (`isNonReturnable()` in `src/utils/checkout.js`). The checkout's pre-purchase notice depends on this too.
+- Existing products need no migration (`null` / `[]`).
+
+**Done when:** you save a product with a manufacturer and a warning, and `GET /api/v1/storefront/products` returns both.
+
+## 8. Photo order
+
+Staff can now reorder a product's photos by dragging, or with the arrow buttons. The first photo leads in the shop. The order is the order of `colorways[].images` (and `images`) in the save. **Please make sure the server stores and returns those arrays in the order sent**, with no sorting by upload time or id.
+
+**Done when:** you move the third photo first, save, reload, and it stays first.
 
 ---
 

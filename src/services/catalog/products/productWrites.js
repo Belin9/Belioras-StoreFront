@@ -23,6 +23,7 @@ const WRITABLE = [
   "isNew", "featured", "bestseller", "limited", "status", "colorways", "sizes", "images", "stock",
   "lowStockThreshold", "tags", "modelFit", "details", "materials", "care",
   "isNonReturnable", "hairType", "lengthInInches", "weight",
+  "manufacturer", "safetyWarnings",
   // Form-save safety, read by the server and never stored: see updateProduct.
   "ifEditVersion", "stockBase",
 ];

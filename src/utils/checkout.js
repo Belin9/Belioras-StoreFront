@@ -117,5 +117,15 @@ function round(n) {
  */
 
 export function nonReturnableItems(items = [], catalog = []) {
-  return items.filter((i) => catalog.find((p) => p.id === i.id)?.isNonReturnable);
+  return items.filter((i) => isNonReturnable(catalog.find((p) => p.id === i.id)));
+}
+
+/**
+ * Whether a piece is sold sealed and cannot come back once opened. The
+ * product's own flag wins; without one (the API does not send it today), all
+ * hair is treated as sealed.
+ */
+export function isNonReturnable(product) {
+  if (!product) return false;
+  return product.isNonReturnable ?? product.collectionId === "hair";
 }
