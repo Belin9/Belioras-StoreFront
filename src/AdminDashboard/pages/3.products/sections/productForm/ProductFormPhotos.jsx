@@ -1,6 +1,7 @@
 /* Admin Dashboard Page: Products - ProductFormPhotos */
 import FormSection from "./ProductFormSection";
 import ProductFormDropzone from "./ProductFormDropzone";
+import { AS_SHOWN_ID } from "@/utils/productColors";
 
 /**
  * Photos come first: upload everything, then tag each with the colour it
@@ -8,25 +9,25 @@ import ProductFormDropzone from "./ProductFormDropzone";
  */
 export default function ProductFormPhotos({ photos, onChange, colors, colorIds, onImageProgress }) {
   const byId = new Map(colors.map((c) => [c.id, c]));
-  const swatches = colorIds.map((id) => byId.get(id) ?? { id, name: id, hex: "#ccc" });
-  const untagged = photos.filter((p) => !colorIds.includes(p.colorId)).length;
+  // Tagging only matters when the piece comes in real colours; without them
+  // every photo belongs to the hidden "As shown" colour on save.
+  const realIds = colorIds.filter((id) => id !== AS_SHOWN_ID);
+  const swatches = realIds.map((id) => byId.get(id) ?? { id, name: id, hex: "#ccc" });
+  const untagged = photos.filter((p) => !realIds.includes(p.colorId)).length;
 
   return (
-    <FormSection title="Photos" hint="Upload every photo of the piece, then tag each with the colour it shows. The first photo leads in the shop.">
+    <FormSection title="Photos" hint="Upload every photo of the piece. If you add colours below, tag each photo with the colour it shows. The first photo leads in the shop.">
       <ProductFormDropzone
         images={photos}
         onChange={onChange}
         onProgress={onImageProgress}
         max={12}
         swatches={swatches}
-        defaultColorId={colorIds[0] ?? null}
+        defaultColorId={realIds[0] ?? null}
         onTag={(index, colorId) => onChange(photos.map((p, i) => (i === index ? { ...p, colorId } : p)))}
       />
 
-      {photos.length > 0 && colorIds.length === 0 && (
-        <p className="text-[12px] text-espresso-soft">Choose the colours below, then tag each photo with the one it shows.</p>
-      )}
-      {untagged > 0 && colorIds.length > 0 && (
+      {untagged > 0 && realIds.length > 0 && (
         <p className="border-l-2 border-gold-500 py-1 pl-3 text-[12px] text-espresso-soft">
           {untagged} {untagged === 1 ? "photo is" : "photos are"} not tagged with a colour yet.
         </p>
