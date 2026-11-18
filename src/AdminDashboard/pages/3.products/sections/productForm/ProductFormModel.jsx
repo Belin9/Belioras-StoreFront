@@ -7,9 +7,17 @@ import FormSection from "./ProductFormSection";
 /**
  * Optional: the model wearing this piece in its photos and clips, and the
  * size she wears. With one chosen, the product page shows her card and
- * measurements; left as "Not shown", it shows neither.
+ * measurements; left as "Not shown", it shows neither. Choosing a model fills
+ * "Size she wears" with her usual size when it is empty and the piece offers it.
  */
-export default function ProductFormModel({ register, models = [], sizes, taxonomy }) {
+export default function ProductFormModel({ register, setValue, getValues, models = [], sizes, taxonomy }) {
+  const prefillSize = (e) => {
+    const usual = models.find((m) => m.id === e.target.value)?.size;
+    if (!usual || !setValue || getValues?.("modelSize")) return;
+    if (sizes.length && !sizes.includes(usual)) return;
+    setValue("modelSize", usual, { shouldDirty: true });
+  };
+
   return (
     <FormSection title="Model (optional)" hint="Who wears this piece in its photos. Leave as Not shown and the product page shows no model.">
       <div>
@@ -20,10 +28,14 @@ export default function ProductFormModel({ register, models = [], sizes, taxonom
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col">
             <span className="input-label">Model</span>
-            <select className="input" {...register("modelId")}>
+            <select className="input" {...register("modelId", { onChange: prefillSize })}>
               <option value="">Not shown</option>
               {models.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}{m.heightCm ? ` · ${m.heightCm} cm` : ""}</option>
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                  {m.heightCm ? ` · ${m.heightCm} cm` : ""}
+                  {m.size ? ` · ${sizeLabel(taxonomy, m.size)}` : ""}
+                </option>
               ))}
             </select>
           </label>
