@@ -7,10 +7,10 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import CustomerAuthProvider from "@/context/CustomerAuthProvider";
 import StaffAuthProvider from "@/context/StaffAuthProvider";
-import { CartProvider } from "@/context/CartContext";
-import { WishlistProvider } from "@/context/WishlistContext";
-import { ProductDraftProvider } from "@/context/ProductDraftContext";
-import { ToastProvider } from "@/context/ToastContext";
+import { CartProvider } from "@/context/CartProvider";
+import { WishlistProvider } from "@/context/WishlistProvider";
+import { ProductDraftProvider } from "@/context/ProductDraftProvider";
+import { ToastProvider } from "@/context/ToastProvider";
 import ToastViewport from "@/components/ui/ToastViewport";
 import { createQueryClient } from "@/utils/queryClient";
 
