@@ -26,6 +26,7 @@ Storefront-first: everything the customer sees (layout shell → UI kit → stor
 | 6 | QA & polish (a11y, responsive, lint, build, favicon) — final pass over the whole app incl. dashboard | `09-qa-polish.md` | in-progress |
 | 7 | Client account portal | `11-client-account.md` | done |
 - [12 — Backend integration: flows and contracts](12-backend-integration.md)
+- [14 — Backend changes from the November 2026 client requests](14-backend-changes-nov-2026.md)
 | 8 | Folder structure reference | `10-folder-structure.md` | done |
 
 **Not done, and blocking launch:** authorization is entirely client-side. A
