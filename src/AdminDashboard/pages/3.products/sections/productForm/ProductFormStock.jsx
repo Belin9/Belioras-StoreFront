@@ -1,6 +1,7 @@
 /* Admin Dashboard Page: Products - ProductFormStock */
 import { sizeLabel } from "@/AdminDashboard/lib/catalogOptions";
 import { cn } from "@/utils/cn";
+import { AS_SHOWN_ID } from "@/utils/productColors";
 import { stockColumns } from "./productFormPayload";
 
 const HEAD = "py-2 text-[10px] font-normal uppercase tracking-[0.18em] text-espresso-soft";
@@ -10,7 +11,10 @@ export default function ProductFormStock({ colors, colorIds, stock, onChange, si
   const colorById = new Map(colors.map((c) => [c.id, c]));
   const count = (value) => Math.max(0, Math.floor(Number(value) || 0));
   const rowTotal = (id) => columns.reduce((sum, size) => sum + count(stock[id]?.[size]), 0);
-  const total = colorIds.reduce((sum, id) => sum + rowTotal(id), 0);
+  // No colour chosen: one row, kept under the hidden "As shown" colour the
+  // piece is saved with, so stock per size can still be set.
+  const rows = colorIds.length ? colorIds : [AS_SHOWN_ID];
+  const total = rows.reduce((sum, id) => sum + rowTotal(id), 0);
   const heading = (size) => (sizes.length ? sizeLabel(taxonomy, size) : "Stock");
   const setCell = (id, size, value) => onChange({ ...stock, [id]: { ...stock[id], [size]: value } });
 
@@ -24,9 +28,7 @@ export default function ProductFormStock({ colors, colorIds, stock, onChange, si
         </p>
       )}
 
-      {colorIds.length === 0 ? (
-        <p className="text-[13px] text-espresso-soft">Choose colours above to set stock. At 0, a colour and size shows as sold out.</p>
-      ) : (
+      {(
         <div className="overflow-x-auto border border-umber-50 bg-white">
           <table className="w-full border-collapse text-[13px]">
             <thead>
@@ -39,9 +41,9 @@ export default function ProductFormStock({ colors, colorIds, stock, onChange, si
               </tr>
             </thead>
             <tbody>
-              {colorIds.map((id) => {
+              {rows.map((id) => {
                 const color = colorById.get(id);
-                const name = color?.name ?? id;
+                const name = id === AS_SHOWN_ID ? "No colour" : (color?.name ?? id);
                 return (
                   <tr key={id} className="border-b border-umber-50/70 last:border-b-0">
                     <th scope="row" className="whitespace-nowrap px-3 py-1.5 text-left font-normal text-espresso">
@@ -88,11 +90,9 @@ export default function ProductFormStock({ colors, colorIds, stock, onChange, si
         </div>
       )}
 
-      {colorIds.length > 0 && (
-        <p className="mt-2 text-[11px] text-espresso-soft">
-          Counts are what is on the shelf; &ldquo;held&rdquo; is how many of those open orders are waiting to ship.
-        </p>
-      )}
+      <p className="mt-2 text-[11px] text-espresso-soft">
+        Counts are what is on the shelf; &ldquo;held&rdquo; is how many of those open orders are waiting to ship.
+      </p>
 
       {register && (
         <label className="mt-4 flex flex-wrap items-center gap-3 text-[13px] text-espresso">
