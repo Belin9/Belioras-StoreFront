@@ -10,7 +10,8 @@ import { audited } from "../auth/audited";
  * against their own — on the server. A product names its model and the size
  * she wears (`modelFit: { modelId, size }`); the product page shows her card
  * from that. A model on a product cannot be deleted, and a deleted model's id
- * is never reused.
+ * is never reused. A model may also carry her usual size (`size`, a size id
+ * such as "s"), which the product form uses as the default for a new piece.
  */
 
 const realm = () => (accessToken("staff") ? "staff" : "customer");
@@ -42,6 +43,7 @@ function body(input = {}) {
     bustCm: cm(input.bustCm, "Bust", 60, 140),
     waistCm: cm(input.waistCm, "Waist", 45, 130),
     hipCm: cm(input.hipCm, "Hip", 60, 150),
+    size: String(input.size ?? "").trim().toLowerCase() || null,
   };
 }
 
