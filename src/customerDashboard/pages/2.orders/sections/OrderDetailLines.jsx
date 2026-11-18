@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 
 import { sizeLabel } from "../../../../utils/sizeLabel";
+import { shownColor } from "../../../../utils/productColors";
 
 export default function OrderLines({ order, thumbnails, taxonomy, format, discount }) {
   return (
@@ -46,7 +47,7 @@ export default function OrderLines({ order, thumbnails, taxonomy, format, discou
               <p className="mt-0.5 text-xs text-espresso-soft">
                 Qty {item.quantity}
                 {item.size ? ` · Size ${sizeLabel(taxonomy, item.size)}` : ""}
-                {item.color ? ` · ${item.color}` : ""}
+                {shownColor(item.color) ? ` · ${item.color}` : ""}
               </p>
             </div>
 
