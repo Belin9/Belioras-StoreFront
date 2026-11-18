@@ -72,7 +72,7 @@ export default function GarmentGuideDialog({ open, charts, onClose, onSaved }) {
           <GuideRowsEditor columns={HOW_TO_COLUMNS} rows={howTo} onChange={setHowTo} />
         </div>
 
-        <Field label="Model photo URL" helper="Shown beside the How to measure steps. Leave blank to show nothing.">
+        <Field label="Model photo URL" helper="Shown beside the How to measure steps. Leave blank to show the drawn measuring figure.">
           <input
             value={garmentImage}
             onChange={(e) => setGarmentImage(e.target.value)}
