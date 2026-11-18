@@ -1,6 +1,6 @@
 /* Page: Checkout - CheckoutPage */
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Lock, ShoppingBag } from "lucide-react";
 
@@ -49,6 +49,7 @@ export default function CheckoutPage() {
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -62,7 +63,9 @@ export default function CheckoutPage() {
     },
   });
 
-  const country = watch("country");
+  // useWatch subscribes just to these fields, and unlike watch() it is safe
+  // for the React Compiler to memoise around.
+  const [country, email] = useWatch({ control, name: ["country", "email"] });
 
   const totals = computeTotals({ items, country, coupon, settings });
 
@@ -235,7 +238,7 @@ export default function CheckoutPage() {
           totals={totals}
           coupon={coupon}
           onCoupon={setCoupon}
-          customer={{ userId: user?.id, email: watch("email") }}
+          customer={{ userId: user?.id, email }}
           disabled={placing}
         />
       </form>
