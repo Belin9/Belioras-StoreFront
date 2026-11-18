@@ -7,11 +7,13 @@ import { useContentVersion } from "../../../context/ContentContext";
 import { useFilterParams } from "../../../hooks/useFilterParams";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import { getCategories } from "../../../services/catalog/categoriesApi";
+import { getColors } from "../../../services/catalog/colorsApi";
 import { getModels } from "../../../services/catalog/modelsApi";
 import { getTaxonomy } from "../../../services/catalog/navigationApi";
 import { applyFilters, computeFacets, priceBounds } from "../../../utils/faceting";
 import { catalogueDimensions } from "../../../utils/typeFacet";
 import { sortProducts } from "../../../utils/catalogSort";
+import { isAsShown } from "../../../utils/productColors";
 import { DEFAULT_COLUMNS, isValidColumns } from "../../../utils/gridColumns";
 import GridViewSwitcher from "../../../components/storefront/GridViewSwitcher";
 
@@ -29,6 +31,7 @@ export default function CatalogView({ products, loading, error, header = {}, emp
   const { data: taxonomy } = useAsyncData(getTaxonomy, [version]);
   const { data: categories } = useAsyncData(getCategories, [version]);
   const { data: models } = useAsyncData(getModels, [version]);
+  const { data: colours } = useAsyncData(getColors, [version]);
   const { filters, activeCount, toggleValue, clearDimension, setPrice, setSale, setSort, setQuery, clearAll } =
     useFilterParams();
 
@@ -40,16 +43,21 @@ export default function CatalogView({ products, loading, error, header = {}, emp
   const bounds = useMemo(() => priceBounds(list), [list]);
 
   // Category, Subcategory and Type filters come from the categories the page's
-  // products belong to; colour and size from the shared taxonomy.
+  // products belong to; size from the shared taxonomy. Colour lists the colours
+  // added in the dashboard, and computeFacets keeps only those on these pieces.
   const selectedCategories = filters.dimensions.category;
   const facets = useMemo(() => {
     if (!taxonomy || !categories) return {};
     const { dimensions, order } = catalogueDimensions(categories, list, selectedCategories);
     // "Worn by": the model in the photographs — where "Shop this edit" lands.
     const model = { label: "Worn by", values: (models ?? []).map((m) => ({ id: m.id, name: m.name })) };
-    const merged = { ...dimensions, color: taxonomy.color, size: taxonomy.size, model };
-    return computeFacets(list, merged, filters, [...order, "color", "size", "model"]);
-  }, [list, taxonomy, categories, models, filters, selectedCategories]);
+    const shade = {
+      label: "Colour",
+      values: (colours ?? []).filter((c) => !isAsShown(c.id)).map((c) => ({ id: c.id, name: c.name, hex: c.hex })),
+    };
+    const merged = { ...dimensions, shade, size: taxonomy.size, model };
+    return computeFacets(list, merged, filters, [...order, "shade", "size", "model"]);
+  }, [list, taxonomy, categories, models, colours, filters, selectedCategories]);
 
   // Unticking a Category also drops the Subcategory choices made inside it,
   // which would otherwise linger in the address with nothing to show them.
