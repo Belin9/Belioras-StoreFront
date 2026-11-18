@@ -10,6 +10,7 @@ import { useLanguage } from "../../../context/LanguageContext";
 import { getProducts } from "../../../services/catalog/productsApi";
 import { getTaxonomy } from "../../../services/catalog/navigationApi";
 import { getCategories } from "../../../services/catalog/categoriesApi";
+import { getColors } from "../../../services/catalog/colorsApi";
 import { cn } from "../../../utils/cn";
 
 import SearchPanelImageSearch from "./searchPanel/SearchPanelImageSearch";
@@ -40,6 +41,7 @@ export default function SearchPanel({ open, onClose, query, onQueryChange }) {
 
   const [imageSearchOpen, setImageSearchOpen] = useState(false);
   const { data: categories } = useAsyncData(getCategories, [version]);
+  const { data: colourList } = useAsyncData(getColors, [version]);
   const [colours, setColours] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [chosenCategories, setChosenCategories] = useState([]);
@@ -64,8 +66,8 @@ export default function SearchPanel({ open, onClose, query, onQueryChange }) {
   useSearchPanelDismiss({ open, onDismiss: close, panelRef, inputRef, restoreFocusRef });
 
   const colourSwatches = useMemo(
-    () => stockedColours(catalog, taxonomy),
-    [catalog, taxonomy],
+    () => stockedColours(catalog, colourList ?? []),
+    [catalog, colourList],
   );
   const categoryChips = useMemo(() => stockedCategories(catalog, categories ?? []), [catalog, categories]);
   const groups = useMemo(
