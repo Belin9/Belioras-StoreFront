@@ -1,6 +1,7 @@
 /* Product Colourways */
 import { getState } from "../../store/contentStore";
 import { slugify } from "./productSlug";
+import { isAsShown } from "../../../utils/productColors";
 
 /**
  * A product's colourways: the colours it comes in, the photographs of each,
@@ -52,7 +53,8 @@ export function expandColorways(product) {
     colorways: ways,
     colors: ways.map((w) => w.name),
     swatches: Object.fromEntries(ways.map((w) => [w.name, w.hex])),
-    colorFamilies: [...new Set(ways.map((w) => w.family).filter(Boolean))],
+    // "As shown" is not a colour a shopper filters by.
+    colorFamilies: [...new Set(ways.filter((w) => !isAsShown(w.colorId)).map((w) => w.family).filter(Boolean))],
     colorImages: Object.fromEntries(
       ways.filter((w) => w.images?.length).map((w) => [w.name, w.images]),
     ),
