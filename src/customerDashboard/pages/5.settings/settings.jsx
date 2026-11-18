@@ -1,5 +1,5 @@
 /* Customer Dashboard Page: Settings - settings */
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import SettingsPanel from "./sections/SettingsPanel";
 import ProfileFields from "./sections/SettingsProfileFields";
@@ -26,7 +26,8 @@ export default function AccountSettings() {
     },
   });
 
-  const emailChanged = profile.watch("email")?.trim().toLowerCase() !== user?.email?.toLowerCase();
+  const profileEmail = useWatch({ control: profile.control, name: "email" });
+  const emailChanged = profileEmail?.trim().toLowerCase() !== user?.email?.toLowerCase();
 
   const security = useForm({
     defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
