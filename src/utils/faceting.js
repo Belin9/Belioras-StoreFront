@@ -14,6 +14,8 @@
 export const DIMENSION_PREFIX = {
   category: "cat",
   color: "color",
+  // Each colour on its own (Ebony, Champagne…), as added in the dashboard.
+  shade: "shade",
   size: "size",
 };
 
