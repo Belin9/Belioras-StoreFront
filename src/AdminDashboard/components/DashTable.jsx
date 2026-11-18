@@ -57,6 +57,10 @@ export default function DashTable({
   const pageIndex = paging.size === pageSize ? paging.index : 0;
   const setPageIndex = (index) => setPaging({ size: pageSize, index });
 
+  // TanStack Table has no compiler-safe API: useReactTable() returns functions
+  // the React Compiler cannot memoise, so it skips this component. That is the
+  // intended behaviour here, so the notice is silenced for this call alone.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data ?? [],
     columns,
