@@ -1,6 +1,6 @@
 /* Admin Dashboard Page: Products - product-form */
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
@@ -54,7 +54,8 @@ export default function ProductForm() {
   const [askDiscard, setAskDiscard] = useState(false);
 
   const form = useForm({ defaultValues: EMPTY_VALUES });
-  const values = form.watch();
+  // Every field, re-rendering on change like watch() did, but compiler-safe.
+  const values = useWatch({ control: form.control, defaultValue: EMPTY_VALUES });
   const category = (categories ?? []).find((c) => c.id === values.collectionId) ?? null;
 
   // The Blob serialises to {} and only wastes storage quota, so it is left out.
@@ -137,7 +138,7 @@ export default function ProductForm() {
             colors={colors ?? []} colorIds={colorIds} videos={videos} onVideosChange={setVideos}
             photos={photos}
           />
-          <ProductFormModel register={form.register} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
+          <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
           <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
           <ProductFormVariants
             colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds}
