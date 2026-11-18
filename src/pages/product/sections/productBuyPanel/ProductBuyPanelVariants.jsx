@@ -1,5 +1,6 @@
 /* Colour And Size Pickers */
 import { useLanguage } from "../../../../context/LanguageContext";
+import { isAsShown } from "../../../../utils/productColors";
 import { sizeChartLabelFor } from "../../../../components/storefront/sizeChart/sizeChartKind";
 import { sizeLabel } from "../../../../utils/sizeLabel";
 import ProductBuyPanelColors from "./ProductBuyPanelColors";
@@ -28,7 +29,8 @@ export default function ProductBuyPanelVariants({
 
   return (
     <>
-      {product.colors?.length > 0 && (
+      {/* A piece saved without a colour ("As shown") has nothing to choose. */}
+      {product.colors?.some((c) => !isAsShown(c)) && (
         <div className="mt-8">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-espresso">
             {t("pdp.selectColour", "Select colour")}
