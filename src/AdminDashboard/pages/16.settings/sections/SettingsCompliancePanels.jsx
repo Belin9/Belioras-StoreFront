@@ -7,9 +7,10 @@ export function GpsrPanel({ register, errors }) {
   return (
     <Panel
       title="Product safety (GPSR)"
-      hint="EU General Product Safety Regulation requires a reachable responsible person."
+      hint="The shop's details as seller and EU contact, shown on every product page. Each piece's own manufacturer is set on the product."
     >
-      <Field label="Manufacturer">
+      {/* Stored as gpsr.manufacturer for the server's sake; it is the seller's name. */}
+      <Field label="Seller name" helper="Business name only, e.g. Belioras – Online Boutique.">
         <input {...register("gpsrManufacturer")} />
       </Field>
       <div>
