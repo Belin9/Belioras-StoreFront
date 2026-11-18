@@ -9,6 +9,7 @@ The client asked for a batch of storefront changes (17–18 Nov 2026). Most are 
 | 3 | Owner's name and address only in the Impressum | Fix stored data; stop serving the address publicly; check email templates | **Required** (client's explicit request) |
 | 4 | Chat assistant | None; keep the public product list stable | Note |
 | 5 | Size guides | Check saves round-trip; clear a dead image URL if seeded | Check |
+| 5b | Products without a colour ("As shown") | Leave "As shown" out of email and invoice PDF colour labels | Small |
 | 6 | New storefront pages | Reserve two slugs if the server validates menu slugs | Check |
 
 ---
@@ -98,6 +99,19 @@ GET {API_ORIGIN}/api/v1/storefront/products     (unauthenticated)
 - The old default `garment.garmentImage` (`https://ik.imagekit.io/sbgenu6wj/Belioras/image.png`) returns **404**.
   - The storefront now shows a drawn measuring figure whenever the image is empty or fails to load, so nothing is broken for shoppers.
   - If the server seeds `garmentImage` with that URL, set it to `""`.
+
+## 5b. Products without a colour: the hidden "As shown" colour
+
+**Client request:** colour must not be required when uploading products.
+
+**Frontend (done):**
+- A product saved with no colour gets a real colour `{ id: "as-shown", name: "As shown", family: "metallic" }`. The dashboard creates it once, on first need.
+- Its photos and per-size stock live under that colourway, so stock, cart and orders work unchanged.
+- The storefront hides it everywhere: there's no colour picker, it's left out of colour filters, and cart, checkout, order history and invoice show no colour label.
+
+**Server:**
+- Nothing is required for it to work.
+- But order lines will carry `color: "As shown"`. Where the server writes a colour into **emails or invoice PDFs**, skip it when it is `"As shown"` (compare case-insensitively), as the storefront does (`shownColor()` in `src/utils/productColors.js`).
 
 ## 6. New storefront pages: reserved slugs
 
