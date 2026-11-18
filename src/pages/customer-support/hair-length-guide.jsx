@@ -1,14 +1,26 @@
 /* Page: Customer-support - hair-length-guide */
 import PageShell, { Section } from "../../components/layout/PageShell";
 import SizeChart from "../../components/storefront/sizeChart/SizeChart";
+import HairLengthFigure from "../../components/storefront/sizeChart/figures/HairLengthFigure";
+import { useAsyncData } from "../../hooks/useAsyncData";
+import { getSizeCharts } from "../../services/catalog/sizeChartApi";
 
 export default function HairLengthGuidePage() {
+  const { data: charts } = useAsyncData(getSizeCharts, []);
+  const lengths = charts?.hair?.lengths ?? [];
+
   return (
     <PageShell
       eyebrow="Client care"
       title="Hair Length Guide"
       intro="Hair is measured stretched, but you wear it curled — so the number on the label is rarely the length you see in the mirror. Here is how the two relate."
     >
+      {lengths.length > 0 && (
+        <Section title="Where each length falls">
+          <HairLengthFigure lengths={lengths} className="mx-auto sm:mx-0" />
+        </Section>
+      )}
+
       <Section title="Lengths and textures">
         <SizeChart kind="hair" />
       </Section>
