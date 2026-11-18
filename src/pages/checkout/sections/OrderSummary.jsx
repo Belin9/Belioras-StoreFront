@@ -11,6 +11,7 @@ import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { cn } from "../../../utils/cn";
 import { sizeLabel } from "../../../utils/sizeLabel";
+import { shownColor } from "../../../utils/productColors";
 
 export default function OrderSummary({ items, totals, coupon, onCoupon, disabled, customer }) {
   const { format, currency } = useCurrency();
@@ -52,7 +53,7 @@ export default function OrderSummary({ items, totals, coupon, onCoupon, disabled
               <p className="mt-0.5 text-[11px] text-espresso-soft">
                 {[
                   item.size && `Size ${sizeLabel(taxonomy, item.size)}`,
-                  item.color,
+                  shownColor(item.color),
                   `Qty ${item.quantity}`,
                 ]
                   .filter(Boolean)
