@@ -9,6 +9,7 @@ import { useCurrency } from "../../../context/CurrencyContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { getTaxonomy } from "../../../services/catalog/navigationApi";
 import { sizeLabel } from "../../../utils/sizeLabel";
+import { shownColor } from "../../../utils/productColors";
 import QuantitySelector from "../../shared/QuantitySelector";
 
 export default function CartDrawer({ open, onClose }) {
@@ -134,7 +135,7 @@ export default function CartDrawer({ open, onClose }) {
                           {item.name}
                         </Link>
                         <p className="mt-1 text-xs text-espresso/50">
-                          {[item.color, item.size && `Size ${sizeLabel(taxonomy, item.size)}`]
+                          {[shownColor(item.color), item.size && `Size ${sizeLabel(taxonomy, item.size)}`]
                             .filter(Boolean)
                             .join(" · ")}
                         </p>
