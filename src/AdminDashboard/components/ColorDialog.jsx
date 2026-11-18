@@ -5,6 +5,7 @@ import Modal from "@/components/common/Modal";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import { useToast } from "@/context/ToastContext";
+import { nearestFamily } from "@/AdminDashboard/lib/colorFamily";
 
 const EMPTY = { name: "", hex: "#120700", family: "" };
 
@@ -15,12 +16,22 @@ const EMPTY = { name: "", hex: "#120700", family: "" };
  * Remount it (a changing `key`) to start from fresh values each time it opens.
  */
 export default function ColorDialog({ open, initial = null, families = [], onClose, onSave }) {
-  const [form, setForm] = useState(initial ?? EMPTY);
+  const [form, setForm] = useState(() => initial ?? { ...EMPTY, family: nearestFamily(EMPTY.hex, families) });
+  // Until someone picks a filter by hand, it follows the swatch.
+  const [familyTouched, setFamilyTouched] = useState(Boolean(initial));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const setHex = (e) => {
+    const hex = e.target.value;
+    setForm((f) => ({ ...f, hex, ...(familyTouched ? {} : { family: nearestFamily(hex, families) || f.family }) }));
+  };
+  const setFamily = (e) => {
+    setFamilyTouched(true);
+    set("family")(e);
+  };
   const swatch = /^#[0-9a-f]{6}$/i.test(form.hex) ? form.hex : "#000000";
 
   const submit = async (e) => {
@@ -53,21 +64,29 @@ export default function ColorDialog({ open, initial = null, families = [], onClo
               type="color"
               aria-label="Pick the swatch colour"
               value={swatch}
-              onChange={set("hex")}
+              onChange={setHex}
               className="h-12 w-16 shrink-0 cursor-pointer border border-umber-100 bg-white p-1"
             />
             <input
               aria-label="Swatch hex code"
               value={form.hex}
-              onChange={set("hex")}
+              onChange={setHex}
               maxLength={7}
               className="input font-mono uppercase"
             />
           </div>
         </div>
 
-        <Field label="Shop filter" required helper="The colour a shopper filters by to find it.">
-          <select value={form.family} onChange={set("family")}>
+        <Field
+          label="Shop filter"
+          required
+          helper={
+            familyTouched
+              ? "The colour a shopper filters by to find it."
+              : "Picked for you from the swatch: the closest shop filter. Change it if another fits better."
+          }
+        >
+          <select value={form.family} onChange={setFamily}>
             <option value="" disabled>
               Choose a filter colour
             </option>
