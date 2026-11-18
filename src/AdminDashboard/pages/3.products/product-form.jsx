@@ -26,6 +26,7 @@ import SaveBar from "./sections/productForm/ProductFormSaveBar";
 import FormSkeleton from "./sections/productForm/ProductFormSkeleton";
 import ProductFormDetailsCare from "./sections/productForm/ProductFormDetailsCare";
 import ProductFormModel from "./sections/productForm/ProductFormModel";
+import ProductFormSafety from "./sections/productForm/ProductFormSafety";
 import ProductFormVideo from "./sections/productForm/ProductFormVideo";
 import ProductFormVariants from "./sections/productForm/ProductFormVariants";
 import { useProductDraftSync } from "./sections/productForm/useProductFormDraftSync";
@@ -154,6 +155,7 @@ export default function ProductForm() {
           />
           <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
           <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
+          <ProductFormSafety register={form.register} />
           <ProductFormVariants
             colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds}
             photos={photos} onPhotosChange={setPhotos} stock={stock} onStockChange={setStock}
