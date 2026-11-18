@@ -26,7 +26,10 @@ export function slugify(value) {
 }
 
 // Colour families come from the managed colour list, resolved by the caller.
-function deriveTags(product, colorFamilies = []) {
+// `colorIds` are the colours the piece actually comes in: the shop's colour
+// filter is built from those, while the family tags keep menu links such as
+// "color:black" working.
+function deriveTags(product, colorFamilies = [], colorIds = []) {
 
   const tags = new Set(product.tags ?? []);
 
@@ -41,6 +44,7 @@ function deriveTags(product, colorFamilies = []) {
   for (const size of product.sizes ?? []) tags.add(`size:${size}`);
 
   for (const family of colorFamilies) tags.add(`color:${family}`);
+  for (const id of colorIds) if (id !== "as-shown") tags.add(`shade:${id}`);
 
   return [...tags];
 }
