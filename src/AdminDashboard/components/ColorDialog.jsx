@@ -16,9 +16,12 @@ const EMPTY = { name: "", hex: "#120700", family: "" };
  * Remount it (a changing `key`) to start from fresh values each time it opens.
  */
 export default function ColorDialog({ open, initial = null, families = [], onClose, onSave }) {
-  const [form, setForm] = useState(() => initial ?? { ...EMPTY, family: nearestFamily(EMPTY.hex, families) });
-  // Until someone picks a filter by hand, it follows the swatch.
-  const [familyTouched, setFamilyTouched] = useState(Boolean(initial));
+  // The shop filters by the colours themselves; the group (black, brown…) is
+  // kept only for menu links and the server, and always follows the swatch.
+  const [form, setForm] = useState(() => {
+    const start = initial ?? EMPTY;
+    return { ...start, family: start.family || nearestFamily(start.hex, families) };
+  });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -26,11 +29,7 @@ export default function ColorDialog({ open, initial = null, families = [], onClo
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
   const setHex = (e) => {
     const hex = e.target.value;
-    setForm((f) => ({ ...f, hex, ...(familyTouched ? {} : { family: nearestFamily(hex, families) || f.family }) }));
-  };
-  const setFamily = (e) => {
-    setFamilyTouched(true);
-    set("family")(e);
+    setForm((f) => ({ ...f, hex, family: nearestFamily(hex, families) || f.family }));
   };
   const swatch = /^#[0-9a-f]{6}$/i.test(form.hex) ? form.hex : "#000000";
 
@@ -76,27 +75,6 @@ export default function ColorDialog({ open, initial = null, families = [], onClo
             />
           </div>
         </div>
-
-        <Field
-          label="Shop filter"
-          required
-          helper={
-            familyTouched
-              ? "The colour a shopper filters by to find it."
-              : "Picked for you from the swatch: the closest shop filter. Change it if another fits better."
-          }
-        >
-          <select value={form.family} onChange={setFamily}>
-            <option value="" disabled>
-              Choose a filter colour
-            </option>
-            {families.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </Field>
 
         {error && (
           <p role="alert" className="border-l-2 border-error py-1 pl-3 text-[13px] text-error">
