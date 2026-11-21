@@ -38,12 +38,6 @@ export default function ProductPageAccordions({ product }) {
         </Accordion>
       )}
 
-      {chartKind && (
-        <Accordion icon={Ruler} title={chartKind === "hair" ? t("pdp.lengthGuideRow", sizeChartLabelFor("hair")) : t("pdp.sizeGuideRow", "Size Guide")}>
-          <SizeChart kind={chartKind} />
-        </Accordion>
-      )}
-
       {details.length > 0 && (
         <Accordion icon={Layers} title={product.materials?.length ? t("pdp.details", "Details & Composition") : t("pdp.detailsOnly", "Details")}>
           <ul className="list-disc space-y-1 pl-5">
@@ -51,6 +45,12 @@ export default function ProductPageAccordions({ product }) {
               <li key={line}>{line}</li>
             ))}
           </ul>
+        </Accordion>
+      )}
+
+      {chartKind && (
+        <Accordion icon={Ruler} title={chartKind === "hair" ? t("pdp.lengthGuideRow", sizeChartLabelFor("hair")) : t("pdp.sizeGuideRow", "Size Guide")}>
+          <SizeChart kind={chartKind} />
         </Accordion>
       )}
 
