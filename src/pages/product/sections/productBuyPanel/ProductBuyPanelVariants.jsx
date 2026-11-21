@@ -103,17 +103,8 @@ export default function ProductBuyPanelVariants({
         </div>
       )}
 
-      {/* One-size pieces render no size block, so their guide needs its own
-          way in — every hair product had none at all before this. */}
-      {!needsSize && chartKind && (
-        <button
-          type="button"
-          onClick={onOpenChart}
-          className="mt-7 text-[11px] uppercase tracking-widest text-gold-600 underline underline-offset-4 transition-colors hover:text-gold-700"
-        >
-          {sizeChartLabelFor(chartKind)}
-        </button>
-      )}
+      {/* One-size pieces (hair) have no size block; their guide is the
+          Length & Texture Guide row under Add to bag. */}
     </>
   );
 }
