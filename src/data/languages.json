@@ -89,6 +89,7 @@
         "hair": "Hair & Styling"
       },
       "pdp": {
+        "detailsOnly": "Details",
         "sizeGuideRow": "Size Guide",
         "lengthGuideRow": "Length & Texture Guide",
         "shippingRow": "Shipping Policy",
@@ -287,6 +288,7 @@
         "hair": "Coiffure & Stylisme"
       },
       "pdp": {
+        "detailsOnly": "Détails",
         "sizeGuideRow": "Guide des tailles",
         "lengthGuideRow": "Guide longueur & texture",
         "shippingRow": "Politique de livraison",
@@ -485,6 +487,7 @@
         "hair": "Haar & Styling"
       },
       "pdp": {
+        "detailsOnly": "Details",
         "sizeGuideRow": "Größentabelle",
         "lengthGuideRow": "Längen- & Texturguide",
         "shippingRow": "Versandrichtlinie",
@@ -683,6 +686,7 @@
         "hair": "发型与造型"
       },
       "pdp": {
+        "detailsOnly": "详情",
         "sizeGuideRow": "尺码指南",
         "lengthGuideRow": "长度与质地指南",
         "shippingRow": "配送政策",
@@ -881,6 +885,7 @@
         "hair": "Cabello y Peinado"
       },
       "pdp": {
+        "detailsOnly": "Detalles",
         "sizeGuideRow": "Guía de tallas",
         "lengthGuideRow": "Guía de largo y textura",
         "shippingRow": "Política de envíos",
@@ -1079,6 +1084,7 @@
         "hair": "Capelli & Styling"
       },
       "pdp": {
+        "detailsOnly": "Dettagli",
         "sizeGuideRow": "Guida alle taglie",
         "lengthGuideRow": "Guida a lunghezza e texture",
         "shippingRow": "Politica di spedizione",

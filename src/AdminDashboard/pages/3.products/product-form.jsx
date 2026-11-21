@@ -24,10 +24,10 @@ import ProductFormMore from "./sections/productForm/ProductFormMore";
 import ProductFormPublishPrice from "./sections/productForm/ProductFormPublishPrice";
 import SaveBar from "./sections/productForm/ProductFormSaveBar";
 import FormSkeleton from "./sections/productForm/ProductFormSkeleton";
-import ProductFormDetailsCare from "./sections/productForm/ProductFormDetailsCare";
+import ProductFormCare from "./sections/productForm/ProductFormCare";
+import ProductFormDetails from "./sections/productForm/ProductFormDetails";
 import ProductFormModel from "./sections/productForm/ProductFormModel";
 import ProductFormSafety from "./sections/productForm/ProductFormSafety";
-import ProductFormVideo from "./sections/productForm/ProductFormVideo";
 import ProductFormVariants from "./sections/productForm/ProductFormVariants";
 import { useProductDraftSync } from "./sections/productForm/useProductFormDraftSync";
 import { useDuplicateSource } from "./sections/productForm/useDuplicateSource";
@@ -88,11 +88,13 @@ export default function ProductForm() {
           let saveColorIds = colorIds;
           let savePhotos = photos;
           let saveStock = stock;
+          let saveVideos = videos;
           if (!colorIds.some((c) => c !== AS_SHOWN_ID)) {
             const asShown = await ensureAsShownColor(familyOptionsFrom(taxonomy));
             saveColorIds = [asShown.id];
             savePhotos = photos.map((p) => ({ ...p, colorId: asShown.id }));
             if (asShown.id !== AS_SHOWN_ID) saveStock = { ...stock, [asShown.id]: stock[AS_SHOWN_ID] ?? {} };
+            if (asShown.id !== AS_SHOWN_ID && videos[AS_SHOWN_ID]) saveVideos = { ...videos, [asShown.id]: videos[AS_SHOWN_ID] };
           }
 
           const problem = validateProduct({ status, category, colorIds: saveColorIds, photos: savePhotos });
@@ -100,7 +102,7 @@ export default function ProductForm() {
             toast(problem, "error");
             return;
           }
-          const payload = toPayload(formValues, { photos: savePhotos, videos, colorIds: saveColorIds, stock: saveStock, sizes, tags, category, status });
+          const payload = toPayload(formValues, { photos: savePhotos, videos: saveVideos, colorIds: saveColorIds, stock: saveStock, sizes, tags, category, status });
           // An edit names what it opened: the version (so someone else's save
           // is not overwritten) and the stock grid (so the server moves only
           // the cells changed here, and a delivery or sale since is kept).
@@ -150,8 +152,8 @@ export default function ProductForm() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
           <ProductFormEssentials register={form.register} errors={form.formState.errors} />
-          <ProductFormPhotos photos={photos} onChange={setPhotos} colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds} onImageProgress={(p) => draft.updateDraft("new-product", { progress: p })} />
-          <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
+          <ProductFormPhotos photos={photos} onChange={setPhotos} colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds} videos={videos} onVideosChange={setVideos} onImageProgress={(p) => draft.updateDraft("new-product", { progress: p })} />
+          <ProductFormDetails register={form.register} />
           <ProductFormVariants
             colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds}
             photos={photos} onPhotosChange={setPhotos} stock={stock} onStockChange={setStock}
@@ -160,12 +162,9 @@ export default function ProductForm() {
             register={form.register} reserved={existing?.reservedCells ?? {}}
           />
           <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} modelId={values.modelId} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
+          <ProductFormCare register={form.register} values={values} setValue={form.setValue} />
           {/* Optional extras, folded on a new piece so adding one stays short. */}
-          <ProductFormMore values={values} videos={videos}>
-            <ProductFormVideo
-              colors={colors ?? []} colorIds={colorIds} videos={videos} onVideosChange={setVideos}
-              photos={photos}
-            />
+          <ProductFormMore values={values}>
             <ProductFormSafety register={form.register} />
           </ProductFormMore>
         </div>

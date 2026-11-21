@@ -18,6 +18,7 @@ export default function ProductFormDropzone({
   defaultColorId = null,
   leadIndex = 0,
   onMakeLead,
+  onVideoFiles,
 }) {
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(null); // {done, total}
@@ -31,7 +32,11 @@ export default function ProductFormDropzone({
   const ingest = useCallback(
     async (fileList) => {
 
-      const files = Array.from(fileList ?? []);
+      const all = Array.from(fileList ?? []);
+      // Clips go to the video handler; everything else is treated as a photo.
+      const clips = onVideoFiles ? all.filter((f) => f.type.startsWith("video/")) : [];
+      if (clips.length) onVideoFiles(clips);
+      const files = all.filter((f) => !clips.includes(f));
       if (!files.length) return;
       const fail = (message) => (setError(message), toast(message, "error"));
 
@@ -87,7 +92,7 @@ export default function ProductFormDropzone({
         toast(`${added.length} ${added.length === 1 ? "photo" : "photos"} added.`, "success");
       }
     },
-    [images, max, onChange, onProgress, defaultColorId, toast],
+    [images, max, onChange, onProgress, defaultColorId, toast, onVideoFiles],
   );
 
   const removeAt = (i) => {
@@ -126,7 +131,7 @@ export default function ProductFormDropzone({
           ref={inputRef}
           type="file"
           multiple
-          accept={ACCEPT}
+          accept={onVideoFiles ? `${ACCEPT},video/mp4,video/webm,video/quicktime` : ACCEPT}
           disabled={disabled}
           onChange={(e) => {
             ingest(e.target.files);
@@ -158,10 +163,10 @@ export default function ProductFormDropzone({
           ) : (
             <>
               <span className="mt-3 text-[13px] text-espresso">
-                Drop photos here, or click to browse
+                {onVideoFiles ? "Drop photos and videos here, or click to browse" : "Drop photos here, or click to browse"}
               </span>
               <span className="mt-1 text-[11px] text-espresso-soft">
-                JPEG, PNG, WebP or AVIF · up to 10MB · {images.length} of {max} added
+                Photos: JPEG, PNG, WebP or AVIF up to 10MB · {images.length} of {max} added{onVideoFiles ? " · Video: MP4, WebM or MOV up to 100MB, one per colour" : ""}
               </span>
             </>
           )}

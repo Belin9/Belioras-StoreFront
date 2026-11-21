@@ -8,14 +8,14 @@ import FormSection, { NestedSections } from "./ProductFormSection";
  * piece stays short. It opens by itself when the piece already has any of
  * them (an edit, or a restored draft); after a click it stays as chosen.
  */
-export default function ProductFormMore({ values, videos, children }) {
+export default function ProductFormMore({ values, children }) {
   const [choice, setChoice] = useState(null);
-  const open = choice ?? hasExtras(values, videos);
+  const open = choice ?? hasExtras(values);
 
   return (
     <FormSection
       title="More about the piece"
-      hint="Optional. A video and product safety."
+      hint="Optional. The manufacturer and any safety warnings."
       action={
         <button
           type="button"
@@ -32,7 +32,7 @@ export default function ProductFormMore({ values, videos, children }) {
   );
 }
 
-function hasExtras(v, videos) {
+function hasExtras(v) {
   const text = [v.manufacturerName, v.manufacturerAddress, v.manufacturerContact, v.safetyWarnings];
-  return text.some((s) => String(s ?? "").trim()) || Object.keys(videos ?? {}).length > 0;
+  return text.some((s) => String(s ?? "").trim());
 }

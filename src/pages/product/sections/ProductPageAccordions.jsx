@@ -45,7 +45,7 @@ export default function ProductPageAccordions({ product }) {
       )}
 
       {details.length > 0 && (
-        <Accordion icon={Layers} title={t("pdp.details", "Details & Composition")}>
+        <Accordion icon={Layers} title={product.materials?.length ? t("pdp.details", "Details & Composition") : t("pdp.detailsOnly", "Details")}>
           <ul className="list-disc space-y-1 pl-5">
             {details.map((line) => (
               <li key={line}>{line}</li>
