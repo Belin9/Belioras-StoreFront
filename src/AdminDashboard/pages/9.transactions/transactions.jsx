@@ -1,4 +1,6 @@
 /* Admin Dashboard Page: Transactions - transactions */
+import DashHeaderActions from "@/AdminDashboard/components/DashHeaderActions";
+import ExportButton from "@/AdminDashboard/components/ExportButton";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CreditCard } from "lucide-react";
@@ -80,6 +82,17 @@ export default function DashTransactions() {
 
   return (
     <div className="space-y-5 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <DashHeaderActions>
+        <ExportButton
+          rows={visible}
+          filename="belioras-transactions.csv"
+          columns={[
+            [(t) => String(t.createdAt ?? "").slice(0, 10), "Date"], ["providerRef", "Reference"], ["orderId", "Order"],
+            ["customer", "Customer"], ["type", "Type"], ["method", "Method"], ["signedAmount", "Amount"], ["currency", "Currency"],
+            ["displayStatus", "Status"],
+          ]}
+        />
+      </DashHeaderActions>
       <div className="shrink-0">
         <TransactionsSummary transactions={scoped} loading={loading} locale={locale} />
       </div>

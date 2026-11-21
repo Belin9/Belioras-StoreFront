@@ -10,7 +10,7 @@ const iconMap = {
   FileBarChart, History, House, LayoutDashboard, Package, Warehouse, Tags, Ruler, Menu, Star, ShoppingCart, CreditCard, Users, Percent, Mail, ShieldCheck, Truck, Settings,
 };
 
-export default function SidebarNav({ groups, collapsed, onNavigate }) {
+export default function SidebarNav({ groups, badges = {}, collapsed, onNavigate }) {
   const { pathname } = useLocation();
 
   return (
@@ -62,6 +62,18 @@ export default function SidebarNav({ groups, collapsed, onNavigate }) {
                     )}
                     <Icon className="liquid-glyph size-[18px] shrink-0" strokeWidth={1.5} aria-hidden="true" />
                     <span className={cn(collapsed && "lg:hidden")}>{item.label}</span>
+                    {badges[item.id] > 0 && (
+                      <span
+                        aria-label={`${badges[item.id]} waiting`}
+                        className={cn(
+                          "ml-auto min-w-5 rounded-full bg-gold-500 px-1.5 text-center text-[10px] font-semibold leading-5 tabular-nums text-espresso",
+                          // Collapsed to icons, the count becomes a dot on the icon.
+                          collapsed && "lg:absolute lg:right-4 lg:top-1.5 lg:size-2 lg:min-w-0 lg:p-0 lg:text-[0px]",
+                        )}
+                      >
+                        {badges[item.id]}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

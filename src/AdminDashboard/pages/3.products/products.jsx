@@ -1,9 +1,12 @@
 /* Admin Dashboard Page: Products - products */
+import DashHeaderActions from "@/AdminDashboard/components/DashHeaderActions";
+import ExportButton from "@/AdminDashboard/components/ExportButton";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package } from "lucide-react";
 
 import { useCurrency } from "../../../context/CurrencyContext";
+import { useProductDraft } from "@/context/ProductDraftContext";
 import { useToast } from "../../../context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { getStaffCategories } from "../../../services/catalog/categoriesApi";
@@ -31,6 +34,7 @@ export default function DashProducts() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { format } = useCurrency();
+  const { draftFor } = useProductDraft();
 
   // Bumped after every write so useAsyncData re-runs against the store.
   const [revision, setRevision] = useState(0);
@@ -89,6 +93,40 @@ export default function DashProducts() {
     }
   };
 
+  // One change to every selected piece, then one refresh and one message.
+  const bulkUpdate = async (patchFor, done) => {
+    const ids = [...selectedIds];
+    setSelectedIds([]);
+    try {
+      await Promise.all(ids.map((id) => {
+        const product = rows.find((p) => p.id === id);
+        const patch = product && patchFor(product);
+        return patch ? updateProduct(id, patch) : null;
+      }));
+      refresh();
+      toast(done(ids.length), "success");
+    } catch (err) {
+      refresh();
+      toast(err.message ?? "Could not update those products.", "error");
+    }
+  };
+
+  const LABEL_NAMES = { isNew: "new", featured: "featured", bestseller: "bestseller", limited: "limited" };
+  const bulkSetLabel = (key, on) =>
+    bulkUpdate(() => ({ [key]: on }), (n) => `${n} ${n === 1 ? "piece" : "pieces"} ${on ? "marked" : "no longer"} ${LABEL_NAMES[key]}.`);
+
+  // The was price is the full price: kept when a piece is already on sale,
+  // so 20% then 30% means 30% off the full price, not off the sale price.
+  const bulkSale = (percent) =>
+    bulkUpdate(
+      (p) => {
+        const full = p.originalPrice && p.originalPrice > p.price ? p.originalPrice : p.price;
+        if (percent === null) return p.originalPrice ? { price: p.originalPrice, originalPrice: null } : null;
+        return { price: Math.round(full * (1 - percent / 100) * 100) / 100, originalPrice: full };
+      },
+      (n) => (percent === null ? `Sale ended on ${n} ${n === 1 ? "piece" : "pieces"}.` : `${n} ${n === 1 ? "piece" : "pieces"} now ${percent}% off.`),
+    );
+
   const showStatus = rows.some((p) => p.status !== "active");
 
   const [askBulkDelete, setAskBulkDelete] = useState(false);
@@ -121,15 +159,30 @@ export default function DashProducts() {
         format,
         onView: setViewing,
         onEdit: (p) => navigate(`/dashboard/products/${p.id}/edit`),
+        // A copy opens as the new-piece draft, so one already in progress is never overwritten.
+        onDuplicate: (p) =>
+          draftFor("new-product")
+            ? toast("Finish or discard the new piece you started before duplicating another.", "info")
+            : navigate("/dashboard/products/new", { state: { duplicateOf: p.id } }),
         onDelete: setPendingDelete,
         showStatus,
       }),
-    [format, navigate, showStatus],
+    [format, navigate, showStatus, draftFor, toast],
   );
 
   return (
     // A column the height of the page on a desktop: the toolbar stays, the rows scroll.
     <div className="space-y-5 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <DashHeaderActions>
+        <ExportButton
+          rows={list.visible}
+          filename="belioras-products.csv"
+          columns={[
+            ["name", "Name"], ["sku", "SKU"], ["category", "Category"], ["price", "Price (EUR)"], ["originalPrice", "Was (EUR)"],
+            ["stock", "Stock"], ["status", "Status"], [(p) => (p.sizes ?? []).join(" "), "Sizes"], ["slug", "Address"],
+          ]}
+        />
+      </DashHeaderActions>
       <ProductsToolbar
         query={list.query}
         onQueryChange={list.setQuery}
@@ -146,6 +199,8 @@ export default function DashProducts() {
       <BulkActionsBar
         count={selectedIds.length}
         onSetStatus={bulkSetStatus}
+        onSetLabel={bulkSetLabel}
+        onSale={bulkSale}
         onDelete={() => setAskBulkDelete(true)}
         onClear={() => setSelectedIds([])}
       />

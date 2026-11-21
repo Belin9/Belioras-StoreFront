@@ -1,4 +1,6 @@
 /* Admin Dashboard Page: Customers - customers */
+import DashHeaderActions from "@/AdminDashboard/components/DashHeaderActions";
+import ExportButton from "@/AdminDashboard/components/ExportButton";
 import { useMemo, useState } from "react";
 import { Users } from "lucide-react";
 
@@ -43,6 +45,17 @@ export default function DashCustomers() {
 
   return (
     <div className="space-y-5 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <DashHeaderActions>
+        <ExportButton
+          rows={visible}
+          filename="belioras-customers.csv"
+          columns={[
+            ["name", "Name"], ["email", "Email"], ["orderCount", "Orders"], ["spent", "Lifetime value (EUR)"],
+            [(r) => (r.lastOrder ? new Date(r.lastOrder).toISOString().slice(0, 10) : ""), "Last order"],
+            [(r) => String(r.createdAt ?? "").slice(0, 10), "Joined"],
+          ]}
+        />
+      </DashHeaderActions>
       <CustomersToolbar
         query={query}
         onQueryChange={setQuery}

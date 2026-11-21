@@ -11,6 +11,7 @@ import { useToast } from "../context/ToastContext";
 import { useIdleTimeout } from "../hooks/useIdleTimeout";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { cn } from "../utils/cn";
+import { useAttentionCounts } from "./lib/useAttentionCounts";
 import DashSidebar from "./components/DashSidebar";
 import DashHeader from "./components/DashHeader";
 import { DASHBOARD_NAV_GROUPS, DASHBOARD_NAV_ITEMS } from "./lib/constants";
@@ -67,6 +68,15 @@ export default function DashboardLayout() {
     mainRef.current?.scrollTo(0, 0);
   }, [pathname]);
 
+  // Orders to ship and reviews to moderate: sidebar badges and the tab title.
+  const badges = useAttentionCounts({ access });
+  useEffect(() => {
+    const base = `${title} · Belioras`;
+    document.title = badges.orders ? `(${badges.orders}) ${base}` : base;
+    // Pathname too: RouteSeo resets the title on every navigation, even
+    // between two addresses with the same page title.
+  }, [title, badges.orders, pathname]);
+
   const { warning, extend } = useIdleTimeout({
     timeout: IDLE_TIMEOUT,
     warnBefore: IDLE_WARNING,
@@ -85,6 +95,7 @@ export default function DashboardLayout() {
       )}
     >
       <DashSidebar
+        badges={badges}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         collapsed={collapsed}

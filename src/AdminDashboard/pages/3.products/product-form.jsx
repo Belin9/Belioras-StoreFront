@@ -30,6 +30,7 @@ import ProductFormSafety from "./sections/productForm/ProductFormSafety";
 import ProductFormVideo from "./sections/productForm/ProductFormVideo";
 import ProductFormVariants from "./sections/productForm/ProductFormVariants";
 import { useProductDraftSync } from "./sections/productForm/useProductFormDraftSync";
+import { useDuplicateSource } from "./sections/productForm/useDuplicateSource";
 import { EMPTY_VALUES, toFormModel, toPayload, validateProduct } from "./sections/productForm/productFormPayload";
 
 export default function ProductForm() {
@@ -69,6 +70,7 @@ export default function ProductForm() {
     isEdit, existing, draft, reset: form.reset, snapshot, toast,
     setPhotos, setVideos, setColorIds, setStock, setSizes, setTags, setSpread,
   });
+  useDuplicateSource({ isEdit, reset: form.reset, setPhotos, setVideos, setColorIds, setStock, setSizes, setTags });
 
   // Sizes the new category does not offer are dropped rather than kept hidden.
   // Subcategory tags of the old category are dropped on save (toPayload).

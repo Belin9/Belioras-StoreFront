@@ -8,7 +8,7 @@ import { DASHBOARD_NAV_GROUPS } from "../lib/constants";
 import SidebarNav from "./sidebar/SidebarNav";
 import SidebarFooter from "./sidebar/SidebarFooter";
 
-export default function DashSidebar({ isOpen, onClose, collapsed, onToggleCollapsed }) {
+export default function DashSidebar({ badges = {}, isOpen, onClose, collapsed, onToggleCollapsed }) {
   const { user, can } = useStaffAuth();
 
   // A group whose every item is out of reach for this role disappears with it.
@@ -85,7 +85,7 @@ export default function DashSidebar({ isOpen, onClose, collapsed, onToggleCollap
           />
         </button>
 
-        <SidebarNav groups={groups} collapsed={collapsed} onNavigate={onClose} />
+        <SidebarNav groups={groups} badges={badges} collapsed={collapsed} onNavigate={onClose} />
 
         <SidebarFooter user={user} collapsed={collapsed} />
       </aside>

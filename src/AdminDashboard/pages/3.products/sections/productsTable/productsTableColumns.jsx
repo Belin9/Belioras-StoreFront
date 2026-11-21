@@ -1,5 +1,5 @@
 /* Admin Dashboard Page: Products - productsTableColumns */
-import { Eye, Package, Pencil, Trash2 } from "lucide-react";
+import { Copy, Eye, Package, Pencil, Trash2 } from "lucide-react";
 
 import StatusChip from "../../../../../components/ui/StatusChip";
 import { cn } from "../../../../../utils/cn";
@@ -19,7 +19,7 @@ function variantSummary(product) {
   ].filter(Boolean).join(" · ");
 }
 
-export function buildProductColumns({ format, onView, onEdit, onDelete, showStatus = true }) {
+export function buildProductColumns({ format, onView, onEdit, onDuplicate, onDelete, showStatus = true }) {
   const columns = [
     {
       accessorKey: "name",
@@ -82,6 +82,7 @@ export function buildProductColumns({ format, onView, onEdit, onDelete, showStat
         <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
           <IconAction label={`View ${row.original.name}`} icon={Eye} onClick={() => onView(row.original)} />
           <IconAction label={`Edit ${row.original.name}`} icon={Pencil} onClick={() => onEdit(row.original)} />
+          {onDuplicate && <IconAction label={`Duplicate ${row.original.name}`} icon={Copy} onClick={() => onDuplicate(row.original)} />}
           <IconAction
             label={`Delete ${row.original.name}`}
             icon={Trash2}
