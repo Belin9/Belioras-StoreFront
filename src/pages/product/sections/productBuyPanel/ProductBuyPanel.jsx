@@ -1,5 +1,5 @@
 /* Buy Panel */
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import Modal from "../../../../components/common/Modal";
 import SizeChart from "../../../../components/storefront/sizeChart/SizeChart";
@@ -9,13 +9,17 @@ import ProductBuyPanelActions from "./ProductBuyPanelActions";
 import ProductPageAccordions from "../ProductPageAccordions";
 import ProductModelCard from "../ProductModelCard";
 import { useProductPurchase } from "./useProductPurchase";
+import ProductMobileAddBar from "./ProductMobileAddBar";
 
 export default function ProductBuyPanel({ product, color, onColorChange, images }) {
   const buy = useProductPurchase({ product, color, onColorChange, images });
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const sizesRef = useRef(null);
+  const actionsRef = useRef(null);
 
   return (
     <>
+      <div ref={sizesRef}>
       <ProductBuyPanelVariants
         product={product}
         taxonomy={buy.taxonomy}
@@ -29,6 +33,9 @@ export default function ProductBuyPanel({ product, color, onColorChange, images 
         chartKind={buy.chartKind}
         onOpenChart={() => setSizeGuideOpen(true)}
       />
+      </div>
+
+      <div ref={actionsRef}>
 
       <ProductBuyPanelActions
         product={product}
@@ -40,6 +47,18 @@ export default function ProductBuyPanel({ product, color, onColorChange, images 
         soldOut={buy.soldOut}
         saved={buy.saved}
         onToggleSaved={buy.toggleSaved}
+      />
+      </div>
+
+      <ProductMobileAddBar
+        product={product}
+        size={buy.size}
+        needsSize={buy.needsSize}
+        soldOut={buy.soldOut}
+        added={buy.added}
+        onAdd={buy.handleAdd}
+        watch={actionsRef}
+        sizesRef={sizesRef}
       />
 
       <ProductPageAccordions product={product} />

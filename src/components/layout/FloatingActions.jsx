@@ -38,7 +38,7 @@ export default function FloatingActions() {
     <>
       <div
         className="fixed right-4 z-[60] flex flex-col items-center gap-3 sm:right-6"
-        style={{ bottom: "calc(1.5rem + var(--consent-bar-height, 0px))" }}
+        style={{ bottom: "calc(1.5rem + var(--consent-bar-height, 0px) + var(--addbar-height, 0px))" }}
       >
         {!quiet && waHref && !open && (
           <a

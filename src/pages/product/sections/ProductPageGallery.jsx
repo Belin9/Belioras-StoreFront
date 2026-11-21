@@ -1,9 +1,10 @@
 /* Page: Product - ProductGallery */
 import { useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Play } from "lucide-react";
+import { ChevronDown, ChevronUp, Maximize2, Play } from "lucide-react";
 
 import ProductVideo from "../../../components/storefront/ProductVideo";
 import { cn } from "../../../utils/cn";
+import ProductLightbox from "./ProductLightbox";
 
 /**
  * The piece's photos, and its clip on the model when the colour has one.
@@ -21,6 +22,7 @@ export default function ProductPageGallery({ images = [], video = null, name = "
   ];
   const [active, setActive] = useState(0);
   const strip = useRef(null);
+  const [lightbox, setLightbox] = useState(null); // index into images while open
 
   if (!media.length) return <div className="aspect-[3/4] w-full bg-ivory-200" />;
   const current = media[Math.min(active, media.length - 1)];
@@ -33,9 +35,21 @@ export default function ProductPageGallery({ images = [], video = null, name = "
         {current.kind === "video" ? (
           <ProductVideo key={current.video.url} video={current.video} label={`${name}, on the model`} className={imageClassName} />
         ) : (
-          <img src={current.src} alt={name} className={cn("h-full w-full object-cover", imageClassName)} />
+          <button
+            type="button"
+            onClick={() => setLightbox(Math.max(0, images.indexOf(current.src)))}
+            aria-label={`Open ${name} full screen`}
+            className="group relative block w-full cursor-zoom-in"
+          >
+            <img src={current.src} alt={name} className={cn("h-full w-full object-cover", imageClassName)} />
+            <span aria-hidden="true" className="absolute bottom-3 right-3 flex size-9 items-center justify-center rounded-full bg-ivory-50/85 text-espresso opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100">
+              <Maximize2 className="size-4" strokeWidth={1.5} />
+            </span>
+          </button>
         )}
       </div>
+
+      {lightbox !== null && <ProductLightbox photos={images} start={lightbox} name={name} onClose={() => setLightbox(null)} />}
 
       {media.length > 1 && (
         <div className="flex shrink-0 flex-col items-center gap-2 md:w-20 lg:w-24">

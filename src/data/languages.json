@@ -28,6 +28,7 @@
   "strings": {
     "en": {
       "common": {
+        "recentlyViewed": "Recently viewed",
         "shopNow": "Shop Now",
         "discover": "Discover",
         "viewAll": "View All",
@@ -88,6 +89,18 @@
         "hair": "Hair & Styling"
       },
       "pdp": {
+        "chooseSize": "Choose a size",
+        "sizeShort": "Size",
+        "finderTitle": "Find your size",
+        "finderIntro": "Enter your body measurements. One is enough; more makes it surer.",
+        "finderBust": "Bust",
+        "finderWaist": "Waist",
+        "finderHip": "Hip",
+        "finderButton": "Show my size",
+        "finderEmpty": "Enter at least one measurement.",
+        "finderResult": "Your size is",
+        "finderClosest": "closest match",
+        "finderBetween": "You are between sizes, so we suggest the larger.",
         "selectColour": "Select Colour",
         "selectSize": "Select Size",
         "selectSizeFirst": "Please select a size first",
@@ -203,6 +216,7 @@
     },
     "fr": {
       "common": {
+        "recentlyViewed": "Vus récemment",
         "shopNow": "Acheter",
         "discover": "Découvrir",
         "viewAll": "Tout Voir",
@@ -263,6 +277,18 @@
         "hair": "Coiffure & Stylisme"
       },
       "pdp": {
+        "chooseSize": "Choisir une taille",
+        "sizeShort": "Taille",
+        "finderTitle": "Trouvez votre taille",
+        "finderIntro": "Saisissez vos mensurations. Une seule suffit ; plusieurs rendent le conseil plus sûr.",
+        "finderBust": "Poitrine",
+        "finderWaist": "Taille",
+        "finderHip": "Hanches",
+        "finderButton": "Voir ma taille",
+        "finderEmpty": "Saisissez au moins une mesure.",
+        "finderResult": "Votre taille est",
+        "finderClosest": "la plus proche",
+        "finderBetween": "Vous êtes entre deux tailles, nous conseillons la plus grande.",
         "selectColour": "Choisir la Couleur",
         "selectSize": "Choisir la Taille",
         "selectSizeFirst": "Veuillez d'abord choisir une taille",
@@ -378,6 +404,7 @@
     },
     "de": {
       "common": {
+        "recentlyViewed": "Zuletzt angesehen",
         "shopNow": "Jetzt Einkaufen",
         "discover": "Entdecken",
         "viewAll": "Alle Ansehen",
@@ -438,6 +465,18 @@
         "hair": "Haar & Styling"
       },
       "pdp": {
+        "chooseSize": "Größe wählen",
+        "sizeShort": "Größe",
+        "finderTitle": "Finden Sie Ihre Größe",
+        "finderIntro": "Geben Sie Ihre Körpermaße ein. Eines genügt; mehr macht es genauer.",
+        "finderBust": "Brust",
+        "finderWaist": "Taille",
+        "finderHip": "Hüfte",
+        "finderButton": "Meine Größe zeigen",
+        "finderEmpty": "Bitte mindestens ein Maß eingeben.",
+        "finderResult": "Ihre Größe ist",
+        "finderClosest": "nächste Übereinstimmung",
+        "finderBetween": "Sie liegen zwischen zwei Größen, wir empfehlen die größere.",
         "selectColour": "Farbe Wählen",
         "selectSize": "Größe Wählen",
         "selectSizeFirst": "Bitte wählen Sie zuerst eine Größe",
@@ -553,6 +592,7 @@
     },
     "zh": {
       "common": {
+        "recentlyViewed": "最近浏览",
         "shopNow": "立即选购",
         "discover": "探索",
         "viewAll": "查看全部",
@@ -613,6 +653,18 @@
         "hair": "发型与造型"
       },
       "pdp": {
+        "chooseSize": "选择尺码",
+        "sizeShort": "尺码",
+        "finderTitle": "查找您的尺码",
+        "finderIntro": "输入您的身体尺寸。一项即可；越多越准确。",
+        "finderBust": "胸围",
+        "finderWaist": "腰围",
+        "finderHip": "臀围",
+        "finderButton": "显示我的尺码",
+        "finderEmpty": "请至少输入一项尺寸。",
+        "finderResult": "您的尺码是",
+        "finderClosest": "最接近",
+        "finderBetween": "您介于两个尺码之间，建议选择较大的尺码。",
         "selectColour": "选择颜色",
         "selectSize": "选择尺码",
         "selectSizeFirst": "请先选择尺码",
@@ -728,6 +780,7 @@
     },
     "es": {
       "common": {
+        "recentlyViewed": "Vistos recientemente",
         "shopNow": "Comprar Ahora",
         "discover": "Descubrir",
         "viewAll": "Ver Todo",
@@ -788,6 +841,18 @@
         "hair": "Cabello y Peinado"
       },
       "pdp": {
+        "chooseSize": "Elige una talla",
+        "sizeShort": "Talla",
+        "finderTitle": "Encuentra tu talla",
+        "finderIntro": "Introduce tus medidas corporales. Con una basta; más la hacen más precisa.",
+        "finderBust": "Pecho",
+        "finderWaist": "Cintura",
+        "finderHip": "Cadera",
+        "finderButton": "Ver mi talla",
+        "finderEmpty": "Introduce al menos una medida.",
+        "finderResult": "Tu talla es",
+        "finderClosest": "la más cercana",
+        "finderBetween": "Estás entre dos tallas, te recomendamos la mayor.",
         "selectColour": "Seleccionar Color",
         "selectSize": "Seleccionar Talla",
         "selectSizeFirst": "Por favor, seleccione primero una talla",
@@ -903,6 +968,7 @@
     },
     "it": {
       "common": {
+        "recentlyViewed": "Visti di recente",
         "shopNow": "Acquista Ora",
         "discover": "Scopri",
         "viewAll": "Vedi Tutto",
@@ -963,6 +1029,18 @@
         "hair": "Capelli & Styling"
       },
       "pdp": {
+        "chooseSize": "Scegli una taglia",
+        "sizeShort": "Taglia",
+        "finderTitle": "Trova la tua taglia",
+        "finderIntro": "Inserisci le tue misure. Una basta; più misure la rendono più precisa.",
+        "finderBust": "Seno",
+        "finderWaist": "Vita",
+        "finderHip": "Fianchi",
+        "finderButton": "Mostra la mia taglia",
+        "finderEmpty": "Inserisci almeno una misura.",
+        "finderResult": "La tua taglia è",
+        "finderClosest": "la più vicina",
+        "finderBetween": "Sei tra due taglie, ti consigliamo la più grande.",
         "selectColour": "Seleziona Colore",
         "selectSize": "Seleziona Taglia",
         "selectSizeFirst": "Seleziona prima una taglia",

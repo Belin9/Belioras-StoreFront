@@ -11,6 +11,7 @@ import SizeChartInternational from "./SizeChartInternational";
 import SizeChartShoeTable from "./SizeChartShoeTable";
 import { SizeChartHairLengths, SizeChartHairTextures } from "./SizeChartHairTable";
 import SizeChartHowTo from "./SizeChartHowTo";
+import SizeFinder from "./SizeFinder";
 
 export default function SizeChart({ kind = "garment" }) {
   const { data: charts, loading } = useAsyncData(getSizeCharts, []);
@@ -41,7 +42,10 @@ export default function SizeChart({ kind = "garment" }) {
         tabIndex={0}
       >
         {active === "body" && (
-          <SizeChartBodyTable garment={charts.garment} unit={unit} onUnitChange={setUnit} />
+          <div className="space-y-6">
+            <SizeFinder garment={charts.garment} unit={unit} />
+            <SizeChartBodyTable garment={charts.garment} unit={unit} onUnitChange={setUnit} />
+          </div>
         )}
         {active === "international" && (
           <SizeChartInternational international={charts.garment?.international} />

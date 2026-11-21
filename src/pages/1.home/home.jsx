@@ -8,6 +8,7 @@ import BestSellersSection from "./sections/BestSellersSection";
 import TestimonialsSection from "./sections/TestimonialsSection";
 import BrandStorySection from "./sections/BrandStorySection";
 import InstagramGridSection from "./sections/InstagramGridSection";
+import RecentlyViewed from "../../components/storefront/RecentlyViewed";
 
 export default function HomePage() {
   return (
@@ -18,6 +19,7 @@ export default function HomePage() {
       <FeaturedCollectionSection />
       <NewArrivalsSection />
       <BestSellersSection />
+      <RecentlyViewed />
       <TestimonialsSection />
       <BrandStorySection />
       <InstagramGridSection />

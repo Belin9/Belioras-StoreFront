@@ -1,4 +1,5 @@
 /* Page: Product */
+import { useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
 import { useAsyncData } from "../../hooks/useAsyncData";
@@ -9,6 +10,8 @@ import Seo from "../../components/seo/Seo";
 import { SITE_URL } from "../../seo/head";
 import { productSeo, titleCase } from "../../seo/seo";
 import { colorFromParam, imagesForColor, videoForColor } from "../../utils/productColors";
+import { rememberViewed } from "../../utils/recentlyViewed";
+import RecentlyViewed from "../../components/storefront/RecentlyViewed";
 
 import ProductPageGallery from "./sections/ProductPageGallery";
 import ProductPageHeader from "./sections/ProductPageHeader";
@@ -32,6 +35,11 @@ export default function ProductPage() {
   );
 
   const { data: categories } = useAsyncData(getCategories, []);
+
+  /* Side Effect */
+  useEffect(() => {
+    if (product?.id) rememberViewed(product.id);
+  }, [product?.id]);
 
   usePreloadImages(
     Object.values(product?.colorImages ?? {})
@@ -108,6 +116,8 @@ export default function ProductPage() {
       <ProductPageReviews product={product} />
 
       <ProductPageRelated products={suggestions} />
+
+      <RecentlyViewed exclude={product.id} className="mt-24" />
     </div>
   );
 }
