@@ -33,7 +33,8 @@ export default function DashboardLayout() {
 
   const segment = pathname.replace(/^\/dashboard\/?/, "").split("/")[0] || "overview";
 
-  const title = DASHBOARD_NAV_ITEMS.find((item) => item.id === segment)?.label ?? "Dashboard";
+  const navItem = DASHBOARD_NAV_ITEMS.find((item) => item.id === segment);
+  const title = navItem?.label ?? "Dashboard";
 
   // "Catalogue / Products / New": where in the dashboard this is, from the
   // sidebar's own groups, plus the sub-page when there is one.
@@ -96,7 +97,7 @@ export default function DashboardLayout() {
         `fill`). A phone keeps ordinary page scrolling.
       */}
       <div className="flex min-h-dvh flex-col lg:h-dvh">
-        <DashHeader title={title} trail={trail} onMenuToggle={() => setSidebarOpen(true)} actionsRef={setHeaderSlot} />
+        <DashHeader title={title} description={rest.length ? null : navItem?.description} trail={trail} onMenuToggle={() => setSidebarOpen(true)} actionsRef={setHeaderSlot} />
 
         <main ref={mainRef} className="flex-1 px-5 py-8 sm:px-8 lg:min-h-0 lg:overflow-y-auto lg:px-10 lg:py-10">
           {level === "none" ? (

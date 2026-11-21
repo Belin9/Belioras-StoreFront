@@ -1,6 +1,6 @@
 /* Admin Dashboard Page: Home - home */
 import { useState } from "react";
-import { Plus, Save } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import Button from "@/components/ui/Button";
 import { useStaffAuth } from "@/context/auth/useAuthRealm";
@@ -8,6 +8,7 @@ import { useContentVersion } from "@/context/ContentContext";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { getNavigationForEditing } from "@/services/catalog/navigationApi";
+import SaveBar from "@/AdminDashboard/components/SaveBar";
 import { MAX_TILES, getHomeTilesForEditing, saveHomeTiles } from "@/services/content/homeApi";
 import { menuPages } from "../7.mega-menu/sections/megaMenuTree";
 import HomeTileCard from "./sections/HomeTileCard";
@@ -127,25 +128,7 @@ export default function DashHome() {
         ))}
       </ul>
 
-      {dirty && (
-        <div
-          role="status"
-          className="sticky bottom-0 z-20 -mx-5 flex flex-wrap items-center justify-between gap-3 border-t border-espresso/15 bg-ivory-50/95 px-5 py-3 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10"
-        >
-          <p className="text-[13px] text-espresso">
-            <span aria-hidden="true" className="mr-2 inline-block size-2 rounded-full bg-gold-500" />
-            You have unsaved changes. The shop isn&rsquo;t showing them yet.
-          </p>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => setEdits(null)} disabled={saving}>
-              Discard
-            </Button>
-            <Button icon={Save} onClick={save} loading={saving} className="bg-espresso text-ivory-50 hover:bg-espresso-600">
-              Save tiles
-            </Button>
-          </div>
-        </div>
-      )}
+      <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={() => setEdits(null)} saveLabel="Save tiles" />
     </div>
   );
 }

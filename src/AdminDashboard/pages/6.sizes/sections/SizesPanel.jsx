@@ -8,6 +8,8 @@ import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import DetailValueDialog from "@/AdminDashboard/components/DetailValueDialog";
 import IconAction from "@/AdminDashboard/components/IconAction";
+import ViewToggle from "@/AdminDashboard/components/ViewToggle";
+import { useListView } from "@/AdminDashboard/lib/useListView";
 import { getTaxonomy } from "@/services/catalog/navigationApi";
 import { createSize, deleteSize, renameSize, sizeUsage } from "@/services/catalog/sizesApi";
 
@@ -27,6 +29,7 @@ export default function SizesPanel() {
 
   const [dialog, setDialog] = useState({ open: false, initial: null, n: 0 });
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [view, setView] = useListView("sizes");
 
   const openDialog = (initial) => setDialog((d) => ({ open: true, initial, n: d.n + 1 }));
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }));
@@ -70,11 +73,43 @@ export default function SizesPanel() {
           What a category offers under &ldquo;Sizes offered&rdquo;, and a product picks within. Renaming
           keeps every category and product that uses it; a size still offered can&rsquo;t be deleted.
         </p>
-        <Button icon={Plus} size="sm" onClick={() => openDialog(null)} className="h-10">
-          Add size
-        </Button>
+        <div className="flex items-center gap-2">
+          <ViewToggle value={view} onChange={setView} />
+          <Button icon={Plus} size="sm" onClick={() => openDialog(null)} className="h-10">
+            Add size
+          </Button>
+        </div>
       </div>
 
+      {view === "cards" && (
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {rows.map((value) => {
+            const prods = usage?.products?.[value.id] ?? 0;
+            const cats = usage?.categories?.[value.id] ?? 0;
+            return (
+              <li key={value.id} className="flex flex-col border border-umber-50 bg-ivory-50">
+                <div className="flex items-center gap-3 p-4">
+                  <span className="flex h-12 min-w-12 items-center justify-center bg-gold-500/10 px-2 font-display text-lg text-espresso">
+                    {value.name}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] text-espresso">Size {value.name}</p>
+                    <p className="text-[11px] tabular-nums text-espresso-soft">
+                      {prods ? `${prods} ${prods === 1 ? "product" : "products"}` : "Not used yet"} · {cats} {cats === 1 ? "category" : "categories"}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-auto flex justify-end border-t border-umber-50 px-2 py-1">
+                  <IconAction label={`Rename ${value.name}`} icon={Pencil} onClick={() => openDialog(value)} />
+                  <IconAction label={`Delete ${value.name}`} icon={Trash2} destructive onClick={() => askDelete(value)} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {view === "list" && (
       <ul className="divide-y divide-umber-50 border border-umber-50 bg-ivory-50">
         {rows.map((value) => (
           <li key={value.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
@@ -89,6 +124,7 @@ export default function SizesPanel() {
           </li>
         ))}
       </ul>
+      )}
 
       <DetailValueDialog key={dialog.n} open={dialog.open} dimensionLabel="size" initial={dialog.initial} onClose={closeDialog} onSave={save} />
 

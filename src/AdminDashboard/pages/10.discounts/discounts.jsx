@@ -157,11 +157,6 @@ export default function DashDiscounts() {
         </Button>
       </DashHeaderActions>
 
-      <p className="max-w-2xl text-[13px] leading-relaxed text-espresso-soft">
-        Coupon codes shoppers redeem at checkout — percent off, a fixed amount, or free shipping,
-        sitewide. Not scoped to a product or category.
-      </p>
-
       <DiscountsSummary stats={stats} loading={statsLoading} activeCodes={count((r) => r.state === "live")} />
 
       <DashTabs ariaLabel="Coupons by state" options={tabs} value={tab} onChange={setTab} />

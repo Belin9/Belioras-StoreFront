@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Menu } from "lucide-react";
 
-export default function DashHeader({ title, trail = [], onMenuToggle, showMenuButton = true, actionsRef }) {
+export default function DashHeader({ title, description, trail = [], onMenuToggle, showMenuButton = true, actionsRef }) {
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-umber-50 bg-ivory-50/95 px-5 py-5 backdrop-blur sm:px-8 lg:px-10">
       <div className="flex min-w-0 items-center gap-3">
@@ -36,6 +36,8 @@ export default function DashHeader({ title, trail = [], onMenuToggle, showMenuBu
             </ol>
           </nav>
           <h1 className="truncate font-display text-2xl leading-tight text-espresso">{title}</h1>
+          {/* What the page is for, in one line; hidden on a phone to keep the bar short. */}
+          {description && <p className="mt-1 hidden max-w-2xl truncate text-[12px] text-espresso-soft sm:block">{description}</p>}
         </div>
       </div>
 

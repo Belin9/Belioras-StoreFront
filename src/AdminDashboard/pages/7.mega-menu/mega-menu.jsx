@@ -1,9 +1,7 @@
 /* Admin Dashboard Page: Mega-menu - mega-menu */
 import { useState } from "react";
 
-import { Save } from "lucide-react";
-
-import Button from "@/components/ui/Button";
+import SaveBar from "@/AdminDashboard/components/SaveBar";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useContentVersion } from "@/context/ContentContext";
 import { useToast } from "@/context/ToastContext";
@@ -109,11 +107,6 @@ export default function DashMegaMenu() {
         onSave={save}
       />
 
-      <p className="max-w-3xl text-[12px] leading-relaxed text-espresso-soft">
-        Every menu item and link is chosen from your categories, types, filters and labels, so it always leads to real
-        pieces. Addresses are created for you. Nothing changes in the shop until you press Save menu.
-      </p>
-
       <ul className="space-y-3">
         {draft.map((root, i) => (
           <li key={root.id} {...rootDrag.rowProps(i)} className={rootDrag.over === i ? "outline outline-2 outline-gold-500/60" : undefined}>
@@ -134,25 +127,7 @@ export default function DashMegaMenu() {
         ))}
       </ul>
 
-      {dirty && (
-        <div
-          role="status"
-          className="sticky bottom-0 z-20 -mx-5 flex flex-wrap items-center justify-between gap-3 border-t border-espresso/15 bg-ivory-50/95 px-5 py-3 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10"
-        >
-          <p className="text-[13px] text-espresso">
-            <span aria-hidden="true" className="mr-2 inline-block size-2 rounded-full bg-gold-500" />
-            You have unsaved changes. The shop isn&rsquo;t showing them yet.
-          </p>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => setEdits(null)} disabled={saving}>
-              Discard
-            </Button>
-            <Button icon={Save} onClick={save} loading={saving}>
-              Save menu
-            </Button>
-          </div>
-        </div>
-      )}
+      <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={() => setEdits(null)} saveLabel="Save menu" />
 
       <MegaMenuPickers picker={picker} draft={draft} lookups={lookups} onClose={closePicker} onSave={applyResult} />
 

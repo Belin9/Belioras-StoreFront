@@ -1,8 +1,7 @@
 /* Admin Dashboard Page: Shipping - shipping */
 import { useState } from "react";
-import { Check } from "lucide-react";
 
-import Button from "../../../components/ui/Button";
+import SaveBar from "@/AdminDashboard/components/SaveBar";
 import { useToast } from "../../../context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { getSettings, updateSettings } from "../../../services/content/settingsApi";
@@ -19,7 +18,11 @@ export default function DashShipping() {
   const { data: settings, loading } = useAsyncData(getSettings, []);
 
   const [zoneEdits, setZoneEdits] = useState(null);
-  const zones = zoneEdits ?? settings?.shipping?.zones ?? [];
+  // What the server last held, so a save clears the bar without a refetch.
+  const [saved, setSaved] = useState(null);
+  const baseline = saved ?? settings?.shipping?.zones ?? [];
+  const zones = zoneEdits ?? baseline;
+  const dirty = zoneEdits !== null && JSON.stringify(zoneEdits) !== JSON.stringify(baseline);
 
   const [saving, setSaving] = useState(false);
 
@@ -30,6 +33,8 @@ export default function DashShipping() {
       // updateSettings merges section by section, so this never touches
       // contact, tax, compliance or anything else Settings owns.
       await updateSettings({ shipping: { zones } });
+      setSaved(zones);
+      setZoneEdits(null);
       toast("Shipping zones saved.", "success");
     } catch (err) {
       toast(err.message ?? "Could not save those zones.", "error");
@@ -47,14 +52,9 @@ export default function DashShipping() {
   }
 
   return (
-    <form onSubmit={save} className="space-y-5 pb-24">
-      <div className="flex justify-end">
-        <Button type="submit" icon={Check} loading={saving}>
-          Save changes
-        </Button>
-      </div>
-
+    <form onSubmit={save} className="space-y-5">
       <ShippingZonesPanel zones={zones} onChange={setZoneEdits} />
+      <SaveBar dirty={dirty} saving={saving} onDiscard={() => setZoneEdits(null)} />
     </form>
   );
 }

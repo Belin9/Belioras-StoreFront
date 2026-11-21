@@ -1,12 +1,11 @@
 /* Admin Dashboard Page: Settings - settings */
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { Check } from "lucide-react";
 
-import Button from "../../../components/ui/Button";
 import { useToast } from "../../../context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { getSettings, updateSettings } from "../../../services/content/settingsApi";
+import SaveBar from "@/AdminDashboard/components/SaveBar";
 import ContactPanel from "./sections/SettingsContactPanel";
 import { AnnouncementsPanel, CookiePanel, InvoicePanel, TaxPanel } from "./sections/SettingsStorefrontPanels";
 import { GpsrPanel, SocialPanel } from "./sections/SettingsCompliancePanels";
@@ -92,25 +91,7 @@ export default function DashSettings() {
         </section>
       </div>
 
-      {isDirty && (
-        <div
-          role="status"
-          className="sticky bottom-0 z-30 -mx-5 flex flex-wrap items-center justify-between gap-3 border-t border-espresso/15 bg-ivory-50/95 px-5 py-3 backdrop-blur sm:-mx-8 sm:px-8 lg:col-span-2 lg:-mx-10 lg:px-10"
-        >
-          <p className="text-[13px] text-espresso">
-            <span aria-hidden="true" className="mr-2 inline-block size-2 rounded-full bg-gold-500" />
-            You have unsaved changes.
-          </p>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => reset()} disabled={isSubmitting}>
-              Discard
-            </Button>
-            <Button type="submit" icon={Check} loading={isSubmitting}>
-              Save changes
-            </Button>
-          </div>
-        </div>
-      )}
+      <SaveBar dirty={isDirty} saving={isSubmitting} onDiscard={() => reset()} message="You have unsaved changes." className="lg:col-span-2" />
     </form>
   );
 }

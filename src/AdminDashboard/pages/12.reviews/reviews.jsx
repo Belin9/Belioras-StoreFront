@@ -1,6 +1,6 @@
 /* Admin Dashboard Page: Reviews - reviews */
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Star } from "lucide-react";
 
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
@@ -9,6 +9,11 @@ import { cn } from "@/utils/cn";
 import { getAllProducts } from "@/services/catalog/productsApi";
 import { getAllReviews, hideReview, publishReview, replyToReview } from "@/services/catalog/reviewsApi";
 import RatingStars from "@/components/shared/RatingStars";
+import DashListToolbar from "../../components/DashListToolbar";
+import DashTable from "../../components/DashTable";
+import ExportButton from "../../components/ExportButton";
+import { usePageSize } from "../../lib/usePageSize";
+import { useTabParam } from "../../lib/useTabParam";
 import ReviewsDetailModal from "./sections/reviewsTable/ReviewsDetailModal";
 
 const TABS = [
@@ -21,6 +26,36 @@ const TABS = [
 const STATUS_LABEL = { pending: "Pending", published: "Published", hidden: "Hidden" };
 const STATUS_TONE = { pending: "pending", published: "positive", hidden: "neutral" };
 
+const EXPORT_COLUMNS = [
+  ["date", "Date"], ["product", "Product"], ["rating", "Rating"], ["title", "Title"], ["body", "Review"],
+  ["name", "Name"], [(r) => STATUS_LABEL[r.status] ?? r.status, "Status"],
+];
+
+const columns = [
+  {
+    accessorKey: "product",
+    header: "Product",
+    cell: ({ row: r }) => (
+      <div className="min-w-0">
+        <p className="truncate font-medium text-espresso">{r.original.product}</p>
+        {r.original.title && <p className="truncate text-[11px] text-espresso-soft">{r.original.title}</p>}
+      </div>
+    ),
+  },
+  { accessorKey: "rating", header: "Rating", cell: ({ row: r }) => <RatingStars rating={r.original.rating} /> },
+  { accessorKey: "name", header: "By", cell: ({ row: r }) => <span className="text-espresso-soft">{r.original.name}</span> },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row: r }) => (
+      <span className={cn("whitespace-nowrap px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]", STATUS_TONES[STATUS_TONE[r.original.status]])}>
+        {STATUS_LABEL[r.original.status] ?? r.original.status}
+      </span>
+    ),
+  },
+  { accessorKey: "date", header: "Date", cell: ({ row: r }) => <span className="whitespace-nowrap text-espresso-soft">{r.original.date}</span> },
+];
+
 export default function DashReviews() {
   const { toast } = useToast();
   const [revision, setRevision] = useState(0);
@@ -29,16 +64,18 @@ export default function DashReviews() {
   const { data: reviews, loading } = useAsyncData(getAllReviews, [revision]);
   const { data: products } = useAsyncData(getAllProducts, []);
 
-  const productName = useMemo(() => {
-    const map = new Map((products ?? []).map((p) => [p.id, p.name]));
-    return (id) => map.get(id) ?? id;
-  }, [products]);
+  // The product's name on each row, so search and the export can use it.
+  const rows = useMemo(() => {
+    const names = new Map((products ?? []).map((p) => [p.id, p.name]));
+    return (reviews ?? []).map((r) => ({ ...r, product: names.get(r.productId) ?? r.productId }));
+  }, [reviews, products]);
 
-  const [params] = useSearchParams();
-  const [tab, setTab] = useState(() => (TABS.some(([value]) => value === params.get("status")) ? params.get("status") : "all"));
+  // `?status=` rather than `?tab=`: the overview links here with it.
+  const [tab, setTab] = useTabParam(TABS.map(([value]) => value), "status");
+  const [query, setQuery] = useState("");
+  const [pageSize, setPageSize] = usePageSize("reviews");
   const [viewing, setViewing] = useState(null);
 
-  const rows = reviews ?? [];
   const visible = tab === "all" ? rows : rows.filter((r) => r.status === tab);
   const tabs = TABS.map(([value, label]) => ({
     value,
@@ -50,90 +87,53 @@ export default function DashReviews() {
     try {
       const updated = await fn();
       refresh();
-      setViewing((v) => (v ? updated : v));
+      setViewing((v) => (v ? { ...updated, product: v.product } : v));
       toast(message, "success");
     } catch (err) {
       toast(err.message ?? "Could not update that review.", "error");
     }
   };
 
-  if (loading) return <p className="text-[13px] text-espresso-soft">Loading…</p>;
-
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="font-display text-xl font-medium tracking-wide">Reviews</h2>
-        <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-espresso-soft">
-          Every submission lands here pending — nothing shows on a product page until you publish it.
-        </p>
-      </div>
+    <div className="space-y-5 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <DashListToolbar
+        actions={<ExportButton columns={EXPORT_COLUMNS} rows={visible} filename="belioras-reviews.csv" />}
+        tabs={tabs}
+        tab={tab}
+        onTabChange={setTab}
+        tabsLabel="Reviews by status"
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search product, title or name…"
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+      />
 
-      <div role="tablist" aria-label="Reviews by status" className="flex max-w-full overflow-x-auto border border-umber-50 bg-ivory-50 sm:inline-flex">
-        {tabs.map((t) => (
-          <button
-            key={t.value}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.value}
-            onClick={() => setTab(t.value)}
-            className={cn(
-              "flex items-center gap-1.5 border-r border-umber-50 px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] transition-colors last:border-r-0",
-              tab === t.value ? "bg-espresso text-ivory-50" : "text-espresso-soft hover:bg-brown-50/60 hover:text-espresso",
-            )}
-          >
-            {t.label}
-            <span className={cn("tabular-nums", tab === t.value ? "opacity-60" : "opacity-45")}>{t.count}</span>
-          </button>
-        ))}
-      </div>
-
-      {visible.length === 0 ? (
-        <p className="border border-umber-50 bg-ivory-50 px-4 py-8 text-center text-[13px] text-espresso-soft">
-          No reviews here.
-        </p>
-      ) : (
-        <ul className="divide-y divide-umber-50 border border-umber-50 bg-ivory-50">
-          {visible.map((review) => (
-            <li key={review.id}>
-              <button
-                type="button"
-                onClick={() => setViewing(review)}
-                className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-brown-50/40"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-medium text-espresso">{productName(review.productId)}</span>
-                  <span className="mt-0.5 flex items-center gap-2">
-                    <RatingStars rating={review.rating} />
-                    {review.title && <span className="truncate text-[12px] text-espresso-soft">{review.title}</span>}
-                  </span>
-                </span>
-
-                <span className="shrink-0 text-[12px] text-espresso-soft">{review.name}</span>
-
-                <span
-                  className={cn(
-                    "shrink-0 whitespace-nowrap px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]",
-                    STATUS_TONES[STATUS_TONE[review.status]],
-                  )}
-                >
-                  {STATUS_LABEL[review.status] ?? review.status}
-                </span>
-
-                <span className="shrink-0 text-[11px] text-espresso-soft/70">{review.date}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <DashTable
+        columns={columns}
+        data={visible}
+        loading={loading}
+        globalFilter={query}
+        onRowClick={setViewing}
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+        fill
+        unit={visible.length === 1 ? "review" : "reviews"}
+        empty={{
+          icon: Star,
+          title: query ? "No reviews match" : "No reviews here",
+          description: query ? "Try a different product or name." : "New reviews arrive pending and wait here for you.",
+        }}
+      />
 
       <ReviewsDetailModal
         review={viewing}
-        productName={viewing ? productName(viewing.productId) : null}
+        productName={viewing?.product ?? null}
         onClose={() => setViewing(null)}
         onPublish={() => withToast(() => publishReview(viewing.id), "Review published.")}
         onHide={() => withToast(() => hideReview(viewing.id), "Review hidden.")}
         onReply={(text) => withToast(() => replyToReview(viewing.id, text), text ? "Reply posted." : "Reply removed.")}
       />
-    </section>
+    </div>
   );
 }
