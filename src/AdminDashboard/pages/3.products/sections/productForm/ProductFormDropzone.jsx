@@ -16,6 +16,8 @@ export default function ProductFormDropzone({
   swatches,
   onTag,
   defaultColorId = null,
+  leadIndex = 0,
+  onMakeLead,
 }) {
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(null); // {done, total}
@@ -176,6 +178,8 @@ export default function ProductFormDropzone({
         images={images}
         onRemove={removeAt}
         onMove={move}
+        leadIndex={leadIndex}
+        onMakeLead={onMakeLead ?? ((i) => move(i, 0))}
         swatches={swatches}
         onTag={onTag}
       />
