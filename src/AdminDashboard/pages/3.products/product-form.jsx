@@ -156,10 +156,10 @@ export default function ProductForm() {
             spread={spread} onColorCreated={() => setRevision((n) => n + 1)}
             register={form.register} reserved={existing?.reservedCells ?? {}}
           />
+          <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} modelId={values.modelId} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
           {/* Optional extras, folded on a new piece so adding one stays short. */}
           <ProductFormMore values={values} videos={videos}>
             <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
-            <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
             <ProductFormVideo
               colors={colors ?? []} colorIds={colorIds} videos={videos} onVideosChange={setVideos}
               photos={photos}
