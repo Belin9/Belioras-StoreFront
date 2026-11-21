@@ -150,7 +150,7 @@ export default function ProductForm() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
           <ProductFormEssentials register={form.register} errors={form.formState.errors} />
-          <ProductFormPhotos photos={photos} onChange={setPhotos} colors={colors ?? []} colorIds={colorIds} onImageProgress={(p) => draft.updateDraft("new-product", { progress: p })} />
+          <ProductFormPhotos photos={photos} onChange={setPhotos} colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds} onImageProgress={(p) => draft.updateDraft("new-product", { progress: p })} />
           <ProductFormVariants
             colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds}
             photos={photos} onPhotosChange={setPhotos} stock={stock} onStockChange={setStock}
