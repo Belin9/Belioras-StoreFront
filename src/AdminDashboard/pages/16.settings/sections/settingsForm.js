@@ -60,6 +60,15 @@ export function toFormValues(settings) {
       end: (m.end ?? "").slice(0, 10),
     })),
     cookieText: settings.cookieBanner?.text ?? "",
+    // Always four slots, so the form has a row for each trust line.
+    productTrust: [0, 1, 2, 3].map((i) => ({
+      icon: settings.productPage?.trust?.[i]?.icon ?? "star",
+      text: settings.productPage?.trust?.[i]?.text ?? "",
+    })),
+    productShipping: settings.productPage?.shipping ?? "",
+    productPreOrder: settings.productPage?.preOrder ?? "",
+    productReturns: settings.productPage?.returns ?? "",
+    productResponsible: settings.productPage?.responsible ?? "",
     gpsrManufacturer: settings.gpsr?.manufacturer ?? "",
     gpsrStreet: gpsr.street,
     gpsrPostcode: gpsr.postcode,
@@ -106,6 +115,13 @@ export function toSettingsPayload(values) {
         end: m.end,
       })),
     cookieBanner: { text: values.cookieText },
+    productPage: {
+      trust: (values.productTrust ?? []).filter((l) => l.text?.trim()).map((l) => ({ icon: l.icon, text: l.text.trim() })),
+      shipping: (values.productShipping ?? "").trim(),
+      preOrder: (values.productPreOrder ?? "").trim(),
+      returns: (values.productReturns ?? "").trim(),
+      responsible: (values.productResponsible ?? "").trim(),
+    },
     gpsr: {
       manufacturer: values.gpsrManufacturer,
       address: addressLine(gpsr),

@@ -41,7 +41,7 @@ export default function ProductPageGallery({ images = [], video = null, name = "
             aria-label={`Open ${name} full screen`}
             className="group relative block w-full cursor-zoom-in"
           >
-            <img src={current.src} alt={name} className={cn("h-full w-full object-cover", imageClassName)} />
+            <img src={current.src} alt={name} className={cn("h-full w-full object-contain", imageClassName)} />
             <span aria-hidden="true" className="absolute bottom-3 right-3 flex size-9 items-center justify-center rounded-full bg-ivory-50/85 text-espresso opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100">
               <Maximize2 className="size-4" strokeWidth={1.5} />
             </span>
@@ -74,7 +74,7 @@ export default function ProductPageGallery({ images = [], video = null, name = "
                   i === active ? "border-gold-600" : "border-transparent opacity-75 hover:opacity-100",
                 )}
               >
-                <img src={item.src} alt="" className="aspect-[3/4] w-full object-cover" />
+                <img src={item.src} alt="" className="aspect-[3/4] w-full bg-ivory-200 object-contain" />
                 {item.kind === "video" && (
                   <span aria-hidden="true" className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-espresso/85 text-gold-400 shadow-sm md:size-7">
                     <Play className="size-3 translate-x-px fill-current md:size-3.5" />

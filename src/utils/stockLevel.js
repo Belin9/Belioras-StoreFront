@@ -6,7 +6,7 @@
  * (`lowStockThreshold`); otherwise the shop-wide one applies.
  */
 
-export const DEFAULT_LOW_STOCK = 3;
+export const DEFAULT_LOW_STOCK = 10;
 
 export const STOCK_LEVELS = {
   in: { label: "In stock", tone: "positive" },

@@ -89,6 +89,14 @@
         "hair": "Hair & Styling"
       },
       "pdp": {
+        "sizeGuideRow": "Size Guide",
+        "lengthGuideRow": "Length & Texture Guide",
+        "shippingRow": "Shipping Policy",
+        "shippingPolicyLink": "Shipping & delivery details",
+        "preOrder": "Pre-Order Policy",
+        "returnsRow": "Return & Refund Policy",
+        "returnsPolicyLink": "Read the full Return & Refund Policy",
+        "responsible": "Responsible Production",
         "description": "Description",
         "care": "Care Instructions",
         "chooseSize": "Choose a size",
@@ -279,6 +287,14 @@
         "hair": "Coiffure & Stylisme"
       },
       "pdp": {
+        "sizeGuideRow": "Guide des tailles",
+        "lengthGuideRow": "Guide longueur & texture",
+        "shippingRow": "Politique de livraison",
+        "shippingPolicyLink": "Détails de livraison",
+        "preOrder": "Précommande",
+        "returnsRow": "Retours & remboursements",
+        "returnsPolicyLink": "Lire la politique complète de retours & remboursements",
+        "responsible": "Production responsable",
         "description": "Description",
         "care": "Entretien",
         "chooseSize": "Choisir une taille",
@@ -469,6 +485,14 @@
         "hair": "Haar & Styling"
       },
       "pdp": {
+        "sizeGuideRow": "Größentabelle",
+        "lengthGuideRow": "Längen- & Texturguide",
+        "shippingRow": "Versandrichtlinie",
+        "shippingPolicyLink": "Versand- & Lieferdetails",
+        "preOrder": "Vorbestellung",
+        "returnsRow": "Rückgabe & Erstattung",
+        "returnsPolicyLink": "Vollständige Rückgabe- & Erstattungsrichtlinie lesen",
+        "responsible": "Verantwortungsvolle Herstellung",
         "description": "Beschreibung",
         "care": "Pflegehinweise",
         "chooseSize": "Größe wählen",
@@ -659,6 +683,14 @@
         "hair": "发型与造型"
       },
       "pdp": {
+        "sizeGuideRow": "尺码指南",
+        "lengthGuideRow": "长度与质地指南",
+        "shippingRow": "配送政策",
+        "shippingPolicyLink": "配送详情",
+        "preOrder": "预订政策",
+        "returnsRow": "退货与退款政策",
+        "returnsPolicyLink": "阅读完整的退货与退款政策",
+        "responsible": "负责任的生产",
         "description": "商品描述",
         "care": "护理说明",
         "chooseSize": "选择尺码",
@@ -849,6 +881,14 @@
         "hair": "Cabello y Peinado"
       },
       "pdp": {
+        "sizeGuideRow": "Guía de tallas",
+        "lengthGuideRow": "Guía de largo y textura",
+        "shippingRow": "Política de envíos",
+        "shippingPolicyLink": "Detalles de envío y entrega",
+        "preOrder": "Política de reserva",
+        "returnsRow": "Devoluciones y reembolsos",
+        "returnsPolicyLink": "Leer la política completa de devoluciones",
+        "responsible": "Producción responsable",
         "description": "Descripción",
         "care": "Cuidados",
         "chooseSize": "Elige una talla",
@@ -1039,6 +1079,14 @@
         "hair": "Capelli & Styling"
       },
       "pdp": {
+        "sizeGuideRow": "Guida alle taglie",
+        "lengthGuideRow": "Guida a lunghezza e texture",
+        "shippingRow": "Politica di spedizione",
+        "shippingPolicyLink": "Dettagli di spedizione e consegna",
+        "preOrder": "Politica di preordine",
+        "returnsRow": "Resi e rimborsi",
+        "returnsPolicyLink": "Leggi la politica completa di resi e rimborsi",
+        "responsible": "Produzione responsabile",
         "description": "Descrizione",
         "care": "Cura del Capo",
         "chooseSize": "Scegli una taglia",

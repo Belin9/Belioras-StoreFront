@@ -7,6 +7,7 @@ const LABELS = [
   { field: "featured", label: "Featured", description: "Appears under Featured in the New Arrivals menu and in the Featured Collection." },
   { field: "bestseller", label: "Best seller", description: "Appears under Best Sellers in the menu, and tops up the home page rail while sales are few." },
   { field: "limited", label: "Limited release", description: "Made in small numbers. Appears under Limited Releases in the New Arrivals menu." },
+  { field: "isPreOrder", label: "Pre-order", description: "Made or restocked after purchase. The product page shows the Pre-Order Policy (Settings › Product page)." },
 ];
 
 export default function ProductFormLabels({ values, setValue }) {

@@ -11,6 +11,7 @@ import { useTabParam } from "@/AdminDashboard/lib/useTabParam";
 import ContactPanel from "./sections/SettingsContactPanel";
 import { AnnouncementsPanel, CookiePanel, InvoicePanel, TaxPanel } from "./sections/SettingsStorefrontPanels";
 import { GpsrPanel, SocialPanel } from "./sections/SettingsCompliancePanels";
+import { PolicyRowsPanel, TrustRowPanel } from "./sections/SettingsProductPagePanels";
 import { toFormValues, toSettingsPayload } from "./sections/settingsForm";
 
 /**
@@ -22,10 +23,12 @@ const TABS = [
   { value: "storefront", label: "Storefront" },
   { value: "checkout", label: "Checkout & tax" },
   { value: "compliance", label: "Compliance" },
+  { value: "product-page", label: "Product page" },
 ];
 
 /** Which tab holds a field, so a save that fails opens the tab with the problem. */
 function tabOf(field) {
+  if (/^product[A-Z]/.test(field)) return "product-page";
   if (/^(gpsr)/.test(field)) return "compliance";
   if (/^(tax|invoice)/.test(field)) return "checkout";
   if (/^(announcements|cookie)/.test(field)) return "storefront";
@@ -103,6 +106,12 @@ export default function DashSettings() {
           </>
         )}
         {tab === "compliance" && <GpsrPanel register={register} errors={errors} />}
+        {tab === "product-page" && (
+          <>
+            <TrustRowPanel register={register} />
+            <PolicyRowsPanel register={register} />
+          </>
+        )}
       </div>
 
       <SaveBar dirty={isDirty} saving={isSubmitting} onDiscard={() => reset()} message="You have unsaved changes." />

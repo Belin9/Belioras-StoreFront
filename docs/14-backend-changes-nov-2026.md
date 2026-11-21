@@ -13,6 +13,8 @@ The client asked for a batch of storefront changes (17–18 Nov 2026). Most are 
 | 6 | New storefront pages | Reserve two slugs if the server validates menu slugs | Check |
 | 7 | Per-product manufacturer (GPSR) and returnability | Store and return `manufacturer`, `safetyWarnings`; return `isNonReturnable` | **Required**: fields are dropped today |
 | 8 | Photo and colour order | Keep `colorways`, `colorways[].images` and `images` in the order sent | Check |
+| 9 | Product page texts | Keep `settings.productPage` | **Required** if the settings schema is strict |
+| 10 | Pre-order pieces | Store and return `isPreOrder` on products | **Required**: the field is dropped today |
 
 ---
 
@@ -159,6 +161,33 @@ Staff can now reorder a product's photos by dragging, or with the arrow buttons.
 The same goes for the **order of `colorways`**. Staff can now choose which colour comes first (arrows or drag on the colour chips, or the star on a photo). The first colourway is the colour the product page opens on, and its first photo is the product card. Please store and return `colorways` in the order sent, with no sorting by colour id or name.
 
 **Done when:** on a product in Black and Red, you move Red first, save, reload the edit page, and Red is still first; the storefront card shows the red photo.
+
+## 9. Settings: `productPage`
+
+**Client request:** bring back the old site's product-page rows (Shipping, Pre-Order, Return & Refund, Responsible Production, and the trust lines under Add to bag), editable without a developer.
+
+**Frontend (done):** Dashboard → Settings → **Product page** saves:
+
+```js
+productPage: {
+  trust: [{ icon: "globe" | "return" | "shield" | "truck" | "star", text: string }], // 0–4 lines
+  shipping: string, preOrder: string, returns: string, responsible: string,        // plain text, "" hides the row
+}
+```
+
+The texts are plain text (blank lines, "- " bullets, **bold**), so store them as strings; the storefront never renders them as HTML. Until the server keeps the key, the storefront uses the defaults bundled in `src/data/settings.json`.
+
+**Server:** keep `productPage` on save and return it from both settings routes. Suggested limits: up to 4 trust lines of 60 characters, texts up to 4000 characters.
+
+**Done when:** you change the Shipping text in the dashboard, save, reload, and the product page shows the new text.
+
+## 10. Products: `isPreOrder`
+
+**Frontend (done):** the product form has a **Pre-order** switch under Labels. Pieces with it on show the Pre-Order Policy row.
+
+**Server:** accept `isPreOrder` (boolean) on `POST`/`PATCH /admin/products`, and return it on admin and storefront product GETs. The Prisma model already has the column. Existing products: `false`.
+
+**Done when:** you switch Pre-order on for a piece, save, and its product page shows the Pre-Order Policy row.
 
 ---
 

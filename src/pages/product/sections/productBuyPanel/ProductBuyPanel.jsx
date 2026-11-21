@@ -10,6 +10,7 @@ import ProductPageAccordions from "../ProductPageAccordions";
 import ProductModelCard from "../ProductModelCard";
 import { useProductPurchase } from "./useProductPurchase";
 import ProductMobileAddBar from "./ProductMobileAddBar";
+import ProductTrustRow from "./ProductTrustRow";
 
 export default function ProductBuyPanel({ product, color, onColorChange, images }) {
   const buy = useProductPurchase({ product, color, onColorChange, images });
@@ -49,6 +50,8 @@ export default function ProductBuyPanel({ product, color, onColorChange, images 
         onToggleSaved={buy.toggleSaved}
       />
       </div>
+
+      <ProductTrustRow />
 
       <ProductMobileAddBar
         product={product}
