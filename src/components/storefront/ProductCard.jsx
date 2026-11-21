@@ -74,7 +74,7 @@ export default function ProductCard({ product }) {
             alt={name}
             loading="lazy"
             className={cn(
-              "h-full w-full object-cover transition-all duration-700 ease-out",
+              "h-full w-full object-contain transition-all duration-700 ease-out",
               secondImage ? "group-hover:opacity-0" : "group-hover:scale-[1.03]",
             )}
           />
@@ -84,7 +84,7 @@ export default function ProductCard({ product }) {
               alt=""
               aria-hidden="true"
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:opacity-100"
+              className="absolute inset-0 h-full w-full bg-ivory-200 object-contain opacity-0 transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:opacity-100"
             />
           )}
 

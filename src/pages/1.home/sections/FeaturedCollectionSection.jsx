@@ -44,7 +44,7 @@ export default function FeaturedCollectionSection() {
               alt={product.name}
               loading="lazy"
               className={cn(
-                "w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/photo:scale-[1.04]",
+                "w-full object-contain transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/photo:scale-[1.04]",
                 layout.photo,
               )}
             />
