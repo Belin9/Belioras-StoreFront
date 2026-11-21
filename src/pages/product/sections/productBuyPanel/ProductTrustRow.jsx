@@ -10,6 +10,7 @@ import { TRUST_ICONS } from "../../../../utils/trustIcons";
 export default function ProductTrustRow() {
   const version = useContentVersion();
   const { data: settings } = useAsyncData(getSettings, [version]);
+  if (settings?.productPage?.show?.trust === false) return null;
   const lines = (settings?.productPage?.trust ?? []).filter((l) => l?.text?.trim()).slice(0, 4);
   if (!lines.length) return null;
 

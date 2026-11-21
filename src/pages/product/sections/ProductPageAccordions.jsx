@@ -26,6 +26,8 @@ export default function ProductPageAccordions({ product }) {
   const { data: settings } = useAsyncData(getSettings, [version]);
   const details = [...(product.details ?? []), ...(product.materials ?? [])];
   const texts = settings?.productPage ?? {};
+  // A row switched off in Settings › Product page is hidden; its text is kept.
+  const on = (key) => texts.show?.[key] !== false;
   const chartKind = sizeChartKindFor(product);
 
   return (
@@ -72,6 +74,7 @@ export default function ProductPageAccordions({ product }) {
         </Accordion>
       )}
 
+      {on("shipping") && (
       <Accordion icon={Truck} title={t("pdp.shippingRow", "Shipping Policy")}>
         <ShippingRates zones={settings?.shipping?.zones ?? []} />
         <RichText text={texts.shipping} className="mt-4" />
@@ -81,13 +84,15 @@ export default function ProductPageAccordions({ product }) {
           </Link>
         </p>
       </Accordion>
+      )}
 
-      {product.isPreOrder && texts.preOrder?.trim() && (
+      {product.isPreOrder && on("preOrder") && texts.preOrder?.trim() && (
         <Accordion icon={Clock} title={t("pdp.preOrder", "Pre-Order Policy")}>
           <RichText text={texts.preOrder} />
         </Accordion>
       )}
 
+      {on("returns") && (
       <Accordion icon={RotateCcw} title={t("pdp.returnsRow", "Return & Refund Policy")}>
         <p className="leading-relaxed text-espresso">
           {isNonReturnable(product)
@@ -104,8 +109,9 @@ export default function ProductPageAccordions({ product }) {
           </Link>
         </p>
       </Accordion>
+      )}
 
-      {texts.responsible?.trim() && (
+      {on("responsible") && texts.responsible?.trim() && (
         <Accordion icon={Leaf} title={t("pdp.responsible", "Responsible Production")}>
           <RichText text={texts.responsible} />
         </Accordion>

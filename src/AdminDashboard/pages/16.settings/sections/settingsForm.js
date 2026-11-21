@@ -65,6 +65,10 @@ export function toFormValues(settings) {
       icon: settings.productPage?.trust?.[i]?.icon ?? "star",
       text: settings.productPage?.trust?.[i]?.text ?? "",
     })),
+    // On unless switched off: turning a row off keeps its text for later.
+    productShow: Object.fromEntries(
+      ["trust", "shipping", "preOrder", "returns", "responsible"].map((k) => [k, settings.productPage?.show?.[k] !== false]),
+    ),
     productShipping: settings.productPage?.shipping ?? "",
     productPreOrder: settings.productPage?.preOrder ?? "",
     productReturns: settings.productPage?.returns ?? "",
@@ -121,6 +125,7 @@ export function toSettingsPayload(values) {
       preOrder: (values.productPreOrder ?? "").trim(),
       returns: (values.productReturns ?? "").trim(),
       responsible: (values.productResponsible ?? "").trim(),
+      show: { ...(values.productShow ?? {}) },
     },
     gpsr: {
       manufacturer: values.gpsrManufacturer,

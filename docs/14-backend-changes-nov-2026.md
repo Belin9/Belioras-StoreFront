@@ -172,6 +172,7 @@ The same goes for the **order of `colorways`**. Staff can now choose which colou
 productPage: {
   trust: [{ icon: "globe" | "return" | "shield" | "truck" | "star", text: string }], // 0–4 lines
   shipping: string, preOrder: string, returns: string, responsible: string,        // plain text, "" hides the row
+  show: { trust: boolean, shipping: boolean, preOrder: boolean, returns: boolean, responsible: boolean }, // on/off; false hides it but keeps the text
 }
 ```
 

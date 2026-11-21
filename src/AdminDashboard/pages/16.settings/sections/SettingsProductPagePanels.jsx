@@ -3,15 +3,16 @@ import { useRef, useState } from "react";
 import { Bold, ChevronDown, Clock, Leaf, List, RotateCcw, Star, Truck } from "lucide-react";
 
 import Panel from "@/AdminDashboard/components/Panel";
+import Switch from "@/AdminDashboard/components/Switch";
 import RichText from "@/components/shared/RichText";
 import { cn } from "@/utils/cn";
 import { TRUST_ICONS, TRUST_ICON_LABELS } from "@/utils/trustIcons";
 
 const POLICIES = [
-  { name: "productShipping", label: "Shipping Policy", icon: Truck, where: "Every product, under the live shipping rates" },
-  { name: "productPreOrder", label: "Pre-Order Policy", icon: Clock, where: "Only pieces switched to Pre-order" },
-  { name: "productReturns", label: "Return & Refund Policy", icon: RotateCcw, where: "Every product, under the piece's own returns line" },
-  { name: "productResponsible", label: "Responsible Production", icon: Leaf, where: "Every product" },
+  { name: "productShipping", show: "shipping", label: "Shipping Policy", icon: Truck, where: "Every product, under the live shipping rates" },
+  { name: "productPreOrder", show: "preOrder", label: "Pre-Order Policy", icon: Clock, where: "Only pieces switched to Pre-order" },
+  { name: "productReturns", show: "returns", label: "Return & Refund Policy", icon: RotateCcw, where: "Every product, under the piece's own returns line" },
+  { name: "productResponsible", show: "responsible", label: "Responsible Production", icon: Leaf, where: "Every product" },
 ];
 
 /**
@@ -21,9 +22,23 @@ const POLICIES = [
 export function TrustRowPanel({ register, watch, setValue }) {
   const lines = watch("productTrust") ?? [];
   const shown = lines.filter((l) => l?.text?.trim());
+  const on = watch("productShow.trust") !== false;
 
   return (
-    <Panel title="Trust row" hint="Up to four short lines under Add to bag on every product page. Leave a line empty to hide it.">
+    <Panel
+      title="Trust row"
+      hint="Up to four short lines under Add to bag on every product page. Leave a line empty to hide just that line."
+      action={
+        <Switch
+          checked={on}
+          onChange={(v) => setValue("productShow.trust", v, { shouldDirty: true })}
+          label="Show the trust row on product pages"
+          text={on ? "Shown" : "Hidden"}
+        />
+      }
+    >
+      <div className={cn("space-y-4 transition-opacity", !on && "opacity-50")}>
+      {!on && <p className="text-[12px] text-espresso-soft">Hidden on every product page. The lines are kept for when you turn it back on.</p>}
       <div className="border border-umber-50 bg-white px-4 py-3">
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-espresso-soft">Preview</p>
         {shown.length ? (
@@ -78,6 +93,7 @@ export function TrustRowPanel({ register, watch, setValue }) {
           );
         })}
       </ul>
+      </div>
     </Panel>
   );
 }
@@ -91,34 +107,36 @@ export function PolicyRowsPanel({ register, watch, setValue }) {
   const [open, setOpen] = useState(null);
 
   return (
-    <Panel title="Policy rows" hint="The rows under Add to bag, in this order. An empty text hides its row.">
+    <Panel title="Policy rows" hint="The rows under Add to bag, in this order. Switch a row off to hide it and keep its text; an empty text also hides it.">
       <ul className="divide-y divide-umber-50 border border-umber-50 bg-white">
         {POLICIES.map((p) => {
           const text = watch(p.name) ?? "";
           const isOpen = open === p.name;
+          const on = watch(`productShow.${p.show}`) !== false;
+          const status = !on ? ["Off", "bg-umber-50 text-espresso-soft"] : text.trim() ? ["Shown", "bg-success/10 text-success"] : ["Empty", "bg-gold-500/15 text-gold-800"];
           return (
             <li key={p.name}>
+              <div className="flex items-center gap-3 pr-4 transition-colors hover:bg-brown-50/40">
               <button
                 type="button"
                 aria-expanded={isOpen}
                 onClick={() => setOpen(isOpen ? null : p.name)}
-                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-brown-50/40"
+                className={cn("flex min-w-0 flex-1 items-center gap-3 py-3.5 pl-4 text-left", !on && "opacity-55")}
               >
                 <p.icon className="size-[18px] shrink-0 text-espresso-soft" strokeWidth={1.4} aria-hidden="true" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[14px] text-espresso">{p.label}</span>
                   <span className="block truncate text-[11px] text-espresso-soft">{p.where}</span>
                 </span>
-                <span
-                  className={cn(
-                    "shrink-0 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
-                    text.trim() ? "bg-success/10 text-success" : "bg-umber-50 text-espresso-soft",
-                  )}
-                >
-                  {text.trim() ? "Shown" : "Hidden"}
-                </span>
+                <span className={cn("shrink-0 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]", status[1])}>{status[0]}</span>
                 <ChevronDown className={cn("size-4 shrink-0 text-espresso-soft transition-transform", isOpen && "rotate-180")} aria-hidden="true" />
               </button>
+              <Switch
+                checked={on}
+                onChange={(v) => setValue(`productShow.${p.show}`, v, { shouldDirty: true })}
+                label={`Show ${p.label} on product pages`}
+              />
+              </div>
               {isOpen && <PolicyEditor name={p.name} text={text} register={register} setValue={setValue} />}
             </li>
           );
