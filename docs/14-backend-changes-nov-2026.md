@@ -12,7 +12,7 @@ The client asked for a batch of storefront changes (17–18 Nov 2026). Most are 
 | 5b | Products without a colour ("As shown") | Leave "As shown" out of email and invoice PDF colour labels | Small |
 | 6 | New storefront pages | Reserve two slugs if the server validates menu slugs | Check |
 | 7 | Per-product manufacturer (GPSR) and returnability | Store and return `manufacturer`, `safetyWarnings`; return `isNonReturnable` | **Required**: fields are dropped today |
-| 8 | Photo order | Keep `colorways[].images` and `images` in the order sent | Check |
+| 8 | Photo and colour order | Keep `colorways`, `colorways[].images` and `images` in the order sent | Check |
 
 ---
 
@@ -155,6 +155,10 @@ safetyWarnings: z.array(z.string().max(300)).max(20).optional().default([])
 Staff can now reorder a product's photos by dragging, or with the arrow buttons. The first photo leads in the shop. The order is the order of `colorways[].images` (and `images`) in the save. **Please make sure the server stores and returns those arrays in the order sent**, with no sorting by upload time or id.
 
 **Done when:** you move the third photo first, save, reload, and it stays first.
+
+The same goes for the **order of `colorways`**. Staff can now choose which colour comes first (arrows or drag on the colour chips, or the star on a photo). The first colourway is the colour the product page opens on, and its first photo is the product card. Please store and return `colorways` in the order sent, with no sorting by colour id or name.
+
+**Done when:** on a product in Black and Red, you move Red first, save, reload the edit page, and Red is still first; the storefront card shows the red photo.
 
 ---
 

@@ -1,9 +1,10 @@
 /* Admin Dashboard Page: Products - ProductFormVariants */
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, GripVertical, Plus, X } from "lucide-react";
 
 import ColorDialog from "@/AdminDashboard/components/ColorDialog";
 import { familyOptionsFrom } from "@/AdminDashboard/lib/catalogOptions";
+import { useDragReorder } from "@/AdminDashboard/lib/useDragReorder";
 import { createColor } from "@/services/catalog/colorsApi";
 import { AS_SHOWN_ID } from "@/utils/productColors";
 import FormSection from "./ProductFormSection";
@@ -50,6 +51,17 @@ export default function ProductFormVariants({
     setPicking(false);
   };
 
+  // Order matters: the first colour is the one the shop opens on, and its
+  // first photo is the product card. The hidden "As shown" colour keeps its place.
+  const moveColor = (from, to) => {
+    if (to < 0 || to >= realIds.length || from === to) return;
+    const next = [...realIds];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onColorIdsChange([...next, ...colorIds.filter((id) => id === AS_SHOWN_ID)]);
+  };
+  const drag = useDragReorder(moveColor);
+
   const remove = (id) => {
     onColorIdsChange(colorIds.filter((c) => c !== id));
     // Its photos stay, untagged, rather than vanishing with the colour.
@@ -76,17 +88,43 @@ export default function ProductFormVariants({
 
         {chosen.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {chosen.map((c) => {
+            {chosen.map((c, i) => {
               const count = photoCount(c.id);
+              const many = chosen.length > 1;
               return (
-                <button key={c.id} type="button" onClick={() => remove(c.id)} aria-label={`Remove ${c.name}`} className={`${CHIP} border-espresso bg-espresso text-ivory-50 hover:bg-espresso-600`}>
+                <div
+                  key={c.id}
+                  data-drag-row
+                  {...(many ? drag.rowProps(i) : {})}
+                  className={`${CHIP} border-espresso bg-espresso pl-1 pr-1 text-ivory-50 ${drag.over === i ? "ring-2 ring-gold-500" : ""}`}
+                >
+                  {many && (
+                    <>
+                      <span {...drag.handleProps(i)} title="Drag to reorder" className="cursor-grab text-ivory-50/50 active:cursor-grabbing">
+                        <GripVertical className="size-3.5" aria-hidden="true" />
+                      </span>
+                      <button type="button" onClick={() => moveColor(i, i - 1)} disabled={i === 0} aria-label={`Show ${c.name} earlier`} className="text-ivory-50/60 hover:text-ivory-50 disabled:hidden">
+                        <ChevronLeft className="size-3.5" aria-hidden="true" />
+                      </button>
+                    </>
+                  )}
                   <span aria-hidden="true" className="size-3 border border-ivory-50/40" style={{ backgroundColor: c.hex }} />
                   {c.name}
                   <span className="tabular-nums text-ivory-50/60">
                     {count} {count === 1 ? "photo" : "photos"}
                   </span>
-                  <X className="size-3.5 text-ivory-50/60" aria-hidden="true" />
-                </button>
+                  {many && i === 0 && (
+                    <span className="bg-gold-500 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-espresso">Shown first</span>
+                  )}
+                  {many && (
+                    <button type="button" onClick={() => moveColor(i, i + 1)} disabled={i === chosen.length - 1} aria-label={`Show ${c.name} later`} className="text-ivory-50/60 hover:text-ivory-50 disabled:hidden">
+                      <ChevronRight className="size-3.5" aria-hidden="true" />
+                    </button>
+                  )}
+                  <button type="button" onClick={() => remove(c.id)} aria-label={`Remove ${c.name}`} title={`Remove ${c.name}`} className="ml-0.5 flex size-6 items-center justify-center text-ivory-50/60 hover:text-ivory-50">
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                </div>
               );
             })}
             <button type="button" onClick={() => setPicking((v) => !v)} aria-expanded={picking} className={`${CHIP} border-dashed border-umber-100 text-[11px] uppercase tracking-[0.14em] text-espresso-soft hover:border-espresso hover:text-espresso`}>
@@ -94,6 +132,11 @@ export default function ProductFormVariants({
               Add colour
             </button>
           </div>
+        )}
+        {chosen.length > 1 && (
+          <p className="mt-2 text-[12px] text-espresso-soft">
+            The first colour is the one the shop opens on, and its first photo is the product card. Use the arrows or drag to change it.
+          </p>
         )}
 
         {showPalette && (

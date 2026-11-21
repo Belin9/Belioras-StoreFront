@@ -9,7 +9,7 @@ import { cn } from "@/utils/cn";
  * shows. Drag a photo to put it elsewhere in the order; the arrow and star
  * buttons do the same by keyboard and on touch.
  */
-export default function ProductFormDropzoneThumbs({ images, onRemove, onMove, swatches = [], onTag }) {
+export default function ProductFormDropzoneThumbs({ images, onRemove, onMove, leadIndex = 0, onMakeLead, swatches = [], onTag }) {
   const [dragFrom, setDragFrom] = useState(null);
   const [dragOver, setDragOver] = useState(null);
 
@@ -62,14 +62,14 @@ export default function ProductFormDropzoneThumbs({ images, onRemove, onMove, sw
                 draggable={false}
                 className="aspect-[3/4] w-full object-cover"
               />
-              {i === 0 && (
+              {i === leadIndex && (
                 <span className="absolute left-0 top-0 bg-espresso px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-ivory-50">
                   Lead
                 </span>
               )}
               <div className="absolute right-1 top-1 flex gap-1 transition-opacity lg:opacity-0 lg:group-focus-within:opacity-100 lg:group-hover:opacity-100">
-                {i !== 0 && (
-                  <button type="button" onClick={() => onMove(i, 0)} aria-label={`Make photo ${i + 1} the lead photo`} title="Make lead" className={ICON_BUTTON}>
+                {i !== leadIndex && (
+                  <button type="button" onClick={() => onMakeLead(i)} aria-label={`Show photo ${i + 1} first in the shop`} title="Show first in the shop" className={ICON_BUTTON}>
                     <Star className="size-3.5" aria-hidden="true" />
                   </button>
                 )}
