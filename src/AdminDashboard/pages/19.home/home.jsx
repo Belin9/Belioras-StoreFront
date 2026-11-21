@@ -8,6 +8,7 @@ import { useContentVersion } from "@/context/ContentContext";
 import { useToast } from "@/context/ToastContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { getNavigationForEditing } from "@/services/catalog/navigationApi";
+import DashHeaderActions from "@/AdminDashboard/components/DashHeaderActions";
 import SaveBar from "@/AdminDashboard/components/SaveBar";
 import { MAX_TILES, getHomeTilesForEditing, saveHomeTiles } from "@/services/content/homeApi";
 import { menuPages } from "../7.mega-menu/sections/megaMenuTree";
@@ -90,21 +91,18 @@ export default function DashHome() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="max-w-3xl">
-          <h2 className="font-display text-lg tracking-wide text-espresso">Collection tiles</h2>
-          <p className="mt-1 text-[12px] leading-relaxed text-espresso-soft">
-            The photos under &ldquo;Explore the Collection&rdquo; on the home page, in this order. Each opens a page from
-            your mega menu, so it always leads somewhere real. Up to {MAX_TILES}; three fill one row on a computer.
-            Nothing changes in the shop until you save.
-          </p>
-        </div>
-        {editable && draft.length < MAX_TILES && (
-          <Button variant="ghost" icon={Plus} onClick={add}>
+      {editable && draft.length < MAX_TILES && (
+        <DashHeaderActions>
+          <Button icon={Plus} size="sm" onClick={add} className="h-10">
             Add tile
           </Button>
-        )}
-      </div>
+        </DashHeaderActions>
+      )}
+
+      <p className="max-w-3xl text-[12px] leading-relaxed text-espresso-soft">
+        Shown in this order. Each tile opens a page from your mega menu, so it always leads somewhere real. Up to {MAX_TILES};
+        three fill one row on a computer.
+      </p>
 
       {!editable && (
         <p className="border border-umber-50 bg-ivory-100 px-4 py-3 text-[12px] text-espresso-soft">

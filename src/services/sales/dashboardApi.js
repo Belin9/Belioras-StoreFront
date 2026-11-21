@@ -22,7 +22,30 @@ import { stockLevel, thresholdFor } from "../../utils/stockLevel";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-export function getDashboardStats() {
+/** The overview's periods. `days` null means since the start of the month or year. */
+export const PERIODS = [
+  { id: "7d", label: "7 days", days: 7, compare: "vs the 7 days before" },
+  { id: "30d", label: "30 days", days: 30, compare: "vs the 30 days before" },
+  { id: "month", label: "This month", compare: "vs the same days last month" },
+  { id: "year", label: "This year", compare: "vs the same days last year" },
+];
+
+/** [start, end) of a period and of the one before it, ending now. */
+function periodWindows(id, now = new Date()) {
+  const end = now.getTime();
+  const p = PERIODS.find((x) => x.id === id) ?? PERIODS[1];
+  if (p.days) {
+    const span = p.days * 24 * 60 * 60 * 1000;
+    return { current: [end - span, end], previous: [end - 2 * span, end - span] };
+  }
+  const start = p.id === "month" ? new Date(now.getFullYear(), now.getMonth(), 1) : new Date(now.getFullYear(), 0, 1);
+  const prevStart = p.id === "month" ? new Date(now.getFullYear(), now.getMonth() - 1, 1) : new Date(now.getFullYear() - 1, 0, 1);
+  // The same stretch of the period before: 1–21 November against 1–21 October.
+  const prevEnd = prevStart.getTime() + (end - start.getTime());
+  return { current: [start.getTime(), end], previous: [prevStart.getTime(), prevEnd] };
+}
+
+export function getDashboardStats(period = "30d") {
   return mockApi(async () => {
     const [orders, products] = await Promise.all([getAllOrders(), getAllProducts()]);
 
@@ -33,43 +56,42 @@ export function getDashboardStats() {
 
     const customers = new Set(live.map(customerOf)).size;
 
-    // Month-over-month, using the most recent month present in the data rather
-    // than the calendar month — seed data is not necessarily current.
+    // Months for the chart and the best-sellers list, oldest first.
     const byMonth = groupByMonth(live);
-
     const months = [...byMonth.keys()].sort((a, b) => a - b);
     const currentKey = months.at(-1);
-    const previousKey = months.at(-2);
-
-    const current = byMonth.get(currentKey) ?? { revenue: 0, count: 0 };
-
-    const previous = byMonth.get(previousKey) ?? { revenue: 0, count: 0 };
-
-    // A customer is new in the month of their first order.
-    const firstMonth = new Map();
-    for (const order of live.slice().sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))) {
-      const who = customerOf(order);
-      if (!firstMonth.has(who)) firstMonth.set(who, monthKey(order.createdAt));
-    }
-    const newIn = (key) => [...firstMonth.values()].filter((k) => k === key).length;
 
     const average = (m) => (m.count ? m.revenue / m.count : 0);
+
+    // The key figures, for the chosen period against the one before it.
+    const { current: cur, previous: prev } = periodWindows(period);
+    const within = ([from, to]) => live.filter((o) => {
+      const t = new Date(o.createdAt).getTime();
+      return t >= from && t < to;
+    });
+    const sum = (list) => ({ revenue: list.reduce((n, o) => n + (o.total ?? 0), 0), count: list.length });
+    const nowSet = within(cur);
+    const now = sum(nowSet);
+    const before = sum(within(prev));
+    const seenBefore = new Set(live.filter((o) => new Date(o.createdAt).getTime() < cur[0]).map(customerOf));
+    const newInPeriod = new Set(nowSet.map(customerOf).filter((c) => !seenBefore.has(c))).size;
 
     // The moderation queue, fresh; the last mirror if the server cannot be reached.
     const reviews = await getAllReviews().catch(() => getState("reviews")?.items ?? []);
 
     return {
-      revenue,
-      revenueChange: percentChange(previous.revenue, current.revenue),
-      orderCount: live.length,
-      orderChange: percentChange(previous.count, current.count),
+      revenue: now.revenue,
+      revenueChange: percentChange(before.revenue, now.revenue),
+      orderCount: now.count,
+      orderChange: percentChange(before.count, now.count),
       productCount: products.filter((p) => p.status === "active").length,
       // The same rule and threshold Inventory uses, on what is left to sell.
       lowStockCount: products.filter((p) => stockLevel(p.stock, thresholdFor(p, lowStockThreshold())) === "low").length,
       customerCount: customers,
-      newCustomers: newIn(currentKey),
-      averageOrder: live.length ? revenue / live.length : 0,
-      averageOrderChange: percentChange(average(previous), average(current)),
+      newCustomers: newInPeriod,
+      averageOrder: average(now),
+      averageOrderChange: percentChange(average(before), average(now)),
+      allTimeRevenue: revenue,
       // What is waiting on someone: the counts the Needs attention list links to.
       attention: {
         toPay: orders.filter((o) => normalizeStatus(o.status) === "to-pay").length,

@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { getReports } from "@/services/sales/reportsApi";
+import DashHeaderActions from "../../components/DashHeaderActions";
 import DashTabs from "../../components/DashTabs";
 import StatCard from "../../components/StatCard";
 import { downloadCsv, toCsv } from "../../lib/csv";
@@ -119,12 +120,13 @@ export default function DashReports() {
 
       <DashTabs ariaLabel="Report" options={REPORTS.map((r) => ({ value: r.id, label: r.label }))} value={report} onChange={setReport} />
 
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="max-w-2xl text-[13px] leading-relaxed text-espresso-soft">{current.blurb}</p>
+      <DashHeaderActions>
         <Button icon={Download} size="sm" variant="secondary" onClick={exportCsv} disabled={!rows.length} className="h-10">
-          Download CSV
+          Export<span className="hidden sm:inline"> CSV</span>
         </Button>
-      </div>
+      </DashHeaderActions>
+
+      <p className="max-w-2xl text-[13px] leading-relaxed text-espresso-soft">{current.blurb}</p>
 
       {loading ? (
         <div className="skeleton h-48 w-full" />

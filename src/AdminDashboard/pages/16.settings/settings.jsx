@@ -5,23 +5,37 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { useToast } from "../../../context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { getSettings, updateSettings } from "../../../services/content/settingsApi";
+import DashTabs from "@/AdminDashboard/components/DashTabs";
 import SaveBar from "@/AdminDashboard/components/SaveBar";
+import { useTabParam } from "@/AdminDashboard/lib/useTabParam";
 import ContactPanel from "./sections/SettingsContactPanel";
 import { AnnouncementsPanel, CookiePanel, InvoicePanel, TaxPanel } from "./sections/SettingsStorefrontPanels";
 import { GpsrPanel, SocialPanel } from "./sections/SettingsCompliancePanels";
 import { toFormValues, toSettingsPayload } from "./sections/settingsForm";
 
-/** The page's sections, in the order they appear and in the list beside them. */
-const SECTIONS = [
-  { id: "store", label: "Store" },
-  { id: "checkout", label: "Checkout & tax" },
-  { id: "compliance", label: "Compliance" },
-  { id: "social", label: "Social" },
+/**
+ * One tab per job instead of one long scroll. It is still one form: changes
+ * on several tabs wait in the save bar together and save together.
+ */
+const TABS = [
+  { value: "store", label: "Store details" },
+  { value: "storefront", label: "Storefront" },
+  { value: "checkout", label: "Checkout & tax" },
+  { value: "compliance", label: "Compliance" },
 ];
+
+/** Which tab holds a field, so a save that fails opens the tab with the problem. */
+function tabOf(field) {
+  if (/^(gpsr)/.test(field)) return "compliance";
+  if (/^(tax|invoice)/.test(field)) return "checkout";
+  if (/^(announcements|cookie)/.test(field)) return "storefront";
+  return "store";
+}
 
 export default function DashSettings() {
   const { toast } = useToast();
   const { data: settings, loading } = useAsyncData(getSettings, []);
+  const [tab, setTab] = useTabParam(TABS.map((t) => t.value));
 
   const {
     register,
@@ -50,6 +64,12 @@ export default function DashSettings() {
     }
   };
 
+  const onInvalid = (errs) => {
+    const first = Object.keys(errs)[0];
+    if (first) setTab(tabOf(first));
+    toast("A few fields need attention before saving.", "error");
+  };
+
   if (loading) {
     return (
       <div className="space-y-4" aria-hidden="true">
@@ -60,38 +80,32 @@ export default function DashSettings() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
-      <nav aria-label="Settings sections" className="mb-6 flex gap-4 overflow-x-auto lg:sticky lg:top-0 lg:mb-0 lg:block lg:space-y-1 lg:self-start">
-        {SECTIONS.map((s) => (
-          <a
-            key={s.id}
-            href={`#${s.id}`}
-            className="block whitespace-nowrap border-b-2 border-transparent py-2 text-[12px] uppercase tracking-[0.14em] text-espresso-soft transition-colors hover:text-espresso lg:border-b-0 lg:border-l-2 lg:pl-4 lg:hover:border-gold-500"
-          >
-            {s.label}
-          </a>
-        ))}
-      </nav>
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+      <DashTabs options={TABS} value={tab} onChange={setTab} ariaLabel="Settings" />
 
-      <div className="max-w-3xl space-y-10 pb-10">
-        <section id="store" aria-label="Store" className="scroll-mt-4 space-y-5">
-          <ContactPanel register={register} setValue={setValue} watch={watch} errors={errors} />
-          <AnnouncementsPanel register={register} watch={watch} setValue={setValue} fields={fields} append={append} remove={remove} />
-          <CookiePanel register={register} />
-        </section>
-        <section id="checkout" aria-label="Checkout and tax" className="scroll-mt-4 space-y-5">
-          <TaxPanel register={register} errors={errors} />
-          <InvoicePanel register={register} />
-        </section>
-        <section id="compliance" aria-label="Compliance" className="scroll-mt-4 space-y-5">
-          <GpsrPanel register={register} errors={errors} />
-        </section>
-        <section id="social" aria-label="Social" className="scroll-mt-4 space-y-5">
-          <SocialPanel register={register} />
-        </section>
+      <div role="tabpanel" aria-label={TABS.find((t) => t.value === tab).label} className="max-w-3xl space-y-5 pb-10">
+        {tab === "store" && (
+          <>
+            <ContactPanel register={register} setValue={setValue} watch={watch} errors={errors} />
+            <SocialPanel register={register} />
+          </>
+        )}
+        {tab === "storefront" && (
+          <>
+            <AnnouncementsPanel register={register} watch={watch} setValue={setValue} fields={fields} append={append} remove={remove} />
+            <CookiePanel register={register} />
+          </>
+        )}
+        {tab === "checkout" && (
+          <>
+            <TaxPanel register={register} errors={errors} />
+            <InvoicePanel register={register} />
+          </>
+        )}
+        {tab === "compliance" && <GpsrPanel register={register} errors={errors} />}
       </div>
 
-      <SaveBar dirty={isDirty} saving={isSubmitting} onDiscard={() => reset()} message="You have unsaved changes." className="lg:col-span-2" />
+      <SaveBar dirty={isDirty} saving={isSubmitting} onDiscard={() => reset()} message="You have unsaved changes." />
     </form>
   );
 }

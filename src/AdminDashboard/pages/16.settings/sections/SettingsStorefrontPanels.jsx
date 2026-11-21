@@ -71,7 +71,7 @@ export function CookiePanel({ register }) {
 
 export function TaxPanel({ register, errors }) {
   return (
-    <Panel title="Tax">
+    <Panel title="Tax" hint="The VAT rate included in every price, used at checkout and on invoices.">
       <div className="max-w-xs">
         <Field
           label="VAT rate (%)"

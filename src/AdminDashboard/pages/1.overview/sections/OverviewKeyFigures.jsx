@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowRight, Package, Receipt, Users, Wallet } from "luci
 
 import StatCard from "../../../components/StatCard";
 
-export default function KeyFigures({ stats, loading, format, locale, seesMoney = true }) {
+export default function KeyFigures({ stats, loading, format, locale, seesMoney = true, compare = "vs the period before" }) {
   return (
     <section aria-label="Key figures">
       <div className={`grid grid-cols-2 gap-px border border-umber-50 bg-umber-50 ${seesMoney ? "xl:grid-cols-4" : ""}`}>
@@ -12,27 +12,27 @@ export default function KeyFigures({ stats, loading, format, locale, seesMoney =
           label="Revenue"
           value={loading ? "—" : format(stats?.revenue ?? 0)}
           change={stats?.revenueChange}
-          hint="vs last month"
+          hint={compare}
           icon={Wallet}
         />}
         <StatCard
           label="Orders"
           value={loading ? "—" : (stats?.orderCount ?? 0).toLocaleString(locale)}
           change={stats?.orderChange}
-          hint="vs last month"
+          hint={compare}
           icon={Receipt}
         />
         {seesMoney && <StatCard
           label="Average order"
           value={loading ? "—" : format(stats?.averageOrder ?? 0)}
           change={stats?.averageOrderChange}
-          hint="vs last month"
+          hint={compare}
           icon={Package}
         />}
         <StatCard
           label="Customers"
           value={loading ? "—" : (stats?.customerCount ?? 0).toLocaleString(locale)}
-          hint={loading ? undefined : `${stats?.newCustomers ?? 0} new this month`}
+          hint={loading ? undefined : `${stats?.newCustomers ?? 0} new in this period`}
           icon={Users}
         />
       </div>

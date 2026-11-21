@@ -26,7 +26,7 @@ export function GpsrPanel({ register, errors }) {
 
 export function SocialPanel({ register }) {
   return (
-    <Panel title="Social">
+    <Panel title="Social" hint="Links to your profiles, shown as icons in the footer. Leave one empty to hide its icon.">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Instagram">
           <input {...register("instagram")} />
