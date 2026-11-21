@@ -37,62 +37,63 @@ export function TrustRowPanel({ register, watch, setValue }) {
         />
       }
     >
-      <div className={cn("space-y-4 transition-opacity", !on && "opacity-50")}>
       {!on && <p className="text-[12px] text-espresso-soft">Hidden on every product page. The lines are kept for when you turn it back on.</p>}
-      <div className="border border-umber-50 bg-white px-4 py-3">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-espresso-soft">Preview</p>
-        {shown.length ? (
-          <ul className="space-y-2">
-            {shown.map((l, i) => {
-              const Icon = TRUST_ICONS[l.icon] ?? Star;
-              return (
-                <li key={i} className="flex items-center gap-3 text-[12px] uppercase tracking-[0.12em] text-espresso">
-                  <Icon className="size-4 shrink-0 text-espresso-soft" strokeWidth={1.5} aria-hidden="true" />
-                  {l.text}
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-[12px] text-espresso-soft">No lines: the product page shows none.</p>
-        )}
-      </div>
+      <div className={cn("grid gap-5 transition-opacity xl:grid-cols-[minmax(0,1fr)_17rem]", !on && "opacity-50")}>
+        <ul className="space-y-2">
+          {[0, 1, 2, 3].map((i) => {
+            const current = lines[i]?.icon ?? "star";
+            return (
+              <li key={i} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                <div role="radiogroup" aria-label={`Icon for line ${i + 1}`} className="flex shrink-0 border border-umber-100 bg-white">
+                  {Object.entries(TRUST_ICONS).map(([id, Icon]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="radio"
+                      aria-checked={current === id}
+                      title={TRUST_ICON_LABELS[id]}
+                      aria-label={TRUST_ICON_LABELS[id]}
+                      onClick={() => setValue(`productTrust.${i}.icon`, id, { shouldDirty: true })}
+                      className={cn(
+                        "flex size-10 items-center justify-center transition-colors",
+                        current === id ? "bg-espresso text-ivory-50" : "text-espresso-soft hover:text-espresso",
+                      )}
+                    >
+                      <Icon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                  ))}
+                </div>
+                <input
+                  {...register(`productTrust.${i}.text`)}
+                  aria-label={`Line ${i + 1}`}
+                  maxLength={60}
+                  placeholder={`Line ${i + 1}, e.g. Free shipping within Germany`}
+                  className="input h-10 min-w-0 flex-1"
+                />
+              </li>
+            );
+          })}
+        </ul>
 
-      <ul className="space-y-2">
-        {[0, 1, 2, 3].map((i) => {
-          const current = lines[i]?.icon ?? "star";
-          return (
-            <li key={i} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-              <div role="radiogroup" aria-label={`Icon for line ${i + 1}`} className="flex shrink-0 border border-umber-100 bg-white">
-                {Object.entries(TRUST_ICONS).map(([id, Icon]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    role="radio"
-                    aria-checked={current === id}
-                    title={TRUST_ICON_LABELS[id]}
-                    aria-label={TRUST_ICON_LABELS[id]}
-                    onClick={() => setValue(`productTrust.${i}.icon`, id, { shouldDirty: true })}
-                    className={cn(
-                      "flex size-10 items-center justify-center transition-colors",
-                      current === id ? "bg-espresso text-ivory-50" : "text-espresso-soft hover:text-espresso",
-                    )}
-                  >
-                    <Icon className="size-4" strokeWidth={1.5} aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
-              <input
-                {...register(`productTrust.${i}.text`)}
-                aria-label={`Line ${i + 1}`}
-                maxLength={60}
-                placeholder={`Line ${i + 1}, e.g. Free shipping within Germany`}
-                className="input h-10 min-w-0 flex-1"
-              />
-            </li>
-          );
-        })}
-      </ul>
+        {/* How it reads under Add to bag. */}
+        <div className="self-start border border-umber-50 bg-ivory-50 px-4 py-3">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-espresso-soft">Preview</p>
+          {shown.length ? (
+            <ul className="space-y-2">
+              {shown.map((l, i) => {
+                const Icon = TRUST_ICONS[l.icon] ?? Star;
+                return (
+                  <li key={i} className="flex items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-espresso">
+                    <Icon className="size-4 shrink-0 text-espresso-soft" strokeWidth={1.5} aria-hidden="true" />
+                    {l.text}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-[12px] text-espresso-soft">No lines: the product page shows none.</p>
+          )}
+        </div>
       </div>
     </Panel>
   );

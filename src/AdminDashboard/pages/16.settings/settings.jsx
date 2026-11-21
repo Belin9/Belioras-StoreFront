@@ -6,6 +6,7 @@ import { useToast } from "../../../context/ToastContext";
 import { useAsyncData } from "../../../hooks/useAsyncData";
 import { getSettings, updateSettings } from "../../../services/content/settingsApi";
 import DashTabs from "@/AdminDashboard/components/DashTabs";
+import { PanelRows } from "@/AdminDashboard/components/Panel";
 import SaveBar from "@/AdminDashboard/components/SaveBar";
 import { useTabParam } from "@/AdminDashboard/lib/useTabParam";
 import { serverKnows } from "@/api/serverFields";
@@ -87,38 +88,30 @@ export default function DashSettings() {
     <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
       <DashTabs options={TABS} value={tab} onChange={setTab} ariaLabel="Settings" />
 
-      <div role="tabpanel" aria-label={TABS.find((t) => t.value === tab).label} className="max-w-3xl space-y-5 pb-10">
-        {tab === "store" && (
-          <>
-            <ContactPanel register={register} setValue={setValue} watch={watch} errors={errors} />
-            <SocialPanel register={register} />
-          </>
+      <div role="tabpanel" aria-label={TABS.find((t) => t.value === tab).label} className="max-w-[76rem] space-y-6 pb-10">
+        {tab === "product-page" && !serverKnows("settings", "productPage") && (
+          <p className="border-l-2 border-gold-500 bg-gold-500/5 px-4 py-3 text-[13px] text-espresso">
+            <strong className="font-semibold">Waiting on a server update.</strong> The product page shows these texts already, but
+            changes here can&rsquo;t be saved until the server stores them. Other settings save as normal.
+          </p>
         )}
-        {tab === "storefront" && (
-          <>
-            <AnnouncementsPanel register={register} watch={watch} setValue={setValue} fields={fields} append={append} remove={remove} />
-            <CookiePanel register={register} />
-          </>
-        )}
-        {tab === "checkout" && (
-          <>
-            <TaxPanel register={register} errors={errors} />
-            <InvoicePanel register={register} />
-          </>
-        )}
-        {tab === "compliance" && <GpsrPanel register={register} errors={errors} />}
-        {tab === "product-page" && (
-          <>
-            {!serverKnows("settings", "productPage") && (
-              <p className="border-l-2 border-gold-500 bg-gold-500/5 px-4 py-3 text-[13px] text-espresso">
-                <strong className="font-semibold">Waiting on a server update.</strong> The product page shows these texts already, but
-                changes here can&rsquo;t be saved until the server stores them. Other settings save as normal.
-              </p>
-            )}
-            <TrustRowPanel register={register} watch={watch} setValue={setValue} />
-            <PolicyRowsPanel register={register} watch={watch} setValue={setValue} />
-          </>
-        )}
+        {/* Each panel is a row: what it is on the left, its fields on the right. */}
+        <PanelRows>
+          {tab === "store" && [
+            <ContactPanel key="contact" register={register} setValue={setValue} watch={watch} errors={errors} />,
+            <SocialPanel key="social" register={register} />,
+          ]}
+          {tab === "storefront" && [
+            <AnnouncementsPanel key="ann" register={register} watch={watch} setValue={setValue} fields={fields} append={append} remove={remove} />,
+            <CookiePanel key="cookie" register={register} />,
+          ]}
+          {tab === "checkout" && [<TaxPanel key="tax" register={register} errors={errors} />, <InvoicePanel key="inv" register={register} />]}
+          {tab === "compliance" && <GpsrPanel register={register} errors={errors} />}
+          {tab === "product-page" && [
+            <TrustRowPanel key="trust" register={register} watch={watch} setValue={setValue} />,
+            <PolicyRowsPanel key="policy" register={register} watch={watch} setValue={setValue} />,
+          ]}
+        </PanelRows>
       </div>
 
       <SaveBar dirty={isDirty} saving={isSubmitting} onDiscard={() => reset()} message="You have unsaved changes." />
