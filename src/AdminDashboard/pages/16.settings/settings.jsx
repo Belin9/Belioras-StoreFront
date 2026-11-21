@@ -108,8 +108,8 @@ export default function DashSettings() {
         {tab === "compliance" && <GpsrPanel register={register} errors={errors} />}
         {tab === "product-page" && (
           <>
-            <TrustRowPanel register={register} />
-            <PolicyRowsPanel register={register} />
+            <TrustRowPanel register={register} watch={watch} setValue={setValue} />
+            <PolicyRowsPanel register={register} watch={watch} setValue={setValue} />
           </>
         )}
       </div>
