@@ -13,7 +13,7 @@ export default function BrandStorySection() {
 
   const story = settings?.brandStory;
 
-  if (!story) return null;
+  if (!story || story.show === false) return null;
 
   return (
     // Espresso band. Moving the newsletter into the footer removed one of the
@@ -23,14 +23,14 @@ export default function BrandStorySection() {
       <div className="container-main grid items-center gap-12 py-section-mobile md:grid-cols-2 md:py-section-desktop">
         <div className="order-2 md:order-1">
           <img
-            src="https://ik.imagekit.io/sbgenu6wj/Belioras/Home/model-belioras123.jpeg"
+            src={story.image || "https://ik.imagekit.io/sbgenu6wj/Belioras/Home/model-belioras123.jpeg"}
             alt={story.imageAlt ?? "Inside the Belioras atelier"}
             loading="lazy"
             className="w-full rounded-lg border border-gold-500/25"
           />
         </div>
         <div className="order-1 max-w-xl md:order-2">
-          <p className="eyebrow !text-gold-400">Our Maison</p>
+          <p className="eyebrow !text-gold-400">{story.eyebrow || "Our Maison"}</p>
           <h2
             id="brand-story-title"
             className="mt-3 font-display text-3xl tracking-wide text-ivory-50 md:text-4xl"
@@ -53,10 +53,10 @@ export default function BrandStorySection() {
           )}
 
           <Link
-            to="/about-us"
+            to={story.ctaTo || "/about-us"}
             className="mt-10 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-gold-400 transition hover:text-gold-300"
           >
-            Discover our story
+            {story.ctaLabel || "Discover our story"}
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </div>
