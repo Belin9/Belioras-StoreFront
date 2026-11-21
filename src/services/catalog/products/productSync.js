@@ -1,4 +1,5 @@
 /* Catalogue Sync */
+import { noteServerFields } from "@/api/serverFields";
 import { http } from "@/api/client";
 import { ApiError } from "@/api/error";
 import { resourcePath, routes } from "@/api/routes";
@@ -47,6 +48,7 @@ export async function refreshProducts() {
   const r = realm();
   try {
     const items = await http.get(resourcePath(routes.products.list, r), { realm: r });
+    noteServerFields("product", items);
     if (!usable(items)) throw new ApiError("The catalogue came back incomplete.", 502);
     return replaceAll(items, { realm: r });
   } catch (err) {

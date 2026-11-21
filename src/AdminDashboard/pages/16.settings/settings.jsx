@@ -8,6 +8,7 @@ import { getSettings, updateSettings } from "../../../services/content/settingsA
 import DashTabs from "@/AdminDashboard/components/DashTabs";
 import SaveBar from "@/AdminDashboard/components/SaveBar";
 import { useTabParam } from "@/AdminDashboard/lib/useTabParam";
+import { serverKnows } from "@/api/serverFields";
 import ContactPanel from "./sections/SettingsContactPanel";
 import { AnnouncementsPanel, CookiePanel, InvoicePanel, TaxPanel } from "./sections/SettingsStorefrontPanels";
 import { GpsrPanel, SocialPanel } from "./sections/SettingsCompliancePanels";
@@ -108,6 +109,12 @@ export default function DashSettings() {
         {tab === "compliance" && <GpsrPanel register={register} errors={errors} />}
         {tab === "product-page" && (
           <>
+            {!serverKnows("settings", "productPage") && (
+              <p className="border-l-2 border-gold-500 bg-gold-500/5 px-4 py-3 text-[13px] text-espresso">
+                <strong className="font-semibold">Waiting on a server update.</strong> The product page shows these texts already, but
+                changes here can&rsquo;t be saved until the server stores them. Other settings save as normal.
+              </p>
+            )}
             <TrustRowPanel register={register} watch={watch} setValue={setValue} />
             <PolicyRowsPanel register={register} watch={watch} setValue={setValue} />
           </>

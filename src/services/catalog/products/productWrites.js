@@ -1,5 +1,6 @@
 /* Catalogue Writes */
 import { http } from "@/api/client";
+import { serverKnows } from "@/api/serverFields";
 import { ApiError } from "@/api/error";
 import { resourcePath, routes } from "@/api/routes";
 import { normalize } from "./productStore";
@@ -28,9 +29,14 @@ const WRITABLE = [
   "ifEditVersion", "stockBase",
 ];
 
+/** Fields the server may not accept yet; sent once a product response carries them. */
+const PENDING = ["isPreOrder"];
+
 function body(input) {
   const out = {};
   for (const key of WRITABLE) if (input[key] !== undefined) out[key] = input[key];
+  // Newer fields go only to a server that has shown it knows them (see serverFields).
+  for (const key of PENDING) if (!serverKnows("product", key)) delete out[key];
   if ("name" in out) out.name = String(out.name ?? "").trim();
   for (const key of ["price", "costPrice", "originalPrice", "stock", "lowStockThreshold"]) {
     if (out[key] !== undefined && out[key] !== null) out[key] = Number(out[key]);

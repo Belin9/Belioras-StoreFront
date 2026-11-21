@@ -1,5 +1,6 @@
 /* Admin Dashboard Page: Products - ProductFormLabels */
 import Toggle from "@/AdminDashboard/components/Toggle";
+import { serverKnows } from "@/api/serverFields";
 import FormSection from "./ProductFormSection";
 
 const LABELS = [
@@ -13,7 +14,8 @@ const LABELS = [
 export default function ProductFormLabels({ values, setValue }) {
   return (
     <FormSection title="Labels">
-      {LABELS.map((l, i) => (
+      {/* Pre-order appears once the server stores it; until then it would only be refused. */}
+      {LABELS.filter((l) => l.field !== "isPreOrder" || serverKnows("product", "isPreOrder")).map((l, i) => (
         <div key={l.field} className="space-y-4">
           {i > 0 && <div className="border-t border-umber-50" />}
           <Toggle

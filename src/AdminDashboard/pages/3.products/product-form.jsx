@@ -151,6 +151,7 @@ export default function ProductForm() {
         <div className="min-w-0 space-y-4">
           <ProductFormEssentials register={form.register} errors={form.formState.errors} />
           <ProductFormPhotos photos={photos} onChange={setPhotos} colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds} onImageProgress={(p) => draft.updateDraft("new-product", { progress: p })} />
+          <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
           <ProductFormVariants
             colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds}
             photos={photos} onPhotosChange={setPhotos} stock={stock} onStockChange={setStock}
@@ -161,7 +162,6 @@ export default function ProductForm() {
           <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} modelId={values.modelId} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
           {/* Optional extras, folded on a new piece so adding one stays short. */}
           <ProductFormMore values={values} videos={videos}>
-            <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
             <ProductFormVideo
               colors={colors ?? []} colorIds={colorIds} videos={videos} onVideosChange={setVideos}
               photos={photos}

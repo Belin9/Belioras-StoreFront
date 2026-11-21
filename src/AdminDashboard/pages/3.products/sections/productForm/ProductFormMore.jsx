@@ -15,7 +15,7 @@ export default function ProductFormMore({ values, videos, children }) {
   return (
     <FormSection
       title="More about the piece"
-      hint="Optional. Details and care, a video and product safety."
+      hint="Optional. A video and product safety."
       action={
         <button
           type="button"
@@ -33,6 +33,6 @@ export default function ProductFormMore({ values, videos, children }) {
 }
 
 function hasExtras(v, videos) {
-  const text = [v.details, v.materials, v.careNotes, v.manufacturerName, v.manufacturerAddress, v.manufacturerContact, v.safetyWarnings];
-  return text.some((s) => String(s ?? "").trim()) || (v.careSymbols ?? []).length > 0 || Object.keys(videos ?? {}).length > 0;
+  const text = [v.manufacturerName, v.manufacturerAddress, v.manufacturerContact, v.safetyWarnings];
+  return text.some((s) => String(s ?? "").trim()) || Object.keys(videos ?? {}).length > 0;
 }
