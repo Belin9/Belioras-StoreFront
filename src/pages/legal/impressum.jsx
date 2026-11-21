@@ -1,5 +1,5 @@
 /* Page: Legal - impressum */
-import PageShell, { DraftNotice, Section } from "../../components/layout/PageShell";
+import PageShell, { Section } from "../../components/layout/PageShell";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useContentVersion } from "../../context/ContentContext";
 import { getSettings } from "../../services/content/settingsApi";
@@ -9,6 +9,11 @@ import { BUSINESS, UPDATED } from "./legalDetails";
  * The legal notice German law requires (§ 5 DDG). The owner asked that her
  * name and postal address appear here and nowhere else on the site — every
  * other page refers back to this one rather than repeating them.
+ *
+ * Her name cannot be left out: "Belioras – Online Boutique" is the trading
+ * name of a sole trader, and § 5 DDG asks for the operator's full name and a
+ * serviceable address (the c/o service address keeps her home private). It
+ * is set quietly, as one line of the address, the way most German shops do.
  */
 export default function ImpressumPage() {
   const version = useContentVersion();
@@ -17,22 +22,15 @@ export default function ImpressumPage() {
 
   return (
     <PageShell eyebrow="Legal" title="Impressum" intro="Legal notice under § 5 of the German Digital Services Act (DDG)." meta={UPDATED}>
-      <DraftNotice>
-        Check these details against the business registration before launch, and add the VAT ID in
-        dashboard › Settings once it is issued.
-      </DraftNotice>
-
-      <Section title="Operator of this website">
+      <Section title="Information under § 5 DDG">
         <address className="not-italic text-espresso">
           {BUSINESS.name}
           <br />
-          Owner: {BUSINESS.owner}
-          {BUSINESS.address.map((line) => (
-            <span key={line}>
-              <br />
-              {line}
-            </span>
-          ))}
+          {BUSINESS.owner}
+          <br />
+          {BUSINESS.address.slice(0, 2).join(", ")}
+          <br />
+          {BUSINESS.address.slice(2).join(", ")}
         </address>
       </Section>
 
