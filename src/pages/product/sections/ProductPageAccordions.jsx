@@ -1,5 +1,6 @@
 /* Details Care Shipping And Product Safety */
 import { Link } from "react-router-dom";
+import { Droplets, Info, Ruler, ShieldCheck, Truck } from "lucide-react";
 
 import CareIcon from "../../../components/storefront/CareIcon";
 import { useCurrency } from "../../../context/CurrencyContext";
@@ -14,19 +15,28 @@ export default function ProductPageAccordions({ product }) {
   const { t } = useLanguage();
   const version = useContentVersion();
   const { data: settings } = useAsyncData(getSettings, [version]);
+  const details = [...(product.details ?? []), ...(product.materials ?? [])];
 
   return (
     <div className="mt-10 divide-y divide-umber-50 border-y border-umber-50">
-      <Accordion title={t("pdp.details", "Details & composition")}>
-        <ul className="list-disc space-y-1 pl-5">
-          {[...(product.details ?? []), ...(product.materials ?? [])].map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      </Accordion>
+      {product.description?.trim() && (
+        <Accordion icon={Info} title={t("pdp.description", "Description")}>
+          <p className="whitespace-pre-line leading-relaxed">{product.description}</p>
+        </Accordion>
+      )}
+
+      {details.length > 0 && (
+        <Accordion icon={Ruler} title={t("pdp.details", "Details & Composition")}>
+          <ul className="list-disc space-y-1 pl-5">
+            {details.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </Accordion>
+      )}
 
       {product.care?.length > 0 && (
-        <Accordion title={t("pdp.care", "Care instructions")}>
+        <Accordion icon={Droplets} title={t("pdp.care", "Care Instructions")}>
           <ul className="space-y-2.5">
             {splitCare(product.care).symbols.map((s) => (
               <li key={s.id} className="flex items-center gap-3 text-espresso">
@@ -45,7 +55,7 @@ export default function ProductPageAccordions({ product }) {
         </Accordion>
       )}
 
-      <Accordion title={t("pdp.shipping", "Shipping & returns")}>
+      <Accordion icon={Truck} title={t("pdp.shipping", "Shipping & Returns")}>
         <ShippingReturns product={product} zones={settings?.shipping?.zones ?? []} />
       </Accordion>
 
@@ -55,19 +65,18 @@ export default function ProductPageAccordions({ product }) {
 }
 
 // Native <details>, so it works before hydration and needs no open state.
-function Accordion({ title, children }) {
+// An icon, the name, and a + at the right that turns to × when open.
+function Accordion({ icon: Icon, title, children }) {
   return (
-    <details className="group py-4">
-      <summary className="flex cursor-pointer list-none items-center text-[11px] font-semibold uppercase tracking-[0.22em] text-espresso marker:hidden">
-        <span
-          aria-hidden="true"
-          className="mr-2 inline-block transition-transform duration-200 group-open:rotate-45"
-        >
+    <details className="group">
+      <summary className="flex cursor-pointer list-none items-center gap-3.5 py-5 text-[15px] text-espresso marker:hidden [&::-webkit-details-marker]:hidden">
+        {Icon && <Icon className="size-[18px] shrink-0 text-espresso-soft" strokeWidth={1.4} aria-hidden="true" />}
+        <span className="flex-1">{title}</span>
+        <span aria-hidden="true" className="text-xl font-light leading-none text-espresso-soft transition-transform duration-200 group-open:rotate-45">
           +
         </span>
-        {title}
       </summary>
-      <div className="mt-3 text-sm text-espresso-soft">{children}</div>
+      <div className="pb-5 pl-[32px] text-sm text-espresso-soft">{children}</div>
     </details>
   );
 }
@@ -143,7 +152,7 @@ function ProductSafety({ product, gpsr }) {
   if (!maker?.name && !seller && !warnings.length) return null;
 
   return (
-    <Accordion title={t("pdp.safety", "Product safety")}>
+    <Accordion icon={ShieldCheck} title={t("pdp.safety", "Product Safety")}>
       <dl className="space-y-1 leading-relaxed">
         {maker?.name && (
           <Row label={t("pdp.safetyManufacturer", "Manufacturer")}>

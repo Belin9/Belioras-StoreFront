@@ -89,6 +89,8 @@
         "hair": "Hair & Styling"
       },
       "pdp": {
+        "description": "Description",
+        "care": "Care Instructions",
         "chooseSize": "Choose a size",
         "sizeShort": "Size",
         "finderTitle": "Find your size",
@@ -113,7 +115,7 @@
         "returnsSealed": "Returnable within 14 days only while unopened and sealed. Once opened, hair cannot be returned, for hygiene reasons.",
         "shippingPolicy": "Shipping policy",
         "returnsPolicy": "Returns & refunds",
-        "safety": "Product safety",
+        "safety": "Product Safety",
         "safetyManufacturer": "Manufacturer",
         "safetySeller": "Sold by",
         "safetyContact": "Safety enquiries",
@@ -277,6 +279,8 @@
         "hair": "Coiffure & Stylisme"
       },
       "pdp": {
+        "description": "Description",
+        "care": "Entretien",
         "chooseSize": "Choisir une taille",
         "sizeShort": "Taille",
         "finderTitle": "Trouvez votre taille",
@@ -301,7 +305,7 @@
         "returnsSealed": "Retour possible sous 14 jours uniquement si l'article est fermé et scellé. Une fois ouverts, les cheveux ne sont pas repris, pour des raisons d'hygiène.",
         "shippingPolicy": "Politique de livraison",
         "returnsPolicy": "Retours et remboursements",
-        "safety": "Sécurité du produit",
+        "safety": "Sécurité du Produit",
         "safetyManufacturer": "Fabricant",
         "safetySeller": "Vendu par",
         "safetyContact": "Questions de sécurité",
@@ -465,6 +469,8 @@
         "hair": "Haar & Styling"
       },
       "pdp": {
+        "description": "Beschreibung",
+        "care": "Pflegehinweise",
         "chooseSize": "Größe wählen",
         "sizeShort": "Größe",
         "finderTitle": "Finden Sie Ihre Größe",
@@ -653,6 +659,8 @@
         "hair": "发型与造型"
       },
       "pdp": {
+        "description": "商品描述",
+        "care": "护理说明",
         "chooseSize": "选择尺码",
         "sizeShort": "尺码",
         "finderTitle": "查找您的尺码",
@@ -841,6 +849,8 @@
         "hair": "Cabello y Peinado"
       },
       "pdp": {
+        "description": "Descripción",
+        "care": "Cuidados",
         "chooseSize": "Elige una talla",
         "sizeShort": "Talla",
         "finderTitle": "Encuentra tu talla",
@@ -865,7 +875,7 @@
         "returnsSealed": "Se puede devolver en 14 días solo si está sin abrir y precintado. Una vez abierto, el cabello no admite devolución por motivos de higiene.",
         "shippingPolicy": "Política de envíos",
         "returnsPolicy": "Devoluciones y reembolsos",
-        "safety": "Seguridad del producto",
+        "safety": "Seguridad del Producto",
         "safetyManufacturer": "Fabricante",
         "safetySeller": "Vendido por",
         "safetyContact": "Consultas de seguridad",
@@ -1029,6 +1039,8 @@
         "hair": "Capelli & Styling"
       },
       "pdp": {
+        "description": "Descrizione",
+        "care": "Cura del Capo",
         "chooseSize": "Scegli una taglia",
         "sizeShort": "Taglia",
         "finderTitle": "Trova la tua taglia",
@@ -1053,7 +1065,7 @@
         "returnsSealed": "Reso entro 14 giorni solo se non aperto e sigillato. Una volta aperti, i capelli non sono restituibili per motivi igienici.",
         "shippingPolicy": "Politica di spedizione",
         "returnsPolicy": "Resi e rimborsi",
-        "safety": "Sicurezza del prodotto",
+        "safety": "Sicurezza del Prodotto",
         "safetyManufacturer": "Produttore",
         "safetySeller": "Venduto da",
         "safetyContact": "Richieste sulla sicurezza",

@@ -1,4 +1,4 @@
-/* Title Price And Description */
+/* Title And Price (the description is an accordion under Add to bag) */
 import { Share2 } from "lucide-react";
 
 import { useCurrency } from "../../../context/CurrencyContext";
@@ -49,10 +49,6 @@ export default function ProductPageSummary({ product }) {
           </span>
         )}
       </div>
-
-      <p className="mt-5 max-w-lg text-sm leading-relaxed text-espresso-soft">
-        {product.description}
-      </p>
 
       {product.sku && (
         <p className="mt-2 text-xs text-espresso-soft/70">SKU: {product.sku}</p>

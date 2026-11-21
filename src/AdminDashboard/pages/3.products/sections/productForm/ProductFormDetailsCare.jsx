@@ -16,7 +16,7 @@ export default function ProductFormDetailsCare({ register, values, setValue }) {
     setValue("careSymbols", chosen.includes(id) ? chosen.filter((c) => c !== id) : [...chosen, id], { shouldDirty: true });
 
   return (
-    <FormSection title="Details & care" hint="Shown on the product page. One item per line.">
+    <FormSection title="Details & care" hint="Shown under Details & Composition and Care Instructions on the product page. One item per line.">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Details" helper="e.g. Concealed back zip · Fully lined · Made in Portugal">
           <textarea rows={4} className="h-auto min-h-28 resize-y" {...register("details")} />
