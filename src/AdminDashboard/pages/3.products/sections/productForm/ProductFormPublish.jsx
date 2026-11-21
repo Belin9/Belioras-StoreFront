@@ -3,12 +3,12 @@ import Button from "@/components/ui/Button";
 import { cn } from "@/utils/cn";
 import { publishLabels } from "./publishLabels";
 
-/** The publishing card at the top of the side panel, on large screens. */
-export default function ProductFormPublish({ isEdit, status, submitting, hasDraft, onDiscardDraft, onSave, className }) {
+/** Status and the save buttons, on large screens. `bare` drops its own card, inside Publish and price. */
+export default function ProductFormPublish({ isEdit, status, submitting, hasDraft, onDiscardDraft, onSave, bare = false, className }) {
   const labels = publishLabels(isEdit, status);
 
   return (
-    <section className={cn("border border-umber-50 bg-ivory-50 p-5", className)}>
+    <section className={cn(!bare && "border border-umber-50 bg-ivory-50 p-5", className)}>
       <p className="flex items-center gap-2 text-[12px] text-espresso-soft">
         <span aria-hidden="true" className={cn("size-1.5 rounded-full", labels.live ? "bg-success" : "bg-umber-100")} />
         {labels.state}

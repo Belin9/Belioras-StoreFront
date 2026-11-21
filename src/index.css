@@ -9,9 +9,9 @@
 @theme {
   /* ---------- Typography ----------
      Webfonts are loaded from index.html. "Noto Serif SC" is not decorative:
-     GFS Didot carries no CJK glyphs, so the zh locale would fall through to
+     Bodoni Moda carries no CJK glyphs, so the zh locale would fall through to
      the browser default without it. */
-  --font-display: "GFS Didot", "Bodoni Moda", "Noto Serif SC", Georgia, serif;
+  --font-display: "Bodoni Moda", Didot, "Bodoni 72", "Noto Serif SC", Georgia, serif;
   --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "Fira Code", ui-monospace, monospace;
 

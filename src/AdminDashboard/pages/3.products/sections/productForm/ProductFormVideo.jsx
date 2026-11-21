@@ -106,8 +106,8 @@ export default function ProductFormVideo({ colors, colorIds, videos, onVideosCha
 
   return (
     <FormSection
-      title="Video (optional)"
-      hint="Optional. A 6 to 15 second silent clip per colour, portrait (3:4 or 9:16). It sits second in the gallery, after the lead photo, and uses that colour's first photo as its still."
+      title="Video"
+      hint="A 6 to 15 second silent clip per colour, portrait (3:4 or 9:16). It sits second in the gallery, after the lead photo, and uses that colour's first photo as its still."
     >
       {colorIds.length === 0 ? (
         <p className="text-[13px] text-espresso-soft">Choose the piece&rsquo;s colours first; each can have its own clip.</p>

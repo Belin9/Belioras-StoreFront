@@ -20,8 +20,8 @@ import ProductFormCategory from "./sections/productForm/ProductFormCategory";
 import ProductFormEssentials from "./sections/productForm/ProductFormEssentials";
 import ProductFormLabels from "./sections/productForm/ProductFormLabels";
 import ProductFormPhotos from "./sections/productForm/ProductFormPhotos";
-import ProductFormPricing from "./sections/productForm/ProductFormPricing";
-import ProductFormPublish from "./sections/productForm/ProductFormPublish";
+import ProductFormMore from "./sections/productForm/ProductFormMore";
+import ProductFormPublishPrice from "./sections/productForm/ProductFormPublishPrice";
 import SaveBar from "./sections/productForm/ProductFormSaveBar";
 import FormSkeleton from "./sections/productForm/ProductFormSkeleton";
 import ProductFormDetailsCare from "./sections/productForm/ProductFormDetailsCare";
@@ -149,13 +149,6 @@ export default function ProductForm() {
         <div className="min-w-0 space-y-4">
           <ProductFormEssentials register={form.register} errors={form.formState.errors} />
           <ProductFormPhotos photos={photos} onChange={setPhotos} colors={colors ?? []} colorIds={colorIds} onImageProgress={(p) => draft.updateDraft("new-product", { progress: p })} />
-          <ProductFormVideo
-            colors={colors ?? []} colorIds={colorIds} videos={videos} onVideosChange={setVideos}
-            photos={photos}
-          />
-          <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
-          <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
-          <ProductFormSafety register={form.register} />
           <ProductFormVariants
             colors={colors ?? []} colorIds={colorIds} onColorIdsChange={setColorIds}
             photos={photos} onPhotosChange={setPhotos} stock={stock} onStockChange={setStock}
@@ -163,20 +156,29 @@ export default function ProductForm() {
             spread={spread} onColorCreated={() => setRevision((n) => n + 1)}
             register={form.register} reserved={existing?.reservedCells ?? {}}
           />
+          {/* Optional extras, folded on a new piece so adding one stays short. */}
+          <ProductFormMore values={values} videos={videos}>
+            <ProductFormDetailsCare register={form.register} values={values} setValue={form.setValue} />
+            <ProductFormModel register={form.register} setValue={form.setValue} getValues={form.getValues} models={models ?? []} sizes={sizes} taxonomy={taxonomy ?? {}} />
+            <ProductFormVideo
+              colors={colors ?? []} colorIds={colorIds} videos={videos} onVideosChange={setVideos}
+              photos={photos}
+            />
+            <ProductFormSafety register={form.register} />
+          </ProductFormMore>
         </div>
 
         {/* Stays in view beside a long form. The page scrolls inside <main>,
             below the header, so it sticks to the top of that. */}
         <aside className="min-w-0">
           <div className="space-y-4 lg:sticky lg:top-0">
-            <ProductFormPublish {...actions} className="hidden lg:block" />
+            <ProductFormPublishPrice actions={actions} register={form.register} errors={form.formState.errors} values={values} setValue={form.setValue} />
             <ProductFormCategory
               categories={categories ?? []} value={values.collectionId} tags={tags}
               onChange={chooseCategory}
               onTagsChange={setTags}
               onCreated={(created) => { setRevision((n) => n + 1); chooseCategory(created); }}
             />
-            <ProductFormPricing register={form.register} errors={form.formState.errors} values={values} setValue={form.setValue} />
             <ProductFormLabels values={values} setValue={form.setValue} />
           </div>
         </aside>

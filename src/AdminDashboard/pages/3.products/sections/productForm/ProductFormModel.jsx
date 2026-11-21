@@ -19,7 +19,7 @@ export default function ProductFormModel({ register, setValue, getValues, models
   };
 
   return (
-    <FormSection title="Model (optional)" hint="Who wears this piece in its photos. Leave as Not shown and the product page shows no model.">
+    <FormSection title="Fit model" hint="Who wears this piece in its photos. Leave as Not shown and the product page shows no model.">
       <div>
         <p className="mb-3 text-[12px] text-espresso-soft">
           Shows her card and measurements on the product page, and &ldquo;Amara is 175 cm tall and wears size S&rdquo; under the sizes.

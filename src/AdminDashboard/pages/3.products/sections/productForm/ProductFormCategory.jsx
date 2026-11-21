@@ -33,7 +33,7 @@ export default function ProductFormCategory({ categories, value, tags, onChange,
   const activeSubcategory = chosen?.subcategories?.find((s) => s.id === activeSub) ?? null;
 
   return (
-    <FormSection title="Category">
+    <FormSection title="Organisation" hint="The category, and what it is filed under in the menu.">
       <div role="radiogroup" aria-label="Category" className="divide-y divide-umber-50 border border-umber-50 bg-white">
         {categories.map((c) => {
           const on = c.id === value;

@@ -4,7 +4,7 @@ import FormSection from "./ProductFormSection";
 
 export default function ProductFormEssentials({ register, errors }) {
   return (
-    <FormSection title="Details">
+    <FormSection title="Basics">
       <Field label="Name" required error={errors.name?.message}>
         <input {...register("name", { required: "Give the piece a name." })} placeholder="Aurora Satin Midi Dress" />
       </Field>
